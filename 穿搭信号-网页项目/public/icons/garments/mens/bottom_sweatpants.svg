@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
+  <title id="title">运动裤</title>
+  <desc id="desc">mens_bottom_sweatpants，独立品类轮廓，可通过 currentColor 着色。</desc>
+  <defs><mask id="details"><rect width="96" height="96" fill="#fff"/>
+      <polyline points="42,17 48,33 54,17" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="29,39 39,46" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="67,39 57,46" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </mask></defs>
+  <g mask="url(#details)" transform="translate(48 48) scale(1.08) translate(-48 -48)">
+    <rect x="25" y="15" width="46" height="14" rx="5" fill="currentColor"/>
+    <polygon points="25,26 47,26 43,80 28,85 22,79" fill="currentColor"/>
+    <polygon points="49,26 71,26 74,79 68,85 53,80" fill="currentColor"/>
+    <rect x="24" y="78" width="20" height="10" rx="3" fill="currentColor"/>
+    <rect x="52" y="78" width="20" height="10" rx="3" fill="currentColor"/>
+  </g>
+</svg>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>穿搭信号 · 最终素材验收</title>
+  <style>
+    :root{--ink:#171914;--muted:#70756b;--paper:#f3f1ea;--card:#fff;--line:#dddeda;--lime:#c8ff48;--radius:22px}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.shell{width:min(1180px,calc(100% - 32px));margin:auto;padding:32px 0 64px}header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:28px}.eyebrow{font:800 10px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#858b80}h1{margin:10px 0 8px;font-size:40px;line-height:1;letter-spacing:-.06em}header p{margin:0;color:var(--muted)}a{color:inherit}.back{text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;white-space:nowrap}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}.stat{background:var(--ink);color:#fff;border-radius:18px;padding:18px}.stat b{display:block;font-size:30px;line-height:1;color:var(--lime)}.stat span{display:block;margin-top:8px;color:#aeb4a8;font-size:11px}.notice{border:1px solid #d6d9ce;border-radius:16px;background:#fbfcf6;padding:14px 16px;color:#596052;margin-bottom:28px}.group{margin-top:26px}.group-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}.group h2{margin:0;font-size:24px;letter-spacing:-.04em}.count{color:var(--muted);font-size:11px}.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.tile{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;transition:.15s ease}.tile:hover{transform:translateY(-2px);border-color:#9cab75;box-shadow:0 10px 28px #20251b12}.art{height:112px;border-radius:15px;background:#f2f3ed;display:grid;place-items:center}.art img{width:76px;height:76px;object-fit:contain}.tile strong{display:block;margin-top:11px}.tile small{display:block;margin-top:2px;color:var(--muted);font:9px/1.3 ui-monospace,monospace;overflow-wrap:anywhere}.error{background:#fff0ec;color:#9c3427;border-radius:14px;padding:15px}.hidden{display:none}@media(max-width:850px){.grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:560px){.shell{width:calc(100% - 20px);padding-top:20px}header{display:block}.back{display:inline-block;margin-top:16px}.summary{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}h1{font-size:32px}.art{height:100px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header><div><div class="eyebrow">OUTFIT SIGNAL / FINAL ASSETS</div><h1>最终素材验收</h1><p>仅展示进入后端运行时的精简 SVG；点击任意卡片可打开原始 SVG。</p></div><a class="back" href="/">返回后端页面</a></header>
+    <section class="summary"><div class="stat"><b>17</b><span>男装基础素材</span></div><div class="stat"><b>20</b><span>女装基础素材</span></div><div class="stat"><b>4</b><span>天气配件</span></div><div class="stat"><b>41</b><span>最终 SVG 总数</span></div></section>
+    <div class="notice">目录结构保持为男装、女装、配件三套。防护靴已移除，雨雪防滑场景复用高帮鞋并由标签说明；原始上传 PNG 没有转换、覆盖或删除；连衣裙保留为详情素材，暂不进入自动推荐。</div>
+    <div id="groups"></div><div id="error" class="error hidden"></div>
+  </main>
+  <script>
+    const collections=[{key:"mens",title:"男装素材",count:17},{key:"womens",title:"女装素材",count:20},{key:"accessories",title:"配件素材",count:4}];
+    const labels={top_tank:"基础背心",top_camisole:"基础吊带",top_tshirt_short:"短袖 T 恤",top_tshirt_long:"长袖 T 恤",top_shirt:"长袖衬衫",top_sweatshirt:"卫衣",top_knit:"厚针织衫",top_knit_vest:"针织背心",outer_light_jacket:"薄款外套",outer_wool_coat:"厚大衣",outer_down_short:"厚羽绒服",outer_shell:"冲锋衣",bottom_shorts:"短裤",bottom_casual_pants:"常规长裤",bottom_sweatpants:"保暖长裤",bottom_skirt_short:"短裙",bottom_skirt_long:"长裙",onepiece_dress:"连衣裙",shoe_sneaker:"低帮鞋",shoe_canvas:"高帮鞋",shoe_leather:"正装皮鞋",shoe_pump:"高跟鞋",acc_umbrella:"雨伞",acc_baseball_cap:"棒球帽",acc_gloves:"手套",acc_beanie:"针织帽"};
+    const order={top:1,outer:2,bottom:3,onepiece:4,shoe:5,acc:6};
+    const assetVersion="20260827q";
+    const tile=asset=>{const a=document.createElement("a");a.className="tile";a.href=`${asset.url}?v=${assetVersion}`;a.target="_blank";a.rel="noopener";const art=document.createElement("div");art.className="art";const img=document.createElement("img");img.src=a.href;img.alt=labels[asset.key]||asset.key;art.append(img);const name=document.createElement("strong");name.textContent=labels[asset.key]||asset.key;const key=document.createElement("small");key.textContent=asset.key;a.append(art,name,key);return a};
+    async function load(){try{const response=await fetch("/api/v1/garment-assets");if(!response.ok)throw new Error("素材接口请求失败");const assets=await response.json();const root=document.getElementById("groups");collections.forEach(collection=>{const items=assets.filter(asset=>asset.collection===collection.key).sort((a,b)=>(order[a.category]||9)-(order[b.category]||9)||(labels[a.key]||a.key).localeCompare(labels[b.key]||b.key,"zh-CN"));const section=document.createElement("section");section.className="group";const head=document.createElement("div");head.className="group-head";const title=document.createElement("h2");title.textContent=collection.title;const count=document.createElement("span");count.className="count";count.textContent=`${items.length} 个 SVG`;head.append(title,count);const grid=document.createElement("div");grid.className="grid";grid.append(...items.map(tile));section.append(head,grid);root.append(section)})}catch(error){const box=document.getElementById("error");box.textContent=error.message;box.classList.remove("hidden")}}
+    load();
+  </script>
+</body>
+</html>

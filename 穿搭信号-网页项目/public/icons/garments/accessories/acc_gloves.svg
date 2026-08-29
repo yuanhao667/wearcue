@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
+  <title id="title">手套</title><desc id="desc">干净连续轮廓的面性保暖手套，可通过 currentColor 着色。</desc>
+  <!-- Font Awesome Free: mitten, CC BY 4.0 -->
+  <g transform="translate(48 48) scale(.91) translate(-48 -48)">
+    <path d="M352 384H64L5.4 178.9C1.8 166.4 0 153.4 0 140.3 0 62.8 62.8 0 140.3 0h3.4c66 0 123.5 44.9 139.5 108.9l31.4 125.8 17.6-20.1C344.8 200.2 362.9 192 382 192h2.8c34.9 0 63.3 28.3 63.3 63.3 0 15.9-6 31.2-16.8 42.9L352 384ZM32 448c0-17.7 14.3-32 32-32h288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H64c-17.7 0-32-14.3-32-32v-32Z" fill="currentColor" transform="translate(10 5) scale(.17)"/>
+  </g>
+</svg>

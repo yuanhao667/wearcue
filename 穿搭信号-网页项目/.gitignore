@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+coverage
+.DS_Store
+.env*
+!.env.example
+pnpm-debug.log*

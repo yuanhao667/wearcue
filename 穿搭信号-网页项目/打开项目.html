@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>穿搭信号｜网页项目说明</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: #f3f4ef;
+        color: #11130f;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+      main { width: min(680px, 100%); border: 1px solid #d9ddd2; border-radius: 28px; background: #fff; padding: 36px; box-shadow: 0 20px 60px rgba(21, 28, 16, .08); }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+      .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: #c9f05b; font-weight: 900; }
+      h1 { font-size: 24px; margin: 0; }
+      .slogan { margin: 3px 0 0; color: #6a7064; font-size: 13px; }
+      h2 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; }
+      p { color: #565d50; line-height: 1.75; }
+      code { padding: 3px 7px; border-radius: 7px; background: #f0f2eb; color: #20261a; }
+      ol { margin: 22px 0 28px; padding-left: 22px; line-height: 2; }
+      a { display: inline-flex; padding: 12px 18px; border-radius: 999px; background: #171a15; color: #fff; text-decoration: none; font-weight: 700; }
+      small { display: block; margin-top: 22px; color: #8a9084; line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <div class="mark">穿</div>
+        <div>
+          <h1>穿搭信号</h1>
+          <p class="slogan">每天少想一件事：穿什么。</p>
+        </div>
+      </div>
+      <h2>当前网页项目已经完整保存在本文件夹</h2>
+      <p>这不是单张静态网页，而是一套带天气接口、衣物推荐、衣橱和设置页的 Next.js 项目。请在本文件夹打开终端后运行：</p>
+      <ol>
+        <li><code>pnpm install</code></li>
+        <li><code>pnpm dev</code></li>
+        <li>浏览器打开 <code>http://localhost:3456</code></li>
+      </ol>
+      <a href="http://localhost:3456/">打开穿搭信号</a>
+      <small>如果点击后打不开，说明本地服务尚未启动。更完整的说明请查看同目录的“项目说明.md”。</small>
+    </main>
+  </body>
+</html>
