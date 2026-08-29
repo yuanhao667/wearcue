@@ -9,6 +9,10 @@ class LoginRequest(BaseModel):
     invite_code: str = Field(min_length=1, max_length=120)
 
 
+class ProfileUpdateRequest(BaseModel):
+    nickname: str = Field(min_length=1, max_length=5)
+
+
 class WeatherRuleRequest(BaseModel):
     apparent_min: float
     apparent_max: float
@@ -151,3 +155,10 @@ class SkipRequest(BaseModel):
 class ComfortFeedbackRequest(BaseModel):
     week_key: str = Field(pattern="^\\d{4}-W\\d{2}$")
     choice: Literal["cold", "just_right", "hot", "not_followed"]
+
+
+class RecommendationAdviceRequest(BaseModel):
+    scene: str = Field(pattern="^(commute|date|travel)$")
+    audience: str = Field(pattern="^(mens|womens)$")
+    items: List[OutfitComponent]
+    constraints: dict = Field(default_factory=dict)

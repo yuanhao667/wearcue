@@ -19,7 +19,7 @@ from app.schemas import (
     SkipRequest,
 )
 from app.services.image_service import ImageService
-from app.services.push_service import PushService
+from app.services.push_service import PushService, SubscriptionGoneError
 from app.services.store import store
 from app.services.vision_service import VisionService, VisionServiceError
 
@@ -255,14 +255,17 @@ async def test_notification(payload: NotificationTestRequest, user: CurrentUser)
     subscriptions = store.enabled_subscriptions(user["id"])
     status = "pending_provider" if not service.configured else "pending_subscription"
     if service.configured and subscriptions:
-        status = "sent"
+        sent = 0
         for subscription in subscriptions:
             try:
                 service.send(subscription, payload.message)
                 store.set_subscription_result(subscription["id"], "sent", user["id"])
+                sent += 1
+            except SubscriptionGoneError:
+                store.remove_subscription(subscription["id"], user["id"])
             except Exception:
-                status = "failed"
                 store.set_subscription_result(subscription["id"], "failed", user["id"])
+        status = "sent" if sent else "failed"
     return store.record_delivery(key, payload.message, status, user["id"])
 
 

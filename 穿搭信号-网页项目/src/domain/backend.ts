@@ -109,7 +109,7 @@ export interface RecommendationConstraints {
 }
 
 export interface BackendRecommendation {
-  source: "official" | "personal";
+  source: "official" | "personal" | "ai" | "system_ai";
   template_id: string;
   label: string;
   scene: SceneId;

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.auth import CurrentUser, allowed_invite_codes, bearer
-from app.schemas import LoginRequest
+from app.schemas import LoginRequest, ProfileUpdateRequest
 from app.services.store import store
 
 
@@ -23,6 +23,11 @@ async def login(payload: LoginRequest) -> dict:
 @router.get("/me")
 async def me(user: CurrentUser) -> dict:
     return {"user": user}
+
+
+@router.post("/profile")
+async def update_profile(payload: ProfileUpdateRequest, user: CurrentUser) -> dict:
+    return {"user": store.update_nickname(user["id"], payload.nickname.strip())}
 
 
 @router.post("/logout")

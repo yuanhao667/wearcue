@@ -23,6 +23,14 @@ const scenes: Array<{ id: SceneId; label: string }> = [
   { id: "date", label: "约会" },
   { id: "travel", label: "出行" },
 ];
+
+const HAT_KEYS = new Set(["acc_baseball_cap", "acc_beanie", "acc_sun_hat"]);
+const SLOT_ORDER: Record<string, number> = { top: 1, outerwear: 2, onepiece: 3, bottom: 4, shoes: 5, equipment: 6 };
+
+function itemSortKey(item: { slot: string; functional_icon_key?: string }) {
+  if (item.functional_icon_key && HAT_KEYS.has(item.functional_icon_key)) return 0;
+  return SLOT_ORDER[item.slot] ?? 99;
+}
 function dateLabel() {
   return new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "long" }).format(new Date());
 }
@@ -199,7 +207,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
             <Image className="recommendation-mascot" src="/brand/wearcue-bear.png" alt="" width={1536} height={1024} priority />
             <article className="recommendation-copy-card">
             <div className="recommendation-card-head">
-              <div className="card-caption"><span className="status-dot mint" />今日推荐 <small className="recommendation-source">{recommendation.source === "personal" ? "来自我的推荐池" : "官方基础方案"}</small></div>
+              <div className="card-caption"><span className="status-dot mint" />今日推荐 <small className="recommendation-source">{recommendation.source === "personal" ? "来自我的推荐池" : recommendation.source === "system_ai" ? "系统推荐" : "AI推荐方案"}</small></div>
               <div className="card-scene-switch" aria-label="穿搭场景">
                 {scenes.map((item) => <button key={item.id} className={scene === item.id ? "active" : ""} disabled={swapping} onClick={() => void selectScene(item.id)}>{item.label}</button>)}
               </div>
@@ -209,7 +217,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
             <div className="recommendation-outfit-area" ref={outfitAreaRef}>
               <div className="recommendation-outfit-head"><span>今日搭配<small>{recommendation.items.length} 件{recommendation.items.length > 6 ? " · 可滚动" : ""}</small></span><button disabled={swapping} onClick={() => void swap()}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 5.5A6 6 0 1 0 14 9" /><path d="M10.5 2.5h3v3" /></svg>{swapping ? "匹配中…" : "换一套"}</button></div>
               <div className="recommendation-outfit-strip" aria-label={`今日搭配，共 ${recommendation.items.length} 件`} tabIndex={recommendation.items.length > 6 ? 0 : undefined}>
-                {recommendation.items.map(outfitItem)}
+                {[...recommendation.items].sort((a, b) => itemSortKey(a) - itemSortKey(b)).map(outfitItem)}
               </div>
             </div>
             </article>

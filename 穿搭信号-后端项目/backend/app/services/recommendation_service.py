@@ -1,9 +1,14 @@
 import hashlib
+import json
 from dataclasses import asdict
-from typing import Dict, List, Optional, Sequence
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
+from uuid import uuid4
 
 from app.domain.official_templates import OfficialTemplate, TemplateItem, official_templates
 from app.domain.weather_rules import WeatherConstraints, WeatherInput, evaluate_weather_rules
+from app.services.outfit_ai_service import FUNCTIONAL_TO_ASSET, OutfitAIService
 
 
 class NoRecommendationError(ValueError):
@@ -185,4 +190,155 @@ def recommend_personal_outfit(
         "items": outfit["components"],
         "outfit_analysis": outfit.get("outfit_analysis") or None,
         "replication_guide": outfit.get("replication_guide") or _official_guide(outfit["components"], constraints),
+    }
+
+
+async def recommend_ai_outfit(
+    weather: WeatherInput,
+    scene: str,
+    audience: str,
+    city_id: str = "unknown",
+    local_date: str = "today",
+) -> Dict[str, object]:
+    """生成一套 AI 推荐穿搭（个人推荐池无命中时的首选兑底）。"""
+    constraints = evaluate_weather_rules(weather)
+    context = {
+        "scene": scene,
+        "audience": audience,
+        "city_id": city_id,
+        "local_date": local_date,
+        "thermal_band": constraints.thermal_band.value,
+        "calibrated_apparent_min": constraints.calibrated_apparent_min,
+        "apparent_max": weather.apparent_max,
+        "apparent_delta": constraints.apparent_delta,
+        "needs_waterproof": constraints.needs_waterproof,
+        "needs_heavy_rain_protection": constraints.needs_heavy_rain_protection,
+        "needs_snow_protection": constraints.needs_snow_protection,
+        "needs_windproof": constraints.needs_windproof,
+        "needs_sun_protection": constraints.needs_sun_protection,
+        "needs_strong_sun_protection": constraints.needs_strong_sun_protection,
+        "avoid_umbrella": constraints.avoid_umbrella,
+        "equipment": constraints.equipment,
+        "warnings": constraints.warnings,
+    }
+    result = await OutfitAIService().generate_items(context)
+    return {
+        "source": "ai",
+        "template_id": "ai-%s" % uuid4().hex[:8],
+        "label": result["label"],
+        "scene": scene,
+        "audience": audience,
+        "constraints": constraints.to_dict(),
+        "items": result["items"],
+        "outfit_analysis": None,
+        "replication_guide": None,
+    }
+
+
+@lru_cache(maxsize=1)
+def system_ai_templates() -> List[Dict[str, Any]]:
+    """预生成的系统推荐（AI 生成、离线存储，首页加载不调 AI）。"""
+    path = Path(__file__).resolve().parents[1] / "defaults" / "system_ai_outfits.json"
+    if not path.is_file():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload.get("outfits", [])
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def _protect_dict_items(
+    items: List[Dict[str, Any]], constraints: WeatherConstraints
+) -> List[Dict[str, Any]]:
+    """在预生成的系统推荐基础上，按当前天气确定性补齐防护单品。"""
+    result: List[Dict[str, Any]] = [dict(item) for item in items]
+    slots = {item.get("slot") for item in result}
+    keys = {item.get("functional_icon_key") for item in result}
+
+    if constraints.outerwear and "outerwear" not in slots:
+        result.append({
+            "slot": "outerwear",
+            "functional_icon_key": constraints.outerwear.functional_icon_key,
+            "asset_key": FUNCTIONAL_TO_ASSET.get(constraints.outerwear.functional_icon_key),
+            "variant_type": "可脱穿薄外层",
+            "color_name": "基础色",
+            "color_value": None,
+            "thickness": constraints.outerwear.thickness or "thin",
+        })
+    if constraints.outerwear and constraints.outerwear.functional_icon_key == "protective_outerwear":
+        protective = {
+            "slot": "outerwear",
+            "functional_icon_key": "protective_outerwear",
+            "asset_key": "outer_shell",
+            "variant_type": "防水防风外套" if constraints.needs_waterproof else "防风外套",
+            "color_name": "深色",
+            "color_value": None,
+            "thickness": constraints.outerwear.thickness or "regular",
+        }
+        result = [item for item in result if item.get("slot") != "outerwear"]
+        result.append(protective)
+    if constraints.shoes.functional_icon_key == "protective_shoes" and "protective_shoes" not in keys:
+        result = [item for item in result if item.get("slot") != "shoes"]
+        result.append({
+            "slot": "shoes",
+            "functional_icon_key": "protective_shoes",
+            "asset_key": "shoe_canvas",
+            "variant_type": "防滑防水靴" if constraints.needs_snow_protection else "防水鞋",
+            "color_name": "深色",
+            "color_value": None,
+            "thickness": "regular",
+        })
+    equipment_labels = {
+        "umbrella": ("雨伞", "acc_umbrella"),
+        "gloves": ("保暖手套", "acc_gloves"),
+        "sun_protection": ("棒球帽", "acc_baseball_cap"),
+    }
+    for equipment in constraints.equipment:
+        label, icon = equipment_labels.get(equipment, (equipment, "acc_umbrella"))
+        if icon not in keys:
+            result.append({
+                "slot": "equipment",
+                "functional_icon_key": icon,
+                "asset_key": icon,
+                "variant_type": label,
+                "color_name": "基础色",
+                "color_value": None,
+                "thickness": "regular",
+            })
+    return result
+
+
+def recommend_system_ai_outfit(
+    weather: WeatherInput,
+    scene: str,
+    audience: str,
+    city_id: str = "unknown",
+    local_date: str = "today",
+    excluded_template_ids: Optional[Sequence[str]] = None,
+) -> Dict[str, object]:
+    """从预生成批中选择一套系统推荐（快，不调 AI）。"""
+    constraints = evaluate_weather_rules(weather)
+    excluded = set(excluded_template_ids or ())
+    candidates = [
+        template
+        for template in system_ai_templates()
+        if template.get("thermal_band") == constraints.thermal_band.value
+        and template.get("audience") == audience
+        and template.get("id") not in excluded
+    ]
+    if not candidates:
+        raise NoRecommendationError("暂无系统推荐")
+    template = candidates[0]
+    items = _protect_dict_items(template.get("items") or [], constraints)
+    return {
+        "source": "system_ai",
+        "template_id": template["id"],
+        "label": template.get("label") or "系统推荐",
+        "scene": scene,
+        "audience": audience,
+        "constraints": constraints.to_dict(),
+        "items": items,
+        "outfit_analysis": template.get("outfit_analysis"),
+        "replication_guide": template.get("replication_guide") or _official_guide(items, constraints),
     }

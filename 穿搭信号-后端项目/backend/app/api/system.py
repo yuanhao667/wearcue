@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -6,12 +7,20 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.auth import CurrentUser
 from app.domain.weather_rules import WeatherInput, evaluate_weather_rules
-from app.schemas import GarmentAssetResponse, RecommendationRequest, WeatherRuleRequest
-from app.services.recommendation_service import recommend_official_outfit, recommend_personal_outfit
+from app.schemas import GarmentAssetResponse, RecommendationAdviceRequest, RecommendationRequest, WeatherRuleRequest
+from app.services.outfit_ai_service import OutfitAIService
+from app.services.recommendation_service import (
+    NoRecommendationError,
+    recommend_ai_outfit,
+    recommend_official_outfit,
+    recommend_personal_outfit,
+    recommend_system_ai_outfit,
+)
 from app.services.store import store
 from app.services.vision_service import VisionService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 STATIC_ROOT = Path(__file__).resolve().parents[1] / "static"
 GARMENT_ROOT = STATIC_ROOT / "garments"
 GARMENT_LABELS = {
@@ -83,8 +92,9 @@ async def evaluate(payload: WeatherRuleRequest) -> dict:
 @router.post("/recommendations/preview", tags=["recommendations"])
 async def preview_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
     audience = store.get_settings(user["id"])["audience"]
+    weather = _weather_input(payload)
     personal = recommend_personal_outfit(
-        weather=_weather_input(payload),
+        weather=weather,
         scene=payload.scene,
         audience=audience,
         outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
@@ -92,8 +102,22 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
     )
     if personal:
         return personal
+    # 系统推荐（预生成，不调 AI，快）
+    try:
+        return recommend_system_ai_outfit(
+            weather=weather,
+            scene=payload.scene,
+            audience=audience,
+            city_id=payload.city_id,
+            local_date=payload.local_date,
+            excluded_template_ids=payload.excluded_template_ids,
+        )
+    except NoRecommendationError:
+        pass
+    except Exception:
+        logger.exception("system recommendation failed, falling back to official templates")
     return recommend_official_outfit(
-        weather=_weather_input(payload),
+        weather=weather,
         scene=payload.scene,
         audience=audience,
         city_id=payload.city_id,
@@ -104,7 +128,65 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
 
 @router.post("/recommendations/swap", tags=["recommendations"])
 async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
-    return await preview_recommendation(payload, user)
+    audience = store.get_settings(user["id"])["audience"]
+    weather = _weather_input(payload)
+    personal = recommend_personal_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
+        excluded_ids=payload.excluded_template_ids,
+    )
+    if personal:
+        return personal
+    # 换一套：实时 AI 生成
+    try:
+        return await recommend_ai_outfit(
+            weather=weather,
+            scene=payload.scene,
+            audience=audience,
+            city_id=payload.city_id,
+            local_date=payload.local_date,
+        )
+    except Exception:
+        logger.exception("AI recommendation failed, falling back to official templates")
+        return recommend_official_outfit(
+            weather=weather,
+            scene=payload.scene,
+            audience=audience,
+            city_id=payload.city_id,
+            local_date=payload.local_date,
+            excluded_template_ids=payload.excluded_template_ids,
+        )
+
+
+def _summary_from_constraints(constraints: dict) -> str:
+    parts = [f"全天体感 {constraints.get('calibrated_apparent_min', 0)}° 左右"]
+    if constraints.get("needs_waterproof"):
+        parts.append("可能有降水")
+    if constraints.get("needs_heavy_rain_protection"):
+        parts.append("雨量较大")
+    if constraints.get("needs_snow_protection"):
+        parts.append("可能下雪")
+    if constraints.get("needs_windproof"):
+        parts.append("风力较强")
+    if constraints.get("needs_sun_protection"):
+        parts.append("紫外线较强")
+    if constraints.get("avoid_umbrella"):
+        parts.append("阵风大，慎用雨伞")
+    return "，".join(parts)
+
+
+@router.post("/recommendations/advice", tags=["recommendations"])
+async def recommendation_advice(payload: RecommendationAdviceRequest, user: CurrentUser) -> dict:
+    del user
+    summary = _summary_from_constraints(payload.constraints)
+    return await OutfitAIService().generate_advice(
+        [item.model_dump() for item in payload.items],
+        summary,
+        payload.scene,
+        payload.audience,
+    )
 
 
 @router.get(

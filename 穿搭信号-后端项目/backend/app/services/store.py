@@ -299,6 +299,15 @@ class Store:
         with self.connect() as db:
             db.execute("DELETE FROM sessions WHERE token_hash=?", (_hash(token),))
 
+    def update_nickname(self, user_id: str, nickname: str) -> Dict[str, Any]:
+        with self.connect() as db:
+            db.execute(
+                "UPDATE users SET nickname=?,updated_at=? WHERE id=?",
+                (nickname[:5], _now(), user_id),
+            )
+            row = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+        return self._user(row)
+
     def get_settings(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         with self.connect() as db:
             row = db.execute(
@@ -336,6 +345,20 @@ class Store:
                     (current["audience"], _now(), user_id),
                 )
         return self.get_settings(user_id)
+
+    def list_reminder_users(self) -> List[Dict[str, Any]]:
+        """Return every user whose daily reminder is enabled."""
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT * FROM user_settings WHERE reminder_enabled=1"
+            ).fetchall()
+        result: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            item["reminder_enabled"] = bool(item["reminder_enabled"])
+            item["reminder_days"] = json.loads(item["reminder_days"])
+            result.append(item)
+        return result
 
     @staticmethod
     def _outfit(row: sqlite3.Row) -> Dict[str, Any]:
@@ -674,6 +697,13 @@ class Store:
                 """UPDATE push_subscriptions SET last_result=?,updated_at=?
                 WHERE id=? AND user_id=?""",
                 (result, _now(), subscription_id, user_id),
+            )
+
+    def remove_subscription(self, subscription_id: str, user_id: str) -> None:
+        with self.connect() as db:
+            db.execute(
+                "DELETE FROM push_subscriptions WHERE id=? AND user_id=?",
+                (subscription_id, user_id),
             )
 
     def get_delivery(self, key: str, user_id: str) -> Optional[Dict[str, Any]]:
