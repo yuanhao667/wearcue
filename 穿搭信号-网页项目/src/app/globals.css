@@ -1267,7 +1267,7 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 @keyframes login-tip-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 .login-error { margin: -4px 0; border-left: 3px solid #f17147; background: rgb(241 113 71 / 8%); padding: 10px 12px; color: #b84e2e; font-size: 12px; line-height: 1.45; }
 .login-submit { height: 54px; display: flex; align-items: center; justify-content: center; gap: 12px; border: 1px solid #173b2c; border-radius: 999px; background: #173b2c; color: #c8ff32; font-size: 14px; font-weight: 800; cursor: pointer; }
-.login-form-simple .login-submit { height: 58px; margin-top: 12px; }
+.login-form-simple .login-submit { height: 58px; }
 .login-submit svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; animation: login-arrow-nudge 1.8s ease-in-out infinite; will-change: transform; }
 @keyframes login-arrow-nudge { 0%, 20%, 100% { transform: translate3d(0,0,0); } 52% { transform: translate3d(7px,0,0); } 68% { transform: translate3d(2.5px,0,0); } 82% { transform: translate3d(4.5px,0,0); } }
 .login-submit:disabled { cursor: wait; opacity: .58; }
@@ -1278,9 +1278,7 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .login-permission-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.7); transition: opacity .15s ease, transform .18s ease; }
 .login-permission input:checked + .login-permission-check { border-color: #c8ff32; background: #c8ff32; }
 .login-permission input:checked + .login-permission-check svg { opacity: 1; transform: scale(1); }
-.login-permission > span:last-child { display: grid; gap: 1px; }
 .login-permission strong { color: #394145; font-size: 12px; font-weight: 700; }
-.login-permission small { color: #969ca0; font-size: 10px; line-height: 1.35; }
 .login-permission.is-shaking { animation: login-permission-shake .42s ease-in-out; }
 @keyframes login-permission-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
 .login-footnote { margin: -3px 0 0; color: #969ca0; font-size: 10px; text-align: center; }

@@ -23,6 +23,11 @@ describe("LoginApp location consent", () => {
 
   it("blocks login and shakes until real location permission is granted", async () => {
     render(<LoginApp />);
+    const permission = screen.getByText("允许访问位置和天气").closest("label");
+    const submit = screen.getByRole("button", { name: /进入我的/ });
+    expect(permission).not.toBeNull();
+    expect(permission!.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText(/进入后直接读取|已允许/)).not.toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("怎么称呼你？"), { target: { value: "小明" } });
     fireEvent.click(screen.getByRole("button", { name: "男士" }));
     fireEvent.change(screen.getByPlaceholderText("输入邀请码"), { target: { value: "INVITE" } });
@@ -33,6 +38,7 @@ describe("LoginApp location consent", () => {
 
     fireEvent.click(screen.getByRole("checkbox", { name: /允许访问位置和天气/ }));
     await waitFor(() => expect(screen.getByRole("checkbox", { name: /允许访问位置和天气/ })).toBeChecked());
+    expect(screen.queryByText(/已允许/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /进入我的/ }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
