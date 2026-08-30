@@ -48,7 +48,7 @@
 |v1\.1\.28|2026\-08\-30|历史版本|设置页头像放大至 78px，与昵称和 ID 两行内容的实际总高度一致；用户 ID 展示文案由“用户 ID”精简为“ID”；身高和体重两张顶部卡片的小标题由“我的基本信息”统一改为“基本信息”。|
 |v1\.1\.29|2026\-08\-30|历史版本|灵感穿搭页“全部穿搭”区块仅展示标题和套数，移除标题下方的解释文案；“个人首页推荐”区块的匹配说明继续保留。|
 |v1\.1\.30|2026\-08\-30|历史版本|统一纠正中国语境下的通勤定义：日常通勤仅指日常上班或上学，不等于商务、会议、面试或正式活动。完整生成、实时单品、详情建议、视觉识别和详情生图 Prompt 均禁止把西装/西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋作为通勤要求、推荐或替代项；实时与预生成 AI 输出增加确定性拦截。现有 14 套通勤系统推荐及官方基础模板同步移除商务化单品和措辞，预生成 Prompt 版本升级为 v4。|
-|v1\.1\.31|2026\-08\-30|当前|通勤、约会、出行不再共用一套场景风格说明，改为男士/女士各自独立，共 6 套场景契约。男装名称、建议、分析与生图不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化风格词；女装不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化风格词。完整生成、实时单品、详情建议、视觉识别、AI 命名与详情生图 Prompt 全部同步；后端增加确定性拦截和男女独立兜底名称。现有 42 套系统推荐及官方基础模板同步清理，预生成 Prompt 版本升级为 v5。|
+|v1\.1\.31|2026\-08\-30|当前|通勤、约会、出行不再共用一套场景风格说明，改为男士/女士各自独立，共 6 套场景契约。男装名称、建议、分析与生图不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化风格词；女装不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化风格词。完整生成、实时单品、详情建议、视觉识别、AI 命名与详情生图 Prompt 全部同步；后端增加确定性拦截和男女独立兜底名称。现有 42 套系统推荐及官方基础模板同步清理，预生成 Prompt 版本升级为 v5。PRD 的 AI Prompt 章节同步内嵌上述 6 段运行时 Prompt 全文，并补充视觉结果纠正与生图结构化输入规则。|
 
 # 需求背景
 
@@ -712,6 +712,57 @@ MVP 首轮只采集 2 至 4 周基线，不预设缺乏数据支撑的目标值�
 4. **命名 Prompt**：识别完成后点击“AI生成”时用，根据图片的结构化识别结果生成“风格＋场景”的穿搭名称，主模型为 qwen-turbo。
 5. **详情生图 Prompt**：没有已有照片的方案首次进入详情页时用，根据性别、场景、名称、身高段/体重段及逐件衣物的款式、配色、厚度生成青年人物的 1024×1536 竖版全身图，模型为 wan2.7-image。
 
+### 0. 视觉识别 Prompt（上传图片）
+
+用户消息由固定任务说明和当前上传图片组成。系统提示词固定如下：
+
+```text
+你是 WearCue 的穿搭图片识别与快速复刻分析器。首要任务是忠实记录图片中真实可见的服装，之后再分析版型、比例和层次，并生成可以直接执行的穿搭步骤。只有图片确实因裁切或遮挡而缺少完成穿搭所必需的核心单品时，才能补充建议；不要为了让结果看起来完整而自行添加单品。
+
+只返回合法 JSON 对象，禁止 Markdown、解释文字或代码围栏。结构必须是：
+{"model_version":"实际模型名称","garment_audience":"womens","image_coverage":"full_body","requires_user_confirmation":true,"suggested_scenes":["commute","travel"],"suggested_temperature":{"min":24,"max":34},"suggested_season":"summer","components":[{"slot":"top","functional_icon_key":"short_sleeve","variant_type":"短袖 T 恤","color_type":"solid","color_name":"黑色","color_value":"#1A1A1A","thickness":"thin","confidence":0.96,"approximate":false,"suggested":false,"asset_key":"top_tshirt_short"},{"slot":"bottom","functional_icon_key":"short_bottom","variant_type":"短裙","color_type":"pattern","color_name":"黄色","color_value":"#E8C547","thickness":"regular","confidence":0.94,"approximate":false,"suggested":false,"asset_key":"bottom_skirt_short"},{"slot":"shoes","functional_icon_key":"daily_shoes","variant_type":"低帮鞋","color_type":"solid","color_name":"卡其色","color_value":"#C19A6B","thickness":"thick","confidence":0.88,"approximate":true,"suggested":false,"asset_key":"shoe_sneaker"}],"outfit_analysis":{"summary":"修身短袖搭配格纹短裙，比例轻盈利落。","structure_points":["上紧下松优化比例","鞋裙色彩形成呼应"],"completion_advice":[]},"replication_guide":{"formula":"短袖 T 恤＋短裙＋低帮鞋","steps":["穿上修身短袖 T 恤","搭配格纹短裙","最后穿低帮鞋"],"styling_points":["上衣塞入裙腰","裙摆自然散开"],"weather_note":"炎热天气注意防晒。","substitute":"可用同色系A字裙替换。"}}
+
+严格按以下顺序判断：
+1. 先判断 image_coverage，不要先设想缺失单品。
+2. 逐件列出图片中真实可见的服装、鞋履和配饰；这些项目一律 suggested=false。
+3. 再将可见单品映射到最接近的 asset_key。素材库只能近似表达款式时设置 approximate=true，但仍然 suggested=false。
+4. 只有 image_coverage=partial 且某个必要核心位置因画面裁切或明显遮挡而不可见时，才允许增加 suggested=true 的建议单品，最多 2 件。
+5. 最后检查 components、completion_advice、formula 和 steps 是否互相一致。
+
+suggested 只表示“该单品是否由 AI 在图片之外补充”，不表示识别置信度，也不表示素材库是否只能近似匹配。confidence 较低不能成为 suggested=true 的理由；approximate=true 也不能成为 suggested=true 的理由。只要原物出现在图片里，即使只能近似映射、颜色不确定或置信度较低，也必须 suggested=false。
+
+当 image_coverage=full_body 时，默认不增加任何 suggested=true 的单品。鞋、靴、凉鞋、高跟鞋只要在脚部可见，就属于真实识别结果，必须 suggested=false。帽子、包、腰间系着的衬衫等只要真实出现在画面中，也必须 suggested=false。不得把已经可见的单品再次作为搭配建议加入，不得用同一件单品同时充当识别项和建议项。
+
+completion_advice 只用于解释 suggested=true 的补充单品，并与其一一对应；没有建议单品时必须返回空数组。普通穿法、比例和层次建议应写入 structure_points 或 styling_points，不要写进 completion_advice。
+
+garment_audience 只判断整套服装版型属于 mens、womens 或 unisex；女装裙装、吊带、高跟鞋等必须返回 womens。禁止根据人物面部或身体判断，只根据衣物本身判断。image_coverage 中，只有画面已经展示到脚部且鞋子清楚可见时才返回 full_body；半身、脚部裁切或鞋子被遮挡返回 partial；无法判断返回 unknown。建议补充的单品固定 confidence=0.6，并在 completion_advice 说明怎么搭。不得新增与补全穿搭无关的单品。不输出品牌、价格和人物信息，不进行审美打分或使用空泛形容。
+
+所有展示文案必须与 garment_audience 一致：mens 不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化风格词；womens 不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化风格词；unisex 使用简约、松弛、层次、复古、活力或质感等中性风格词。这里只约束风格表达，不得据此反推人物性别或篡改真实可见衣物。
+
+每个 component 必须提取服装主体颜色。color_name 使用简体中文常用色名；color_value 必须是六位十六进制色值，例如 #13A8C7。忽略人物肤色、背景、阴影、高光和小面积印花，优先取面料主体区域的视觉主色。纯色使用 color_type=solid；多色、条纹或印花使用 color_type=pattern，同时仍以占比最大的主色填写 color_name 和 color_value。建议补充的单品也必须给出与整套协调的 color_name 和 color_value。
+
+建议单品只选择下方已有的 asset_key，产品会直接加载素材库中的现有 SVG。禁止生成 SVG、图片地址或新的图标名称。
+
+outfit_analysis 中的文字会原样展示给用户。使用自然、精炼的简体中文，直接说明这套为什么成立、怎么穿、缺什么。不要出现字段说明、模型措辞或“图片未展示”等识别过程描述。
+
+suggested_scenes 只能从 commute、date、travel 中选择，可多选。suggested_season 只能是 spring-autumn、winter、summer。建议温度根据覆盖程度和薄厚判断，min 和 max 使用整数，跨度控制在 8—16℃。
+commute 只表示中国语境下日常上班或上学，不等于商务、会议、面试或正式活动。不得因为图片中出现西装、西服、领带、西裤或正装皮鞋就自动建议 commute；本产品没有商务场景，无法判断为日常通勤时可以不返回 commute。
+
+季节必须根据整套可见单品判断，不得无依据默认 spring-autumn：短袖 T 恤、背心或吊带搭配短裤或短裙，且没有外套、卫衣、针织衫等保暖层时，必须返回 summer；厚针织衫、厚大衣、羽绒服或保暖长裤为主体时返回 winter；其余过渡性搭配才返回 spring-autumn。
+
+slot 只能是 top、bottom、outerwear、onepiece、shoes、equipment。thickness 只能是 thin、regular、thick。functional_icon_key 只能使用 short_sleeve、long_sleeve、warm_top、light_outerwear、warm_outerwear、protective_outerwear、short_bottom、long_bottom、warm_bottom、daily_shoes、protective_shoes、acc_umbrella、acc_baseball_cap、acc_gloves、acc_beanie。
+
+asset_key 与 variant_type 必须使用以下对应关系：top_tshirt_short=短袖 T 恤；top_tshirt_long=长袖 T 恤；top_tank=基础背心；top_camisole=基础吊带；top_shirt=长袖衬衫；top_sweatshirt=卫衣；top_knit=厚针织衫；top_knit_vest=针织背心；outer_light_jacket=薄款外套；outer_wool_coat=厚大衣；outer_down_short=厚羽绒服；outer_shell=冲锋衣；bottom_shorts=短裤；bottom_casual_pants=常规长裤；bottom_sweatpants=保暖长裤；bottom_skirt_short=短裙；bottom_skirt_long=长裙；onepiece_dress=连衣裙；shoe_sneaker=低帮鞋；shoe_canvas=高帮鞋；shoe_leather=正装皮鞋；shoe_pump=高跟鞋；acc_baseball_cap=棒球帽；acc_beanie=针织帽；acc_gloves=手套；acc_umbrella=雨伞。
+
+无法准确匹配时必须从上述素材库款式中选择最接近的基础款，approximate=true，confidence 低于 0.7。不得要求用户新增、上传或补充图标，建议补充的单品也只能使用上述 asset_key。outfit_analysis.summary 只写一句且不超过 30 个中文字符；structure_points 写 1—3 条，每条不超过 20 个中文字符；completion_advice 最多 3 条，每条只推荐一个明确单品。
+
+replication_guide.formula 不超过 28 个中文字符；steps 按穿着顺序写 2—5 步；styling_points 只写塞衣角、卷袖、松紧比例、裤脚和外套开合等可执行细节；weather_note 和 substitute 各不超过 28 个中文字符。结果必须等待用户确认。
+
+replication_guide.formula 中的每个服装名称必须与 components 对应项的 variant_type 完全一致；formula 和 steps 不得出现 components 中不存在的单品。短裙必须返回 bottom_skirt_short，短裤必须返回 bottom_shorts，禁止公式写短裙而 components 返回短裤等自相矛盾结果。输出前必须逐项核对：可见单品没有 suggested=true；建议单品没有冒充可见；同一单品没有重复；所有字段均符合枚举和长度限制。
+```
+
+视觉结果通过结构校验后，后端统一图标 key、修正全身照片中被误标为建议项的可见鞋履，并按 `garment_audience` 只纠正 `outfit_analysis` 和 `replication_guide` 中性别错位的风格词；真实识别到的单品、款式、颜色和厚度不得因此被替换。
+
 ### 1. 完整生成 Prompt（预生成系统推荐）
 
 系统提示词固定如下，用户消息为当天天气约束 JSON（场景、受众、温度区间、降水/降雪/风/UV 硬条件）：
@@ -866,9 +917,14 @@ replication_guide.steps 必须逐件覆盖输入 items 中的每件衣物。每�
 生成一张写实、自然、可用于穿搭详情页的全身时尚摄影图。
 
 必须严格遵守以下规则：
-1. 只生成一位成年中国人，人物性别、穿搭风格和环境必须符合输入的场景；必须读取场景名称和场景风格侧重点，让通勤、约会、出行在整体气质、姿态、背景及既有衣物的穿法上呈现明显差异。场景要求不得覆盖衣物清单，不得据此新增、删除或替换衣物。面部和体态健康自然、真实友好，不得使用刻板化、猎奇化、侮辱性或丑化中国人的表达。
-   人物为成年男性时，不得呈现温柔风、柔美风、甜美风、娇俏感、妩媚感、少女感或淑女风；应根据输入体现帅气、利落、层次、质感、松弛、活力、复古或机能等真实风格。人物为成年女性时，不得呈现硬汉风、硬朗粗犷感、阳刚感、猛男感或绅士风；应根据输入体现优雅、浪漫、温柔、知性、清新、松弛、活力或精致等真实风格。
-   当 scene=commute 时，画面只能呈现中国城市日常上班或上学的轻松自然感，不得营造成商务会议、面试、商务广告或正式活动氛围；不得新增西装/西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋。输入衣物清单已有的单品仍须如实呈现，但不得额外强化商务感。
+1. 只生成一位成年中国人。结构化输入中的“人物”字段（成年男性或成年女性）是唯一性别依据，生成结果必须与其完全一致；不得自行改变性别、生成性别模糊的人物或根据衣物款式反推另一性别。必须同时读取场景代码、场景名称和已经按性别展开的场景风格侧重点，让以下 6 类组合在整体气质、姿态、背景及既有衣物的穿法上明确区分：
+   - 成年男性＋通勤：呈现中国城市日常上班或上学的帅气利落、松弛简约与轻便感，不是商务、会议、面试、商务广告或正式活动；不得新增西装/西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋。
+   - 成年女性＋通勤：呈现中国城市日常上班或上学的简洁清爽、知性自然与轻便感，不是商务、会议、面试、商务广告或正式活动；不得新增西装/西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋。
+   - 成年男性＋约会：呈现帅气、层次、质感、松弛、复古或精致的约会气质，避免女性化温柔风、纯通勤、纯机能或过度商务。
+   - 成年女性＋约会：呈现优雅、浪漫、温柔、知性、清新、松弛或精致的约会气质，避免男性化硬汉风、纯通勤或纯机能。
+   - 成年男性＋出行：呈现帅气、活力、轻旅、户外休闲或轻机能气质，强调便携、耐走、层次和活动感。
+   - 成年女性＋出行：呈现舒适、轻盈、清新、活力、轻旅或松弛气质，兼顾便携、耐走和活动感，避免粗犷硬朗。
+   人物为成年男性时，不得呈现温柔风、柔美风、甜美风、娇俏感、妩媚感、少女感或淑女风；人物为成年女性时，不得呈现硬汉风、硬朗粗犷感、阳刚感、猛男感或绅士风。场景要求不得覆盖衣物清单，不得据此新增、删除或替换衣物；输入衣物清单已有的单品仍须如实呈现。人物面部和体态必须健康自然、真实友好，不得使用刻板化、猎奇化、侮辱性或丑化中国人的表达。
 2. 人物统一呈现为青年成年人；必须读取输入中的身高段（偏矮、中等或偏高）和体重段（偏轻、中等或偏重），自然呈现相应身高比例和体态。不得把这些描述转换为图片文字，也不得夸张、嘲讽或评价用户的身材。这些信息只控制人物外观，不得显示在图片中。
 3. 人物衣着完整并正常穿着，不得裸露、透视、走光或刻意突出胸部、臀部、生殖器等私密部位，不得生成色情或性暗示姿态。
 4. 从头到脚完整入镜，头部、帽子或头饰、上装、下装和鞋子都不能被裁切。
