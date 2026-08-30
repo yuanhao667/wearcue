@@ -1349,13 +1349,13 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .settings-profile-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .settings-profile-id { display: flex; align-items: center; gap: 16px; }
 .settings-profile-head .settings-avatar-photo,
-.settings-profile-head .settings-avatar-letter { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; flex: none; }
+.settings-profile-head .settings-avatar-letter { width: 78px; height: 78px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; flex: none; }
 .settings-avatar-photo { background-position: center; background-size: cover; }
-.settings-avatar-letter { background: var(--deep-green); color: var(--sunshine); font-size: 24px; font-weight: 750; }
+.settings-avatar-letter { background: var(--deep-green); color: var(--sunshine); font-size: 28px; font-weight: 750; }
 .settings-profile-copy { display: grid; gap: 7px; min-width: 0; }
 .settings-user-id { color: var(--graphite); font: 500 12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; user-select: all; }
 .settings-profile-head h1 { margin: 0; font-size: 40px; font-weight: 500; line-height: 1; text-align: left; }
-.settings-avatar-button { position: relative; width: 64px; height: 64px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; flex: none; cursor: pointer; background: transparent; }
+.settings-avatar-button { position: relative; width: 78px; height: 78px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; flex: none; cursor: pointer; background: transparent; }
 .settings-avatar-button::after { content: "更换"; position: absolute; inset: 0; display: grid; place-items: center; background: rgba(17,19,21,.55); color: #fff; font-size: 11px; font-weight: 700; opacity: 0; transition: opacity .15s ease; }
 .settings-avatar-button:hover::after, .settings-avatar-button:focus-visible::after { opacity: 1; }
 .settings-nickname-input { min-width: 0; width: min(240px, 45vw); border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 2px 0; margin: 0; font-size: 36px; font-weight: 500; line-height: 1; color: var(--ink); outline: none; }
