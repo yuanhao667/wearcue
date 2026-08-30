@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { locateCurrentDistrict, saveLoginLocation } from "@/lib/browser-location";
+import { clearTodaySession } from "@/lib/today-session";
 
 type Gender = "mens" | "womens";
 type FieldError = "nickname" | "gender" | "inviteCode" | "";
@@ -68,6 +69,7 @@ export function LoginApp() {
       const payload = await result.json() as { ok?: boolean; error?: string; user?: { id: string; nickname: string; gender: Gender } };
       if (!result.ok || !payload.ok) throw new Error(payload.error || "登录失败，请稍后重试");
       const user = payload.user || { nickname: cleanNickname.slice(0, 5), gender };
+      clearTodaySession();
       localStorage.setItem("wearcue_profile_v1", JSON.stringify({ id: "id" in user ? user.id : undefined, nickname: user.nickname, avatar: "", gender: user.gender, invited: true }));
       window.dispatchEvent(new Event("wearcue-profile"));
       router.replace("/");

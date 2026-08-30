@@ -7,6 +7,7 @@ import { TimePicker } from "./TimePicker";
 import { profileSnapshot, subscribeProfile } from "./AppNav";
 import { apiJson } from "@/lib/backend-api";
 import { ensurePushSubscription } from "@/lib/push";
+import { clearTodaySession } from "@/lib/today-session";
 import type { City } from "@/domain/types";
 import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
 import type { Audience, BackendSettings } from "@/domain/backend";
@@ -76,7 +77,7 @@ export function SettingsApp() {
 
   async function update(patch: Record<string, unknown>, successMessage = "设置已保存") {
     setSaving(true); setMessage("");
-    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); setMessage(successMessage); return true; }
+    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); clearTodaySession(); setMessage(successMessage); return true; }
     catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); return false; }
     finally { setSaving(false); }
   }
@@ -93,6 +94,7 @@ export function SettingsApp() {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
     localStorage.removeItem("wearcue_profile_v1");
+    clearTodaySession();
     window.dispatchEvent(new Event("wearcue-profile"));
     router.replace("/login");
   }
@@ -144,6 +146,7 @@ export function SettingsApp() {
       // 权限请求需在用户手势上下文内，先于网络请求执行（Safari 要求）
       const pushStatus = enabled ? await ensurePushSubscription() : null;
       await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify({ reminder_enabled: enabled }) });
+      clearTodaySession();
       setSettings(await apiJson<BackendSettings>("/settings"));
       if (enabled) {
         if (pushStatus === "enabled") setMessage("提醒已开启，浏览器通知已就绪");

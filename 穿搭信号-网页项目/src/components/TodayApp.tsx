@@ -10,15 +10,10 @@ import { TypingHeadline } from "./TypingHeadline";
 import { apiJson } from "@/lib/backend-api";
 import { locateCurrentDistrict, simplifyLocationName, takeLoginLocation } from "@/lib/browser-location";
 import { fetchBrowserWeather } from "@/lib/browser-weather";
+import { clearTodaySession, readTodaySession, saveTodaySession } from "@/lib/today-session";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
-
-export interface TodayInitialData {
-  settings: BackendSettings;
-  weather: TodayWeather;
-  recommendation: BackendRecommendation;
-}
 
 type RecommendationsByScene = Partial<Record<SceneId, BackendRecommendation>>;
 
@@ -138,21 +133,19 @@ function cacheActiveRecommendation(recommendation: BackendRecommendation) {
 function subscribeActiveRecommendation() { return () => undefined; }
 function activeRecommendationSnapshot() { return localStorage.getItem("wearcue_active_outfit_v1") || ""; }
 
-export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
+export function TodayApp() {
   const router = useRouter();
   const savedProfile = useSyncExternalStore(subscribeProfile, profileSnapshot, () => "");
   const activeRecommendationRaw = useSyncExternalStore(subscribeActiveRecommendation, activeRecommendationSnapshot, () => "");
   let nickname = "";
   try { nickname = savedProfile ? String(JSON.parse(savedProfile).nickname || "").trim() : ""; } catch { nickname = ""; }
-  const [settings, setSettings] = useState<BackendSettings | null>(initial?.settings ?? null);
+  const [settings, setSettings] = useState<BackendSettings | null>(null);
   const outfitAreaRef = useRef<HTMLDivElement>(null);
-  const [weather, setWeather] = useState<TodayWeather | null>(initial?.weather ?? null);
-  const [recommendationsByScene, setRecommendationsByScene] = useState<RecommendationsByScene>(
-    initial ? { [initial.recommendation.scene]: initial.recommendation } : {},
-  );
-  const [sceneState, setScene] = useState<SceneId>(initial?.recommendation.scene ?? "commute");
+  const [weather, setWeather] = useState<TodayWeather | null>(null);
+  const [recommendationsByScene, setRecommendationsByScene] = useState<RecommendationsByScene>({});
+  const [sceneState, setScene] = useState<SceneId>("commute");
   const [useRestoredRecommendation, setUseRestoredRecommendation] = useState(true);
-  const [status, setStatus] = useState<"loading" | "success" | "error">(initial ? "success" : "loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [swapping, setSwapping] = useState(false);
@@ -195,6 +188,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
       setSettings(nextSettings);
       setWeather(nextWeather);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
+      saveTodaySession(nextSettings, nextWeather, nextRecommendation);
       setStatus("success");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "今日数据暂时不可用");
@@ -203,9 +197,20 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadToday(initial?.recommendation.scene ?? "commute"), 0);
+    const timer = window.setTimeout(() => {
+      const cached = readTodaySession();
+      if (!cached) {
+        void loadToday("commute");
+        return;
+      }
+      setSettings(cached.settings);
+      setWeather(cached.weather);
+      setRecommendationsByScene({ [cached.recommendation.scene]: cached.recommendation });
+      setScene(cached.recommendation.scene);
+      setStatus("success");
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [initial?.recommendation.scene, loadToday]);
+  }, [loadToday]);
 
   useEffect(() => {
     void apiJson<AIUsageQuota>("/ai-usage-quota")
@@ -239,6 +244,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
     if (!weather || !settings) return;
     if (existing) {
       cacheActiveRecommendation(existing);
+      saveTodaySession(settings, weather, existing);
       return;
     }
     setSwapping(true);
@@ -250,6 +256,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
       });
       cacheActiveRecommendation(nextRecommendation);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
+      saveTodaySession(settings, weather, nextRecommendation);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "推荐暂时不可用");
     } finally { setSwapping(false); }
@@ -270,6 +277,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
       });
       cacheActiveRecommendation(nextRecommendation);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
+      saveTodaySession(settings, weather, nextRecommendation);
       if (nextRecommendation.ai_quota) setSwapQuota(nextRecommendation.ai_quota);
       if (nextRecommendation.ai_fallback_reason === "quota_exhausted") {
         setMessage("今日实时 AI 换一套已用完，已为你切换非 AI 方案，仍可无限换。");
@@ -289,6 +297,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
         method: "POST",
         body: JSON.stringify({ city_id: city.id, city_name: city.name, latitude: city.latitude, longitude: city.longitude, timezone: city.timezone }),
       });
+      clearTodaySession();
       setUseRestoredRecommendation(false);
       setRecommendationsByScene({});
       await loadToday(scene);
