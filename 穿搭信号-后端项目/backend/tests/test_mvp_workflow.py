@@ -275,6 +275,30 @@ def test_ai_name_does_not_frame_commute_as_business(monkeypatch) -> None:
     ) == "日常通勤"
 
 
+@pytest.mark.parametrize(
+    ("audience", "raw_name", "expected"),
+    [("mens", "温柔约会", "帅气约会"), ("womens", "硬汉约会", "精致约会")],
+)
+def test_ai_name_corrects_gender_incompatible_style(
+    monkeypatch, audience: str, raw_name: str, expected: str
+) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, recognition_result, max_tokens, model, fallback_model):
+        return {"name": raw_name}
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    assert asyncio.run(
+        service.generate_name(
+            {
+                "components": [_component()],
+                "garment_audience": audience,
+                "suggested_scenes": ["date"],
+            }
+        )
+    ) == expected
+
+
 def test_text_ai_retries_once_with_the_task_fallback_model(monkeypatch) -> None:
     monkeypatch.setenv("AI_API_URL", "https://example.test/v1")
     monkeypatch.setenv("AI_API_KEY", "test-key")
@@ -340,7 +364,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
         }
 
     monkeypatch.setattr(service, "_call", fake_call)
-    items_result = asyncio.run(service.generate_items({"scene": "commute"}))
+    items_result = asyncio.run(service.generate_items({"scene": "commute", "audience": "mens"}))
     advice_result = asyncio.run(
         service.generate_advice(
             [],
@@ -353,7 +377,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     assert calls[0][2:] == (500, "qwen-turbo", "qwen3.8-flash", 0.2)
     assert calls[0][1]["scene_name"] == "通勤"
-    assert calls[0][1]["scene_requirements"].startswith("中国语境下的通勤")
+    assert calls[0][1]["scene_requirements"].startswith("中国语境下的男士通勤")
     assert "严禁主动生成" in calls[0][1]["scene_requirements"]
     assert "西装或西服、领带、西裤" in calls[0][1]["scene_requirements"]
     assert calls[1][1]["scene_name"] == "通勤"
@@ -373,11 +397,18 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
 
 @pytest.mark.parametrize(
-    ("scene", "scene_name", "keyword"),
-    [("commute", "通勤", "通勤仅指日常上班或上学"), ("date", "约会", "清爽约会"), ("travel", "出行", "轻机能")],
+    ("scene", "audience", "scene_name", "keyword"),
+    [
+        ("commute", "mens", "通勤", "男士通勤"),
+        ("commute", "womens", "通勤", "女士通勤"),
+        ("date", "mens", "约会", "男士约会"),
+        ("date", "womens", "约会", "女士约会"),
+        ("travel", "mens", "出行", "男士出行"),
+        ("travel", "womens", "出行", "女士出行"),
+    ],
 )
 def test_all_user_selected_scenes_are_expanded_for_ai(
-    monkeypatch, scene: str, scene_name: str, keyword: str
+    monkeypatch, scene: str, audience: str, scene_name: str, keyword: str
 ) -> None:
     service = OutfitAIService()
     captured = {}
@@ -390,11 +421,25 @@ def test_all_user_selected_scenes_are_expanded_for_ai(
         }
 
     monkeypatch.setattr(service, "_call", fake_call)
-    asyncio.run(service.generate_items({"scene": scene}))
+    asyncio.run(service.generate_items({"scene": scene, "audience": audience}))
 
     assert captured["scene"] == scene
     assert captured["scene_name"] == scene_name
     assert keyword in captured["scene_requirements"]
+
+
+def test_all_scenes_have_distinct_mens_and_womens_requirements() -> None:
+    from app.services.outfit_ai_service import scene_context_for
+
+    requirements = {
+        (scene, audience): scene_context_for(scene, audience)["scene_requirements"]
+        for scene in ("commute", "date", "travel")
+        for audience in ("mens", "womens")
+    }
+
+    assert len(set(requirements.values())) == 6
+    assert all("男士" in requirements[(scene, "mens")] for scene in ("commute", "date", "travel"))
+    assert all("女士" in requirements[(scene, "womens")] for scene in ("commute", "date", "travel"))
 
 
 def test_generated_commute_rejects_business_clothing(monkeypatch) -> None:
@@ -414,14 +459,32 @@ def test_generated_commute_rejects_business_clothing(monkeypatch) -> None:
 
     monkeypatch.setattr(service, "_call", fake_call)
     with pytest.raises(OutfitAIServiceError, match="商务正装元素"):
-        asyncio.run(service.generate_items({"scene": "commute"}))
+        asyncio.run(service.generate_items({"scene": "commute", "audience": "mens"}))
+
+
+@pytest.mark.parametrize(
+    ("audience", "label"),
+    [("mens", "温柔约会"), ("womens", "硬汉约会")],
+)
+def test_generated_style_rejects_wrong_gender_words(monkeypatch, audience: str, label: str) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, content, max_tokens, model, fallback_model, temperature=0.7):
+        return {
+            "label": label,
+            "items": [{"slot": "top", "functional_icon_key": "short_sleeve"}],
+        }
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    with pytest.raises(OutfitAIServiceError, match="性别不一致"):
+        asyncio.run(service.generate_items({"scene": "date", "audience": audience}))
 
 
 @pytest.mark.parametrize(
     ("scene", "requirement_start", "keyword"),
     [
-        ("commute", "中国语境下的通勤", "严禁主动生成"),
-        ("travel", "优先舒适", "轻机能"),
+        ("commute", "中国语境下的男士通勤", "严禁主动生成"),
+        ("travel", "男士出行", "轻机能"),
     ],
 )
 def test_outfit_image_receives_scene_context(
@@ -486,7 +549,8 @@ def test_generic_weather_labels_are_not_reused_across_scenes(
         }
 
     monkeypatch.setattr(service, "_call", fake_call)
-    assert asyncio.run(service.generate_items({"scene": scene}))["label"] == expected
+    expected_for_audience = "帅气约会" if scene == "date" else "活力出行" if scene == "travel" else expected
+    assert asyncio.run(service.generate_items({"scene": scene, "audience": "mens"}))["label"] == expected_for_audience
 
 
 def test_text_ai_does_not_change_models_for_auth_errors(monkeypatch) -> None:

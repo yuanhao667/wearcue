@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "outfits": [
     {
       "id": "system-ai-hot-mens-01",
@@ -65,7 +65,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-hot-womens-01",
@@ -131,7 +131,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-warm-mens-01",
@@ -196,7 +196,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-warm-womens-01",
@@ -261,7 +261,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-mild-mens-01",
@@ -328,7 +328,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-mild-womens-01",
@@ -406,7 +406,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-cool-mens-01",
@@ -483,7 +483,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-cool-womens-01",
@@ -559,7 +559,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-cold-womens-01",
@@ -636,7 +636,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-freezing-mens-01",
@@ -724,7 +724,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-freezing-womens-01",
@@ -814,7 +814,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-cold-mens-01",
@@ -890,13 +890,13 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-severe-mens-01",
       "thermal_band": "severe",
       "audience": "mens",
-      "label": "严寒通勤保暖装",
+      "label": "利落严寒通勤",
       "items": [
         {
           "slot": "top",
@@ -978,13 +978,13 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-severe-womens-01",
       "thermal_band": "severe",
       "audience": "womens",
-      "label": "严寒通勤保暖装",
+      "label": "简约严寒通勤",
       "items": [
         {
           "slot": "top",
@@ -1068,15 +1068,15 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 4
+      "prompt_version": 5
     },
     {
       "id": "system-ai-date-hot-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "hot",
       "audience": "mens",
-      "label": "温柔雅致约会装",
+      "label": "帅气层次约会装",
       "items": [
         {
           "slot": "top",
@@ -1125,7 +1125,7 @@
         "substitute": "若不喜欢长裤，可替换为同色系百慕大短裤；衬衫可替换为高品质纯色T恤"
       },
       "outfit_analysis": {
-        "summary": "这套穿搭以低饱和度的大地色系为主，通过亚麻与棉质的天然纹理展现温柔质感。米白与浅卡的组合既符合高温天气的视觉降温需求，又避免了纯运动装的随意感，营造出优雅、浪漫且不失精致的约会氛围。",
+        "summary": "这套穿搭以低饱和度的大地色系为主，通过亚麻与棉质的天然纹理展现自然质感。米白与浅卡的组合既符合高温天气的视觉降温需求，又避免了纯运动装的随意感，营造出帅气、松弛且不失精致的约会氛围。",
         "structure_points": [
           "色彩呼应：上衣与鞋履的白色系相互衬托，下装的卡其色作为过渡，整体色调柔和协调",
           "材质对比：亚麻的自然褶皱感与裤装的垂坠感形成微妙的质地对比，提升高级感",
@@ -1141,7 +1141,7 @@
     {
       "id": "system-ai-date-hot-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "hot",
       "audience": "womens",
       "label": "法式慵懒约会装",
@@ -1209,10 +1209,10 @@
     {
       "id": "system-ai-date-warm-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "warm",
       "audience": "mens",
-      "label": "温柔质感约会装",
+      "label": "松弛质感约会装",
       "items": [
         {
           "slot": "top",
@@ -1260,7 +1260,7 @@
         "substitute": "若觉得衬衫过于正式，可替换为高克重纯白T恤，保留休闲精致感。"
       },
       "outfit_analysis": {
-        "summary": "以大地色系构建温柔氛围，通过亚麻与棉质的纹理对比提升高级感，避免沉闷通勤风。",
+        "summary": "以大地色系构建松弛氛围，通过亚麻与棉质的纹理对比提升质感，避免沉闷通勤风。",
         "structure_points": [
           "浅米色上衣提亮肤色，灰褐色下装稳重压阵，形成柔和的色彩层次",
           "九分裤长优化身材比例，配合乐福鞋展现绅士细节"
@@ -1274,7 +1274,7 @@
     {
       "id": "system-ai-date-warm-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "warm",
       "audience": "womens",
       "label": "温柔法式浪漫",
@@ -1341,10 +1341,10 @@
     {
       "id": "system-ai-date-mild-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "mild",
       "audience": "mens",
-      "label": "温柔质感约会装",
+      "label": "帅气层次约会装",
       "items": [
         {
           "slot": "top",
@@ -1393,7 +1393,7 @@
         "substitute": "若无针织Polo，可用浅蓝色牛津纺衬衫代替；若无乐福鞋，可用干净的小白鞋或德训鞋代替。"
       },
       "outfit_analysis": {
-        "summary": "这套搭配以温柔的暖色调为主，通过针织与棉质的混搭，在保持22-26℃舒适度的同时，营造出一种松弛而不失精致的约会氛围。",
+        "summary": "这套搭配以协调的暖色调为主，通过针织与棉质的混搭，在保持22-26℃舒适度的同时，营造出一种松弛而不失精致的约会氛围。",
         "structure_points": [
           "色彩协调：米白+浅卡其+深棕，属于经典的同色系渐变，视觉上非常柔和。",
           "风格定位：Smart Casual（精致休闲），既没有西装的严肃，也没有运动装的随意，非常适合晚餐或散步等约会场景。"
@@ -1407,7 +1407,7 @@
     {
       "id": "system-ai-date-mild-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "mild",
       "audience": "womens",
       "label": "温柔法式浪漫",
@@ -1475,10 +1475,10 @@
     {
       "id": "system-ai-date-cool-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cool",
       "audience": "mens",
-      "label": "温柔层次约会装",
+      "label": "帅气层次约会装",
       "items": [
         {
           "slot": "top",
@@ -1530,7 +1530,7 @@
           "最后穿棕色乐福鞋，露出脚踝或搭配隐形袜"
         ],
         "styling_points": [
-          "利用卡其色与米白色的暖色调营造温柔氛围",
+          "利用卡其色与米白色的暖色调营造亲和氛围",
           "深灰色裤子压住整体色调，避免过于轻飘",
           "乐福鞋增加精致感，符合约会场景的优雅要求"
         ],
@@ -1554,7 +1554,7 @@
     {
       "id": "system-ai-date-cool-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cool",
       "audience": "womens",
       "label": "温柔法式约会装",
@@ -1633,10 +1633,10 @@
     {
       "id": "system-ai-date-cold-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cold",
       "audience": "mens",
-      "label": "温柔质感约会",
+      "label": "质感层次约会",
       "items": [
         {
           "slot": "top",
@@ -1688,7 +1688,7 @@
           "最后换上棕色切尔西靴，整理衣领和袖口"
         ],
         "styling_points": [
-          "利用米白与驼色的暖色调营造温柔氛围",
+          "利用米白与驼色的暖色调营造亲和氛围",
           "高领设计修饰颈部线条，增加精致感",
           "短款大衣优化身材比例，避免臃肿"
         ],
@@ -1696,7 +1696,7 @@
         "substitute": "若无大衣，可替换为深色西装外套；若怕冷，可在针织衫内加一件薄打底"
       },
       "outfit_analysis": {
-        "summary": "一套兼顾温度与风度的约会穿搭，通过同色系暖调搭配展现男士的温柔与优雅。",
+        "summary": "一套兼顾温度与风度的约会穿搭，通过同色系暖调搭配展现男士的从容与质感。",
         "structure_points": [
           "上浅下深再外暖：米白内搭提亮肤色，深灰裤子稳重，驼色外套增加浪漫氛围",
           "材质对比：柔软的针织与挺括的大衣形成视觉层次",
@@ -1712,7 +1712,7 @@
     {
       "id": "system-ai-date-cold-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cold",
       "audience": "womens",
       "label": "温柔知性约会",
@@ -1791,10 +1791,10 @@
     {
       "id": "system-ai-date-freezing-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "freezing",
       "audience": "mens",
-      "label": "温柔绅士暖调",
+      "label": "暖调层次约会",
       "items": [
         {
           "slot": "top",
@@ -1854,7 +1854,7 @@
         "substitute": "若无高领衫，可用圆领毛衣加一条轻薄羊绒围巾替代；若无切尔西靴，深色乐福鞋配厚袜亦可。"
       },
       "outfit_analysis": {
-        "summary": "这套穿搭专为寒冷天气下的约会场景设计，摒弃了厚重的机能感，转而通过高品质面料和柔和的大地色系展现男性的温柔与精致。",
+        "summary": "这套穿搭专为寒冷天气下的约会场景设计，摒弃了厚重的机能感，转而通过高品质面料和柔和的大地色系展现男性的从容与精致。",
         "structure_points": [
           "层次分明：贴身针织+挺括大衣，形成外松内紧的视觉平衡",
           "色彩和谐：燕麦、驼色与焦糖棕构成温暖的邻近色组合，极具亲和力",
@@ -1862,7 +1862,7 @@
         ],
         "completion_advice": [
           "建议搭配一块简约的金属腕表，增添细节处的精致感",
-          "发型保持整洁微卷或侧分，与温柔气质相呼应",
+          "发型保持整洁微卷或侧分，与松弛气质相呼应",
           "若室内暖气充足，可脱去大衣仅着针织衫，依然保持得体优雅"
         ]
       }
@@ -1870,7 +1870,7 @@
     {
       "id": "system-ai-date-freezing-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "freezing",
       "audience": "womens",
       "label": "温柔暖调约会",
@@ -1949,7 +1949,7 @@
     {
       "id": "system-ai-date-severe-mens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "severe",
       "audience": "mens",
       "label": "暖调绅士约会",
@@ -2004,7 +2004,7 @@
           "穿上棕色切尔西靴，整体色调在大地色系中形成呼应"
         ],
         "styling_points": [
-          "利用米白与驼色的邻近色营造温柔氛围",
+          "利用米白与驼色的邻近色营造亲和氛围",
           "深灰裤子压住上半身亮色，避免轻浮",
           "大衣长度建议过膝，提升气场同时保暖"
         ],
@@ -2028,7 +2028,7 @@
     {
       "id": "system-ai-date-severe-womens-01",
       "scene": "date",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "severe",
       "audience": "womens",
       "label": "温柔优雅约会装",
@@ -2107,7 +2107,7 @@
     {
       "id": "system-ai-travel-hot-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "hot",
       "audience": "mens",
       "label": "轻旅机能风",
@@ -2174,7 +2174,7 @@
     {
       "id": "system-ai-travel-hot-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "hot",
       "audience": "womens",
       "label": "松弛轻旅装",
@@ -2242,7 +2242,7 @@
     {
       "id": "system-ai-travel-warm-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "warm",
       "audience": "mens",
       "label": "轻旅机能松弛装",
@@ -2309,7 +2309,7 @@
     {
       "id": "system-ai-travel-warm-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "warm",
       "audience": "womens",
       "label": "轻旅活力",
@@ -2374,7 +2374,7 @@
     {
       "id": "system-ai-travel-mild-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "mild",
       "audience": "mens",
       "label": "轻旅机能松弛装",
@@ -2440,7 +2440,7 @@
     {
       "id": "system-ai-travel-mild-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "mild",
       "audience": "womens",
       "label": "轻旅松弛机能风",
@@ -2508,7 +2508,7 @@
     {
       "id": "system-ai-travel-cool-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cool",
       "audience": "mens",
       "label": "轻旅机能漫步",
@@ -2586,7 +2586,7 @@
     {
       "id": "system-ai-travel-cool-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cool",
       "audience": "womens",
       "label": "松弛轻旅机能风",
@@ -2665,7 +2665,7 @@
     {
       "id": "system-ai-travel-cold-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cold",
       "audience": "mens",
       "label": "轻旅机能暖行",
@@ -2744,7 +2744,7 @@
     {
       "id": "system-ai-travel-cold-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "cold",
       "audience": "womens",
       "label": "松弛感轻旅装",
@@ -2823,10 +2823,10 @@
     {
       "id": "system-ai-travel-freezing-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "freezing",
       "audience": "mens",
-      "label": "极寒轻旅机能装",
+      "label": "活力极寒出行",
       "items": [
         {
           "slot": "top",
@@ -2901,10 +2901,10 @@
     {
       "id": "system-ai-travel-freezing-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "freezing",
       "audience": "womens",
-      "label": "极寒轻旅机能装",
+      "label": "轻盈极寒出行",
       "items": [
         {
           "slot": "top",
@@ -2979,7 +2979,7 @@
     {
       "id": "system-ai-travel-severe-mens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "severe",
       "audience": "mens",
       "label": "极寒轻旅机能装",
@@ -3058,7 +3058,7 @@
     {
       "id": "system-ai-travel-severe-womens-01",
       "scene": "travel",
-      "prompt_version": 4,
+      "prompt_version": 5,
       "thermal_band": "severe",
       "audience": "womens",
       "label": "极寒松弛轻旅",

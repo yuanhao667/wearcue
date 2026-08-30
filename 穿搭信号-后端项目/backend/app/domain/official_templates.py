@@ -46,7 +46,7 @@ _BASE: Dict[ThermalBand, Sequence[Tuple[str, Tuple[TemplateItem, ...]]]] = {
     ),
     ThermalBand.cold: (
         ("暖感街头", (_item("top", "long_sleeve", "中厚针织", "黑色", "thick"), _item("outerwear", "warm_outerwear", "短呢外套", "深灰"), _item("bottom", "long_bottom", "厚长裤", "黑色"), _item("shoes", "daily_shoes", "短靴", "灰色"))),
-        ("硬朗暖层", (_item("top", "long_sleeve", "高领针织", "米白", "thick"), _item("outerwear", "warm_outerwear", "工装外套", "橄榄绿"), _item("bottom", "long_bottom", "厚直筒裤", "黑色"), _item("shoes", "daily_shoes", "短靴", "棕色"))),
+        ("暖感层次", (_item("top", "long_sleeve", "高领针织", "米白", "thick"), _item("outerwear", "warm_outerwear", "工装外套", "橄榄绿"), _item("bottom", "long_bottom", "厚直筒裤", "黑色"), _item("shoes", "daily_shoes", "短靴", "棕色"))),
     ),
     ThermalBand.freezing: (
         ("轻量御寒", (_item("top", "warm_top", "保暖打底", "黑色", "thick"), _item("outerwear", "warm_outerwear", "轻羽绒", "银灰", "thick"), _item("bottom", "warm_bottom", "加绒长裤", "深灰", "thick"), _item("shoes", "daily_shoes", "保暖短靴", "黑色"))),

@@ -18,6 +18,8 @@ completion_advice 只用于解释 suggested=true 的补充单品，并与其一�
 
 garment_audience 只判断整套服装版型属于 mens、womens 或 unisex；女装裙装、吊带、高跟鞋等必须返回 womens。禁止根据人物面部或身体判断，只根据衣物本身判断。image_coverage 中，只有画面已经展示到脚部且鞋子清楚可见时才返回 full_body；半身、脚部裁切或鞋子被遮挡返回 partial；无法判断返回 unknown。建议补充的单品固定 confidence=0.6，并在 completion_advice 说明怎么搭。不得新增与补全穿搭无关的单品。不输出品牌、价格和人物信息，不进行审美打分或使用空泛形容。
 
+所有展示文案必须与 garment_audience 一致：mens 不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化风格词；womens 不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化风格词；unisex 使用简约、松弛、层次、复古、活力或质感等中性风格词。这里只约束风格表达，不得据此反推人物性别或篡改真实可见衣物。
+
 每个 component 必须提取服装主体颜色。color_name 使用简体中文常用色名；color_value 必须是六位十六进制色值，例如 #13A8C7。忽略人物肤色、背景、阴影、高光和小面积印花，优先取面料主体区域的视觉主色。纯色使用 color_type=solid；多色、条纹或印花使用 color_type=pattern，同时仍以占比最大的主色填写 color_name 和 color_value。建议补充的单品也必须给出与整套协调的 color_name 和 color_value。
 
 建议单品只选择下方已有的 asset_key，产品会直接加载素材库中的现有 SVG。禁止生成 SVG、图片地址或新的图标名称。

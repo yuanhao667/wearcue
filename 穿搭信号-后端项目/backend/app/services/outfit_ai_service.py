@@ -29,21 +29,44 @@ VALID_SLOTS = {"top", "bottom", "outerwear", "onepiece", "shoes", "equipment"}
 VALID_THICKNESS = {"thin", "regular", "thick"}
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 COMMUTE_BUSINESS_TERMS = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
-SCENE_CONTEXT: Dict[str, Dict[str, str]] = {
-    "commute": {
+AUDIENCE_STYLE_TERMS = {
+    "mens": ("温柔", "柔美", "甜美", "娇俏", "妩媚", "少女", "淑女"),
+    "womens": ("硬汉", "硬朗", "粗犷", "阳刚", "猛男", "绅士"),
+}
+SCENE_CONTEXT: Dict[tuple[str, str], Dict[str, str]] = {
+    ("commute", "mens"): {
         "scene_name": "通勤",
-        "scene_requirements": "中国语境下的通勤仅指日常上班或上学，不是商务、会议、面试或正式活动。优先轻松自然、日常得体、轮廓简洁、易打理和方便走动；严禁主动生成、推荐或作为替代项加入西装或西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋，不得使用轻商务、正式感等措辞。优先选择 T 恤、卫衣、针织衫、休闲衬衫、夹克、风衣、牛仔裤、休闲裤、运动裤、半身裙、运动鞋或板鞋等日常单品；方案名突出松弛、简约、轻便或日常得体，不能只写天气感。",
+        "scene_requirements": "中国语境下的男士通勤仅指日常上班或上学，不是商务、会议、面试或正式活动。优先轻松自然、帅气利落、轮廓简洁、易打理和方便走动；严禁主动生成、推荐或作为替代项加入西装或西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋，不得使用轻商务、正式感等措辞。优先选择 T 恤、卫衣、针织衫、休闲衬衫、夹克、风衣、牛仔裤、休闲裤、运动裤、运动鞋或板鞋等日常单品；方案名突出帅气、利落、松弛、简约、轻便或质感，不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化词语，也不能只写天气感。",
     },
-    "date": {
+    ("commute", "womens"): {
+        "scene_name": "通勤",
+        "scene_requirements": "中国语境下的女士通勤仅指日常上班或上学，不是商务、会议、面试或正式活动。优先轻松自然、简洁清爽、日常得体、易打理和方便走动；严禁主动生成、推荐或作为替代项加入西装或西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋，不得使用轻商务、正式感等措辞。优先选择 T 恤、卫衣、针织衫、休闲衬衫、夹克、风衣、牛仔裤、休闲裤、运动裤、半身裙、运动鞋或板鞋等日常单品；方案名突出简约、知性、清新、松弛、轻便或日常得体，不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化词语，也不能只写天气感。",
+    },
+    ("date", "mens"): {
         "scene_name": "约会",
-        "scene_requirements": "优先精致协调、有视觉重点和约会氛围，颜色或层次应温柔、有质感，避免纯通勤或纯机能感；方案名突出温柔、优雅、浪漫、精致或松弛中的真实特点，禁止使用“清爽约会”这类天气词加场景的机械命名。",
+        "scene_requirements": "男士约会优先帅气得体、层次清楚、有质感和视觉重点，在配色、材质、轮廓或细节中体现约会氛围，避免纯通勤、纯机能或过度商务；方案名突出帅气、利落、层次、质感、松弛、复古或精致中的真实特点，不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化词语，也禁止使用“清爽约会”这类天气词加场景的机械命名。",
     },
-    "travel": {
+    ("date", "womens"): {
+        "scene_name": "约会",
+        "scene_requirements": "女士约会优先精致协调、有视觉重点和约会氛围，在配色、材质、轮廓或细节中体现优雅与质感，避免纯通勤或纯机能感；方案名突出优雅、浪漫、温柔、知性、清新、松弛或精致中的真实特点，不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化词语，也禁止使用“清爽约会”这类天气词加场景的机械命名。",
+    },
+    ("travel", "mens"): {
         "scene_name": "出行",
-        "scene_requirements": "优先舒适、方便活动、耐走、易打理，适合较长时间在外；整体采用轻旅、户外休闲或轻机能风格，在口袋、层次、材质和鞋履上体现便携、耐走与活动感，避免正统商务或过度精致束缚；方案名突出舒适、轻旅、活力、机能、便携或松弛中的真实特点，禁止使用“清爽出行”这类天气词加场景的机械命名。",
+        "scene_requirements": "男士出行优先舒适、方便活动、耐走、易打理，适合较长时间在外；整体采用帅气轻旅、户外休闲或轻机能风格，在口袋、层次、材质和鞋履上体现便携、耐走与活动感，避免正统商务或过度精致束缚；方案名突出帅气、活力、轻旅、机能、便携、层次或松弛中的真实特点，不得使用温柔、柔美、甜美、娇俏、妩媚、少女或淑女等女性化词语，也禁止使用“清爽出行”这类天气词加场景的机械命名。",
+    },
+    ("travel", "womens"): {
+        "scene_name": "出行",
+        "scene_requirements": "女士出行优先舒适、轻盈、方便活动、耐走、易打理，适合较长时间在外；整体采用轻旅、户外休闲或轻机能风格，在层次、材质、口袋和鞋履上体现便携、耐走与活动感，避免正统商务、粗犷硬朗或过度精致束缚；方案名突出舒适、轻盈、清新、活力、轻旅、便携或松弛中的真实特点，不得使用硬汉、硬朗、粗犷、阳刚、猛男或绅士等男性化词语，也禁止使用“清爽出行”这类天气词加场景的机械命名。",
     },
 }
-SCENE_LABEL_FALLBACKS = {"commute": "利落通勤", "date": "精致约会", "travel": "舒适出行"}
+SCENE_LABEL_FALLBACKS = {
+    ("commute", "mens"): "利落通勤",
+    ("commute", "womens"): "简约通勤",
+    ("date", "mens"): "帅气约会",
+    ("date", "womens"): "精致约会",
+    ("travel", "mens"): "活力出行",
+    ("travel", "womens"): "轻旅出行",
+}
 NAMING_SCENES = {"commute": "通勤", "date": "约会", "travel": "出行"}
 
 
@@ -93,9 +116,19 @@ def _profile_styling_points(profile: Dict[str, str]) -> List[str]:
     ]
 
 
+def scene_context_for(scene: str, audience: str) -> Dict[str, str]:
+    return SCENE_CONTEXT.get(
+        (scene, audience), {"scene_name": scene, "scene_requirements": ""}
+    )
+
+
 def _with_scene_context(payload: Dict[str, Any]) -> Dict[str, Any]:
     context = dict(payload)
-    context.update(SCENE_CONTEXT.get(_first_str(context.get("scene")), {}))
+    context.update(
+        scene_context_for(
+            _first_str(context.get("scene")), _first_str(context.get("audience"))
+        )
+    )
     return context
 
 
@@ -107,11 +140,22 @@ def _reject_business_commute(raw: Dict[str, Any], context: Dict[str, Any]) -> No
         raise OutfitAIServiceError("通勤方案误用了商务正装元素")
 
 
+def _reject_audience_style(raw: Dict[str, Any], context: Dict[str, Any]) -> None:
+    audience = _first_str(context.get("audience"))
+    text = json.dumps(raw, ensure_ascii=False)
+    if any(term in text for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
+        raise OutfitAIServiceError("穿搭风格与用户选择的性别不一致")
+
+
 def _normalize_label(raw: Any, context: Dict[str, Any]) -> str:
     scene = _first_str(context.get("scene"))
-    label = _first_str(raw, SCENE_LABEL_FALLBACKS.get(scene, "AI 穿搭方案"))
+    audience = _first_str(context.get("audience"))
+    fallback = SCENE_LABEL_FALLBACKS.get((scene, audience), "AI 穿搭方案")
+    label = _first_str(raw, fallback)
     if scene in {"date", "travel"} and "清爽" in label:
-        label = SCENE_LABEL_FALLBACKS[scene]
+        label = fallback
+    if any(term in label for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
+        label = fallback
     return label[:8]
 
 
@@ -122,6 +166,17 @@ def _normalize_outfit_name(raw: Any, recognition_result: Dict[str, Any]) -> str:
         for scene_id in recognition_result.get("suggested_scenes") or []
         if scene_id in NAMING_SCENES
     ]
+    audience = _first_str(recognition_result.get("garment_audience"))
+    if any(term in name for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
+        scene = suggested_scenes[0] if suggested_scenes else ""
+        return {
+            ("通勤", "mens"): "利落通勤",
+            ("通勤", "womens"): "简约通勤",
+            ("约会", "mens"): "帅气约会",
+            ("约会", "womens"): "精致约会",
+            ("出行", "mens"): "活力出行",
+            ("出行", "womens"): "轻旅出行",
+        }.get((scene, audience), "协调穿搭")
     if suggested_scenes:
         scene = next((scene_name for scene_name in suggested_scenes if scene_name in name), suggested_scenes[0])
         if scene == "通勤" and any(term in name for term in COMMUTE_BUSINESS_TERMS):
@@ -139,6 +194,9 @@ def _normalize_outfit_name(raw: Any, recognition_result: Dict[str, Any]) -> str:
 
 
 def name_follows_style_scene(name: str, recognition_result: Dict[str, Any]) -> bool:
+    audience = _first_str(recognition_result.get("garment_audience"))
+    if any(term in name for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
+        return False
     suggested_scenes = [
         NAMING_SCENES[scene_id]
         for scene_id in recognition_result.get("suggested_scenes") or []
@@ -261,6 +319,7 @@ class OutfitAIService:
             self.prompt, enriched_context, 1200, self.quality_model, self.fast_model
         )
         _reject_business_commute(raw, enriched_context)
+        _reject_audience_style(raw, enriched_context)
         return self._normalize(raw, enriched_context)
 
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -275,6 +334,7 @@ class OutfitAIService:
             temperature=0.2,
         )
         _reject_business_commute(raw, enriched_context)
+        _reject_audience_style(raw, enriched_context)
         items = self._normalize_items(raw.get("items"))
         if not items:
             raise OutfitAIServiceError("AI 未返回可映射到图标的单品")
@@ -292,21 +352,24 @@ class OutfitAIService:
         person_profile: Dict[str, str],
     ) -> Dict[str, Any]:
         """按需生成建议文案（点进详情时调用）。"""
+        enriched_context = _with_scene_context(
+            {
+                "scene": scene,
+                "audience": audience,
+                "weather": weather_summary,
+                "items": items,
+                "person_profile": person_profile,
+            }
+        )
         raw = await self._call(
             self.advice_prompt,
-            _with_scene_context(
-                {
-                    "scene": scene,
-                    "audience": audience,
-                    "weather": weather_summary,
-                    "items": items,
-                    "person_profile": person_profile,
-                }
-            ),
+            enriched_context,
             800,
             self.fast_model,
             self.quality_model,
         )
+        _reject_business_commute(raw, enriched_context)
+        _reject_audience_style(raw, enriched_context)
         guide = _normalize_guide(raw.get("replication_guide"))
         guide["styling_points"] = (
             _profile_styling_points(person_profile) + guide["styling_points"]

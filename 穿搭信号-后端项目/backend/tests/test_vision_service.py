@@ -75,6 +75,24 @@ def test_short_sleeve_with_short_bottom_is_always_summer() -> None:
     assert result["suggested_season"] == "summer"
 
 
+def test_vision_copy_uses_gender_appropriate_style_words() -> None:
+    mens = normalize_vision_result({
+        "garment_audience": "mens",
+        "outfit_analysis": {"summary": "温柔甜美约会风"},
+        "replication_guide": {"styling_points": ["营造柔美感"]},
+    })
+    womens = normalize_vision_result({
+        "garment_audience": "womens",
+        "outfit_analysis": {"summary": "硬汉粗犷出行风"},
+        "replication_guide": {"styling_points": ["强化阳刚感"]},
+    })
+
+    assert mens["outfit_analysis"]["summary"] == "协调清新约会风"
+    assert mens["replication_guide"]["styling_points"] == ["营造柔和感"]
+    assert womens["outfit_analysis"]["summary"] == "利落有层次出行风"
+    assert womens["replication_guide"]["styling_points"] == ["强化有力量感"]
+
+
 def test_prompt_example_is_valid_and_self_consistent() -> None:
     prompt = (Path(__file__).resolve().parents[1] / "app" / "prompts" / "vision_outfit.txt").read_text()
     example = VisionResult.model_validate(json.loads(next(line for line in prompt.splitlines() if line.startswith("{"))))

@@ -24,7 +24,7 @@ BANDS = [
 AUDIENCES = ["mens", "womens"]
 SCENES = ["commute", "date", "travel"]
 OUT_PATH = PROJECT_DIR / "backend" / "app" / "defaults" / "system_ai_outfits.json"
-PROMPT_VERSION = 4
+PROMPT_VERSION = 5
 
 
 def load_existing():

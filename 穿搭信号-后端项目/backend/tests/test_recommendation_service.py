@@ -109,6 +109,36 @@ class RecommendationTests(unittest.TestCase):
             text = str((template.label, template.items))
             self.assertFalse(any(term in text for term in forbidden), template.id)
 
+    def test_system_examples_use_gender_appropriate_style_words(self):
+        forbidden = {
+            "mens": ("温柔", "柔美", "甜美", "娇俏", "妩媚", "少女", "淑女"),
+            "womens": ("硬汉", "硬朗", "粗犷", "阳刚", "猛男", "绅士"),
+        }
+        templates = system_ai_templates()
+        self.assertEqual(len(templates), 42)
+        for outfit in templates:
+            text = json.dumps(outfit, ensure_ascii=False)
+            self.assertFalse(
+                any(term in text for term in forbidden[outfit["audience"]]), outfit["id"]
+            )
+
+    def test_system_example_names_are_distinct_between_genders(self):
+        templates = system_ai_templates()
+        labels = {
+            (outfit["scene"], outfit["thermal_band"], outfit["audience"]): outfit["label"]
+            for outfit in templates
+        }
+        for scene in ("commute", "date", "travel"):
+            for band in ("hot", "warm", "mild", "cool", "cold", "freezing", "severe"):
+                self.assertNotEqual(
+                    labels[(scene, band, "mens")], labels[(scene, band, "womens")]
+                )
+
+    def test_official_fallback_labels_are_gender_neutral(self):
+        forbidden = ("温柔", "柔美", "甜美", "娇俏", "硬汉", "硬朗", "粗犷", "阳刚")
+        for template in official_templates():
+            self.assertFalse(any(term in template.label for term in forbidden), template.id)
+
     def test_live_ai_result_is_deterministically_corrected_for_snow_and_wind(self):
         captured = {}
 
