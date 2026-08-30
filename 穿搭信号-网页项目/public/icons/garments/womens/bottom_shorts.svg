@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
+  <title id="title">短裤</title>
+  <desc id="desc">womens_bottom_shorts，独立品类轮廓，可通过 currentColor 着色。</desc>
+  <defs><mask id="details"><rect width="96" height="96" fill="#fff"/>
+      <polyline points="48,27 48,52" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="29,37 39,45" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="67,37 57,45" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="43,18 48,31 53,18" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </mask></defs>
+  <g mask="url(#details)" transform="translate(48 48) scale(1.22) translate(-48 -48)">
+    <rect x="24" y="16" width="48" height="13" rx="3" fill="currentColor"/>
+    <polygon points="24,26 47,26 44,79 17,79 21,42" fill="currentColor"/>
+    <polygon points="49,26 72,26 75,42 79,79 52,79" fill="currentColor"/>
+  </g>
+</svg>

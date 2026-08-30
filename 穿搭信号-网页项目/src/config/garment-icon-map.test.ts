@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { GARMENT_ICON_MAP, resolveGarmentIcon } from "./garment-icon-map";
 
 describe("garment icon vocabulary", () => {
+  it("publishes every mapped SVG with the frontend", () => {
+    const missing = GARMENT_ICON_MAP
+      .map((item) => item.svgFile)
+      .filter((svgFile) => !existsSync(join(process.cwd(), "public", svgFile.replace(/^\//, ""))));
+
+    expect(missing).toEqual([]);
+  });
+
   it("contains fully separated mens, womens and accessory collections", () => {
     expect(GARMENT_ICON_MAP).toHaveLength(41);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "mens")).toBe(true);
