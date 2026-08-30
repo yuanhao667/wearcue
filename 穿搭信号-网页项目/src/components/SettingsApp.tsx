@@ -7,6 +7,7 @@ import { TimePicker } from "./TimePicker";
 import { profileSnapshot, subscribeProfile } from "./AppNav";
 import { apiJson } from "@/lib/backend-api";
 import { ensurePushSubscription } from "@/lib/push";
+import { clearTodaySession } from "@/lib/today-session";
 import type { City } from "@/domain/types";
 import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
 import type { Audience, BackendSettings } from "@/domain/backend";
@@ -76,7 +77,7 @@ export function SettingsApp() {
 
   async function update(patch: Record<string, unknown>, successMessage = "设置已保存") {
     setSaving(true); setMessage("");
-    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); setMessage(successMessage); return true; }
+    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); clearTodaySession(); setMessage(successMessage); return true; }
     catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); return false; }
     finally { setSaving(false); }
   }
@@ -93,15 +94,16 @@ export function SettingsApp() {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
     localStorage.removeItem("wearcue_profile_v1");
+    clearTodaySession();
     window.dispatchEvent(new Event("wearcue-profile"));
     router.replace("/login");
   }
 
-  function saveProfile(patch: Partial<UserProfile>) {
+  function saveProfile(patch: Partial<UserProfile>, finishNicknameEdit = true) {
     const next = { ...profile, ...patch };
     localStorage.setItem("wearcue_profile_v1", JSON.stringify(next));
     window.dispatchEvent(new Event("wearcue-profile"));
-    setNicknameDraft(null);
+    if (finishNicknameEdit) setNicknameDraft(null);
   }
 
   async function changeAvatar(file?: File) {
@@ -129,7 +131,7 @@ export function SettingsApp() {
 
   async function saveNickname() {
     const name = displayNickname.trim().slice(0, 5);
-    if (!name || name === profile.nickname) { setNicknameDraft(null); return; }
+    if (!name) { setNicknameDraft(null); return; }
     saveProfile({ nickname: name });
     try {
       await apiJson("/auth/profile", { method: "POST", body: JSON.stringify({ nickname: name }) });
@@ -144,6 +146,7 @@ export function SettingsApp() {
       // 权限请求需在用户手势上下文内，先于网络请求执行（Safari 要求）
       const pushStatus = enabled ? await ensurePushSubscription() : null;
       await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify({ reminder_enabled: enabled }) });
+      clearTodaySession();
       setSettings(await apiJson<BackendSettings>("/settings"));
       if (enabled) {
         if (pushStatus === "enabled") setMessage("提醒已开启，浏览器通知已就绪");
@@ -185,10 +188,10 @@ export function SettingsApp() {
         </button>
         <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
         <div className="settings-profile-copy">
-          <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => setNicknameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
+          <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => { const name = event.target.value; setNicknameDraft(name); if (name.trim()) saveProfile({ nickname: name }, false); }} onBlur={() => void saveNickname()} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
           {userId && <span className="settings-user-id">ID：{userId}</span>}
         </div>
-        {displayNickname.trim() && displayNickname.trim() !== nickname ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
+        {nicknameDraft !== null && displayNickname.trim() ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
       </div>
     </header>
     {status === "loading" && <section className="paper-loading"><div /><div /><div /></section>}
@@ -199,7 +202,7 @@ export function SettingsApp() {
       <section className="settings-paper-card"><div className="card-caption">所在城市</div><h2>常用城市</h2><p>天气与推荐默认按这里的城市计算。</p><button className="setting-value" onClick={() => setCityOpen(true)}><span><b>{simplifyLocationName(settings.city_name)}</b><small>{settings.timezone}</small></span><strong>更改 →</strong></button></section>
       <section className="settings-paper-card"><div className="card-caption">每日提醒</div><div className="settings-card-title-row"><h2>晨间提醒</h2><label className="settings-switch"><input aria-label="开启晨间提醒" type="checkbox" checked={settings.reminder_enabled} onChange={(event) => void toggleReminder(event.target.checked)} /></label></div><p>每天在你设定的时间提醒查看穿搭。</p>{settings.reminder_enabled && <div className="paper-field"><span>提醒时间</span><TimePicker value={settings.reminder_time} onChange={(value) => void update({ reminder_time: value })} /></div>}</section>
       <section className="settings-paper-card"><div className="card-caption">体感偏好</div><h2>冷热偏好</h2><p>怕冷就向右微调，怕热就向左微调。</p><input className="paper-range" type="range" min="-6" max="6" step="2" value={settings.cold_offset} style={{ "--range-progress": `${((settings.cold_offset + 6) / 12) * 100}%` } as CSSProperties} onChange={(event) => void update({ cold_offset: Number(event.target.value) })} /><div className="range-labels"><span>更怕热</span><b>{settings.cold_offset === 0 ? "标准体感" : `${settings.cold_offset > 0 ? "+" : ""}${settings.cold_offset}°`}</b><span>更怕冷</span></div></section>
-      <section className="settings-paper-card"><div className="card-caption">穿搭偏好</div><h2>性别与服饰</h2><p>选择一次，上传识别和每日推荐都会默认沿用；配件继续共用。</p><div className="choice-grid">{(["mens", "womens"] as Audience[]).map((audience) => <button key={audience} className={settings.audience === audience ? "selected-choice" : ""} onClick={() => void update({ audience })}><b>{audience === "mens" ? "男装" : "女装"}</b><span>{audience === "mens" ? "男士相关穿搭" : "女士相关穿搭"}</span></button>)}</div></section>
+      <section className="settings-paper-card"><div className="card-caption">穿搭偏好</div><h2>性别与服饰</h2><p>选择一次，上传识别和每日推荐都会默认沿用。</p><div className="choice-grid">{(["mens", "womens"] as Audience[]).map((audience) => <button key={audience} className={settings.audience === audience ? "selected-choice" : ""} onClick={() => void update({ audience })}><b>{audience === "mens" ? "男装" : "女装"}</b><span>{audience === "mens" ? "男士相关穿搭" : "女士相关穿搭"}</span></button>)}</div></section>
     </div>}
     <button className="settings-logout-button" onClick={() => void logout()}>退出登录</button>
     {message && status === "success" && <div className={`save-notice ${saving ? "" : "ready"}`} aria-live="polite">{saving ? "正在保存…" : message}</div>}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
+  <title id="title">休闲长裤</title>
+  <desc id="desc">mens_bottom_casual_pants，独立品类轮廓，可通过 currentColor 着色。</desc>
+  <defs><mask id="details"><rect width="96" height="96" fill="#fff"/>
+      <polyline points="35,18 39,43" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="61,18 57,43" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="48,19 48,45" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="24,32 36,38" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="72,32 60,38" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </mask></defs>
+  <g mask="url(#details)" transform="translate(48 48) scale(1.08) translate(-48 -48)">
+    <polygon points="25,15 71,15 76,87 51,87 48,33 45,87 20,87" fill="currentColor"/>
+  </g>
+</svg>

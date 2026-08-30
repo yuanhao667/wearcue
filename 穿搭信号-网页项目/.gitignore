@@ -6,3 +6,4 @@ coverage
 .env*
 !.env.example
 pnpm-debug.log*
+.vefaas/

@@ -1,5 +1,7 @@
 import type { City } from "@/domain/types";
 
+const LOGIN_LOCATION_SESSION_KEY = "wearcue_login_location_v1";
+
 type ReverseLocation = {
   locality?: string;
   city?: string;
@@ -56,4 +58,20 @@ export async function locateCurrentDistrict(): Promise<City> {
     longitude,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
   };
+}
+
+export function saveLoginLocation(location: City) {
+  sessionStorage.setItem(LOGIN_LOCATION_SESSION_KEY, JSON.stringify(location));
+}
+
+export function takeLoginLocation(): City | null {
+  const raw = sessionStorage.getItem(LOGIN_LOCATION_SESSION_KEY);
+  sessionStorage.removeItem(LOGIN_LOCATION_SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const location = JSON.parse(raw) as City;
+    return Number.isFinite(location.latitude) && Number.isFinite(location.longitude) ? location : null;
+  } catch {
+    return null;
+  }
 }

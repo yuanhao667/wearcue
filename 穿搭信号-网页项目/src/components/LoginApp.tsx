@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { locateCurrentDistrict, saveLoginLocation } from "@/lib/browser-location";
+import { clearTodaySession } from "@/lib/today-session";
 
 type Gender = "mens" | "womens";
 type FieldError = "nickname" | "gender" | "inviteCode" | "";
@@ -23,6 +25,28 @@ export function LoginApp() {
   const [fieldError, setFieldError] = useState<FieldError>("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [locationAllowed, setLocationAllowed] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [permissionShake, setPermissionShake] = useState(0);
+
+  async function changeLocationPermission(checked: boolean) {
+    if (!checked) {
+      setLocationAllowed(false);
+      return;
+    }
+    setError("");
+    setLocating(true);
+    try {
+      const location = await locateCurrentDistrict();
+      saveLoginLocation(location);
+      setLocationAllowed(true);
+    } catch (reason) {
+      setLocationAllowed(false);
+      setError(reason instanceof Error ? reason.message : "暂时无法获取位置");
+    } finally {
+      setLocating(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,6 +55,7 @@ export function LoginApp() {
     if (!cleanNickname) { setFieldError("nickname"); return; }
     if (!gender) { setFieldError("gender"); return; }
     if (!inviteCode.trim()) { setFieldError("inviteCode"); return; }
+    if (!locationAllowed) { setPermissionShake((current) => current + 1); return; }
     setFieldError(""); setSubmitting(true);
     try {
       const result = await fetch("/api/auth/login", {
@@ -41,6 +66,7 @@ export function LoginApp() {
       const payload = await result.json() as { ok?: boolean; error?: string; user?: { id: string; nickname: string; gender: Gender } };
       if (!result.ok || !payload.ok) throw new Error(payload.error || "登录失败，请稍后重试");
       const user = payload.user || { nickname: cleanNickname.slice(0, 5), gender };
+      clearTodaySession();
       localStorage.setItem("wearcue_profile_v1", JSON.stringify({ id: "id" in user ? user.id : undefined, nickname: user.nickname, avatar: "", gender: user.gender, invited: true }));
       window.dispatchEvent(new Event("wearcue-profile"));
       router.replace("/");
@@ -70,7 +96,12 @@ export function LoginApp() {
         </div>{fieldError === "gender" && <span className="login-field-tip" role="alert">请选择性别</span>}</fieldset>
         <label className="login-field"><span className="login-field-label">邀请码</span><input aria-invalid={fieldError === "inviteCode"} aria-required="true" autoComplete="one-time-code" value={inviteCode} onChange={(event) => { setInviteCode(event.target.value); if (fieldError === "inviteCode") setFieldError(""); }} placeholder="输入邀请码" />{fieldError === "inviteCode" && <span className="login-field-tip" role="alert">请填写邀请码</span>}</label>
         {error && <p className="login-error" role="alert">{error}</p>}
-        <button className="login-submit" disabled={submitting} type="submit"><span>{submitting ? "正在进入…" : "进入我的 WearCue"}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12M11 5.5l4.5 4.5-4.5 4.5" /></svg></button>
+        <label className={`login-permission${permissionShake ? " is-shaking" : ""}`} key={permissionShake}>
+          <input checked={locationAllowed} disabled={locating} onChange={(event) => void changeLocationPermission(event.target.checked)} type="checkbox" />
+          <span className="login-permission-check" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="m3.5 9.5 3.3 3.3 7.7-8" /></svg></span>
+          <strong>允许访问位置和天气</strong>
+        </label>
+        <button aria-disabled={submitting || locating || !locationAllowed} className="login-submit" disabled={submitting || locating} type="submit"><span>{submitting ? "正在进入…" : "进入我的 WearCue"}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12M11 5.5l4.5 4.5-4.5 4.5" /></svg></button>
         <p className="login-footnote">继续即表示你接受邀请并同意保存上述个人偏好。</p>
       </form>
     </section>

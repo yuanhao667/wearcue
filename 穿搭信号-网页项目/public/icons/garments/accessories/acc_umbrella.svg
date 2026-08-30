@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
+  <title id="title">雨伞</title><desc id="desc">弧形伞面、分瓣下沿和弯柄构成的面性雨伞，可通过 currentColor 着色。</desc>
+  <g transform="translate(48 48) scale(.97) translate(-48 -48)">
+    <path d="M6 52C6 28 25 9 48 9s42 19 42 43c-7-6-14-6-21 0-7-6-14-6-21 0-7-6-14-6-21 0-7-6-14-6-21 0Z" fill="currentColor"/>
+    <path d="M45 48h6v27c0 8-5 14-13 14s-13-6-13-14v-4h7v4c0 4 2 7 6 7s7-3 7-7Z" fill="currentColor"/>
+  </g>
+</svg>

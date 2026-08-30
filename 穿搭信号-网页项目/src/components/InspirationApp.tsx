@@ -34,8 +34,13 @@ function recognitionAudience(result: Inspiration["result"], fallback: Audience):
   return result.components?.some((item) => womenOnlyKeys.has((item.asset_key ?? "").replace(/^womens_/, ""))) ? "womens" : fallback;
 }
 
-function outfitLabel(items: OutfitComponent[]) {
-  return ([...new Set(items.map((item) => item.variant_type.trim()).filter(Boolean))].slice(0, 3).join("＋") || "我的穿搭").slice(0, 30);
+export function recognitionOutfitName(result: Inspiration["result"], audience: Audience) {
+  const scene = result.suggested_scenes?.[0] ?? "commute";
+  const names: Record<Audience, Record<SceneId, string>> = {
+    mens: { commute: "利落通勤", date: "帅气约会", travel: "活力出行" },
+    womens: { commute: "简约通勤", date: "精致约会", travel: "轻旅出行" },
+  };
+  return names[audience][scene];
 }
 
 function thicknessLabel(value: OutfitComponent["thickness"]) {
@@ -144,7 +149,7 @@ export function InspirationApp() {
         const cachedComponents = uploaded.result.components.map((item) => normalizeComponent(item, detectedAudience));
         setGarmentAudience(detectedAudience);
         setComponents(cachedComponents);
-        setLabel(outfitLabel(cachedComponents));
+        setLabel(recognitionOutfitName(uploaded.result, detectedAudience));
         applySuggestions(uploaded.result, setScenes, setSuitableRange, setSeason);
         setStage("review");
         return;
@@ -157,7 +162,7 @@ export function InspirationApp() {
       setGarmentAudience(detectedAudience);
       setInspiration(analysed);
       setComponents(nextComponents);
-      setLabel(outfitLabel(nextComponents));
+      setLabel(recognitionOutfitName(analysed.result, detectedAudience));
       applySuggestions(analysed.result, setScenes, setSuitableRange, setSeason);
       setStage("review");
     } catch (error) {
@@ -272,7 +277,7 @@ export function InspirationApp() {
         </div> : <>
           {crossAudienceNotice}
           <div className="outfit-name-row">
-            <label className="paper-field"><span>这套穿搭叫什么 <small>最多 30 字</small></span><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /></label>
+            <label className="paper-field"><span>这套穿搭叫什么？（最多30字）</span><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /></label>
             <button className="ai-name-button" type="button" disabled={generatingName} onClick={() => void generateName()}>{generatingName ? "生成中…" : "AI生成"}</button>
           </div>
           <p className="outfit-name-hint">建议按“风格＋场景”命名，例如：{garmentAudience === "mens" ? "利落通勤、帅气约会、活力出行" : "简约通勤、精致约会、轻旅出行"}。</p>
