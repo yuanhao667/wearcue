@@ -114,7 +114,7 @@ def test_single_user_mvp_workflow(tmp_path, monkeypatch) -> None:
         "/api/v1/settings",
         json={
             "audience": "mens", "cold_offset": -2,
-            "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+            "height_group": "偏高", "weight_group": "中等",
         },
     )
     assert settings.status_code == 200
@@ -123,7 +123,7 @@ def test_single_user_mvp_workflow(tmp_path, monkeypatch) -> None:
         key: settings.json()[key]
         for key in ("height_group", "weight_group", "age_group")
     } == {
-        "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+        "height_group": "偏高", "weight_group": "中等", "age_group": "青年",
     }
 
     outfit_payload = {
@@ -333,7 +333,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
             "晴，30°C",
             "commute",
             "mens",
-            {"height_group": "偏高", "weight_group": "中等", "age_group": "壮年"},
+            {"height_group": "偏高", "weight_group": "中等"},
         )
     )
 
@@ -342,13 +342,13 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert calls[0][1]["scene_requirements"].startswith("优先得体利落")
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
-        "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+        "height_group": "偏高", "weight_group": "中等",
     }
     assert calls[1][3:5] == ("qwen-turbo", "qwen3.8-flash")
     assert items_result["label"] == "适合通勤场景的清"
     assert advice_result["replication_guide"]["styling_points"][:2] == [
         "保留完整纵向线条，衣袖和裤长避免偏短；采用合身但不紧绷的常规松量。",
-        "细节优先利落、稳重和易打理，同时保留舒适活动空间。",
+        "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
     ]
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
 
@@ -568,7 +568,7 @@ def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path,
     client = _client(test_store, monkeypatch)
     client.post(
         "/api/v1/settings",
-        json={"height_group": "偏高", "weight_group": "偏重", "age_group": "壮年"},
+        json={"height_group": "偏高", "weight_group": "偏重"},
     )
     calls = 0
 
@@ -617,7 +617,7 @@ def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path,
     assert calls == 1
     assert image_calls == 1
     assert captured_profile == {
-        "height_group": "偏高", "weight_group": "偏重", "age_group": "壮年",
+        "height_group": "偏高", "weight_group": "偏重",
     }
     assert captured_advice_profile == captured_profile
 

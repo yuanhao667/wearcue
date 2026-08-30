@@ -53,7 +53,6 @@ class OutfitImageService:
             "人物信息": {
                 "身高段": person_profile["height_group"],
                 "体重段": person_profile["weight_group"],
-                "年龄段": person_profile["age_group"],
             },
         }
         thickness_names = {"thin": "薄款", "regular": "常规", "thick": "厚款"}
@@ -76,7 +75,7 @@ class OutfitImageService:
                 + f"\n\n最高优先级服装清单：本次只能出现以下 {len(items)} 件衣物，"
                 + f"最终画面也必须恰好是 {len(items)} 件，不多不少。\n{garment_list}"
                 + ("\n明确禁止：\n" + "\n".join(forbidden) if forbidden else "")
-                + f"\n人物信息：{person_profile['age_group']}中国人，"
+                + "\n人物信息：青年中国人，"
                 + f"{person_profile['height_group']}身高，体重{person_profile['weight_group']}。"
                 + "自然呈现相应年龄感和体态比例，禁止夸张或评价身材。"
                 + "\n\n完整结构化输入：\n"

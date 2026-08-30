@@ -159,6 +159,7 @@ class Store:
                 self._add_column(db, table, "height_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "weight_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "age_group TEXT NOT NULL DEFAULT '青年'")
+                db.execute(f"UPDATE {table} SET age_group='青年' WHERE age_group<>'青年'")
             for table in ("push_subscriptions", "notification_deliveries", "feedback"):
                 self._add_column(db, table, "user_id TEXT")
             self._add_column(db, "analysis_events", "usage_type TEXT NOT NULL DEFAULT 'vision'")

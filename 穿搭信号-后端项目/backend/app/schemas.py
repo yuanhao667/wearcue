@@ -70,7 +70,6 @@ class SettingsUpdate(BaseModel):
     audience: Optional[Literal["mens", "womens"]] = None
     height_group: Optional[Literal["偏矮", "中等", "偏高"]] = None
     weight_group: Optional[Literal["偏轻", "中等", "偏重"]] = None
-    age_group: Optional[Literal["青年", "壮年", "老年"]] = None
     cold_offset: Optional[int] = Field(default=None, ge=-6, le=6, multiple_of=2)
     reminder_enabled: Optional[bool] = None
     reminder_time: Optional[str] = Field(default=None, pattern="^([01]\\d|2[0-3]):[0-5]\\d$")

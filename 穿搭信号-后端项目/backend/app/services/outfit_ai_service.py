@@ -86,12 +86,10 @@ def _profile_styling_points(profile: Dict[str, str]) -> List[str]:
         "中等": "采用合身但不紧绷的常规松量",
         "偏重": "选择有垂感且不过度贴身的松量，给肩腰和活动留出空间",
     }.get(profile.get("weight_group"), "采用合身但不紧绷的常规松量")
-    age = {
-        "青年": "细节可保持简洁轻快，同时兼顾当前场景的得体度",
-        "壮年": "细节优先利落、稳重和易打理，同时保留舒适活动空间",
-        "老年": "优先舒适、轻便、易穿脱，并选择稳定耐走的鞋履",
-    }.get(profile.get("age_group"), "细节保持得体、舒适并方便活动")
-    return [f"{height}；{weight}。", f"{age}。"]
+    return [
+        f"{height}；{weight}。",
+        "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
+    ]
 
 
 def _with_scene_context(payload: Dict[str, Any]) -> Dict[str, Any]:

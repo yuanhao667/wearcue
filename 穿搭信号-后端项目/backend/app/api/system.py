@@ -223,6 +223,9 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
             raise HTTPException(429, "今日 AI 穿搭建议次数已用完，可先参考下方基础搭配，明天再来生成")
         items = [item.model_dump() for item in payload.items]
         settings = store.get_settings(user["id"])
+        person_profile = {
+            key: settings[key] for key in ("height_group", "weight_group")
+        }
         try:
             advice_task = (
                 OutfitAIService().generate_advice(
@@ -230,10 +233,7 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                     payload.constraints,
                     payload.scene,
                     payload.audience,
-                    {
-                        key: settings[key]
-                        for key in ("height_group", "weight_group", "age_group")
-                    },
+                    person_profile,
                 )
                 if needs_advice
                 else None
@@ -245,10 +245,7 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                     payload.scene,
                     items,
                     payload.constraints,
-                    {
-                        key: settings[key]
-                        for key in ("height_group", "weight_group", "age_group")
-                    },
+                    person_profile,
                 )
                 if needs_image
                 else None
