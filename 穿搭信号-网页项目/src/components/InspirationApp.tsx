@@ -295,8 +295,8 @@ export function InspirationApp() {
           {message && <p className="inline-message" role="alert" aria-live="polite">{message}</p>}
           <div className="save-actions">
             <div className="save-action-option"><button className={`sunshine-button${savedOutfit?.in_pool ? " is-saved" : ""}`} aria-pressed={Boolean(savedOutfit?.in_pool)} disabled={stage === "saving" || generatingName || !scenes.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save(true)}>{savedOutfit?.in_pool && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button><p className="privacy-copy">符合当天的天气和场景时，将在<strong>首页推荐展示</strong>。</p></div>
-            <div className="save-action-option"><button className={`ghost-button${savedOutfit ? " is-saved" : ""}`} disabled={Boolean(savedOutfit) || stage === "saving" || generatingName || !scenes.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save(false)}>{savedOutfit && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit ? "已保存到全部穿搭" : "保存到全部穿搭"}</button><p className="privacy-copy">保存后将显示在全部穿搭，不会参与每日匹配。</p></div>
-            <div className="save-action-option"><Link className="ghost-button view-inspiration-button" href="/closet">查看灵感穿搭</Link><p className="privacy-copy">查看个人首页推荐与全部穿搭。</p></div>
+            <div className="save-action-option"><button className={`ghost-button${savedOutfit ? " is-saved" : ""}`} disabled={Boolean(savedOutfit) || stage === "saving" || generatingName || !scenes.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save(false)}>{savedOutfit && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit ? "已保存到全部穿搭" : "保存到全部穿搭"}</button></div>
+            <div className="save-action-option"><Link className="ghost-button view-inspiration-button" href="/closet">查看灵感穿搭</Link></div>
           </div>
         </>}
         {message && !components.length && <p className="inline-message" role="alert" aria-live="polite">{message}</p>}
