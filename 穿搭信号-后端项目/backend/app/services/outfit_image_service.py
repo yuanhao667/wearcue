@@ -6,6 +6,8 @@ from typing import Any, Dict, List
 
 import httpx
 
+from .outfit_ai_service import SCENE_CONTEXT
+
 
 class OutfitImageServiceError(RuntimeError):
     pass
@@ -34,10 +36,17 @@ class OutfitImageService:
     ) -> bytes:
         if not self.configured:
             raise OutfitImageServiceError("AI 生图模型尚未配置")
+        scene_context = SCENE_CONTEXT.get(
+            scene, {"scene_name": scene, "scene_requirements": ""}
+        )
         context = {
             "穿搭名称": label,
             "人物": "成年男性" if audience == "mens" else "成年女性",
-            "场景": {"commute": "通勤", "date": "约会", "travel": "出行"}.get(scene, scene),
+            "场景": {
+                "代码": scene,
+                "名称": scene_context["scene_name"],
+                "风格侧重点": scene_context["scene_requirements"],
+            },
             "衣物": [
                 {
                     "品类": item.get("variant_type"),
@@ -78,6 +87,9 @@ class OutfitImageService:
                 + "\n人物信息：青年中国人，"
                 + f"{person_profile['height_group']}身高，体重{person_profile['weight_group']}。"
                 + "自然呈现相应年龄感和体态比例，禁止夸张或评价身材。"
+                + f"\n场景风格要求：{scene_context['scene_requirements']}"
+                + "场景要求只控制整体气质、姿态、背景及既有衣物的穿法，"
+                + "不得为此新增、删除或替换衣物。"
                 + "\n\n完整结构化输入：\n"
                 + json.dumps(context, ensure_ascii=False)
             ),

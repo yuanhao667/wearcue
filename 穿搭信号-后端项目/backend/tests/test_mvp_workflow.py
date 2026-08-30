@@ -339,7 +339,8 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     assert calls[0][2:] == (500, "qwen-turbo", "qwen3.8-flash", 0.2)
     assert calls[0][1]["scene_name"] == "通勤"
-    assert calls[0][1]["scene_requirements"].startswith("优先得体利落")
+    assert calls[0][1]["scene_requirements"].startswith("优先轻松自然")
+    assert "传统商务正装" in calls[0][1]["scene_requirements"]
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
         "height_group": "偏高", "weight_group": "中等",
@@ -355,7 +356,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
 @pytest.mark.parametrize(
     ("scene", "scene_name", "keyword"),
-    [("commute", "通勤", "得体利落"), ("date", "约会", "清爽约会"), ("travel", "出行", "清爽出行")],
+    [("commute", "通勤", "轻松自然"), ("date", "约会", "清爽约会"), ("travel", "出行", "轻机能")],
 )
 def test_all_user_selected_scenes_are_expanded_for_ai(
     monkeypatch, scene: str, scene_name: str, keyword: str
@@ -376,6 +377,59 @@ def test_all_user_selected_scenes_are_expanded_for_ai(
     assert captured["scene"] == scene
     assert captured["scene_name"] == scene_name
     assert keyword in captured["scene_requirements"]
+
+
+@pytest.mark.parametrize(
+    ("scene", "requirement_start", "keyword"),
+    [
+        ("commute", "优先轻松自然", "传统商务正装"),
+        ("travel", "优先舒适", "轻机能"),
+    ],
+)
+def test_outfit_image_receives_scene_context(
+    monkeypatch, scene: str, requirement_start: str, keyword: str
+) -> None:
+    monkeypatch.setenv("AI_IMAGE_API_URL", "https://example.com/v1")
+    monkeypatch.setenv("AI_API_KEY", "test-key")
+    captured = {}
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"data": [{"b64_json": "aW1hZ2U="}]}
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def post(self, *args, **kwargs):
+            captured.update(kwargs["json"])
+            return FakeResponse()
+
+    monkeypatch.setattr("app.services.outfit_image_service.httpx.AsyncClient", FakeClient)
+    service = OutfitImageService()
+    asyncio.run(
+        service.generate(
+            "场景穿搭",
+            "mens",
+            scene,
+            [_component()],
+            {},
+            {"height_group": "中等", "weight_group": "中等"},
+        )
+    )
+
+    assert f"场景风格要求：{requirement_start}" in captured["prompt"]
+    assert keyword in captured["prompt"]
+    assert f'"风格侧重点": "{requirement_start}' in captured["prompt"]
 
 
 @pytest.mark.parametrize(
