@@ -85,7 +85,7 @@ export function LibraryApp() {
         <div className="library-grid">{poolOutfits.length ? poolOutfits.map(outfitCard) : <Link className="library-empty" href="/inspiration"><div><b aria-hidden="true">＋</b><strong>上传穿搭参考</strong></div></Link>}</div>
       </section>
       <section className="library-section">
-        <div className="library-section-head"><div><h1>全部穿搭 <span>{outfits.length} 套</span></h1><p><span className="library-highlight-copy">账号下的所有穿搭都在这里，设为个人首页推荐后仍会保留。</span></p></div></div>
+        <div className="library-section-head"><div><h1>全部穿搭 <span>{outfits.length} 套</span></h1></div></div>
         <div className="library-grid">{outfits.length ? outfits.map(outfitCard) : <Link className="library-empty" href="/inspiration"><div><b aria-hidden="true">＋</b><strong>上传穿搭参考</strong></div></Link>}</div>
       </section>
     </>}
