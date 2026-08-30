@@ -6,6 +6,7 @@ import { OutfitIcon } from "./OutfitIcon";
 import { apiJson } from "@/lib/backend-api";
 import type { Outfit } from "@/domain/backend";
 import { seasonLabel } from "@/domain/season";
+import { outfitItemSortKey } from "@/domain/outfit-order";
 import { crossAudienceGarmentLabels } from "@/config/garment-icon-map";
 
 export function LibraryApp() {
@@ -53,6 +54,7 @@ export function LibraryApp() {
 
   function outfitCard(outfit: Outfit) {
     const crossAudienceLabels = crossAudienceGarmentLabels(outfit.components, outfit.audience);
+    const icons = <div className="library-icons">{[...outfit.components].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b)).map((item, index) => <div className="library-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={outfit.audience} /><div><strong>{item.variant_type}</strong><em>{item.color_name}、{thicknessLabel(item.thickness)}</em></div></div>)}</div>;
     return <article className="library-card" key={outfit.id}>
       <div className="library-card-head">
         <div className="library-card-eyebrow-row">
@@ -64,7 +66,7 @@ export function LibraryApp() {
         </div>
         <h2 title={outfit.label}>{outfit.label}</h2>
       </div>
-      <div className="library-icons">{outfit.components.map((item, index) => <div className="library-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={outfit.audience} /><div><strong>{item.variant_type}</strong><em>{thicknessLabel(item.thickness)}</em></div></div>)}</div>
+      {icons}
       <div className="library-meta"><span>{outfit.scene_ids.map(sceneLabel).join(" · ")}</span><span className={crossAudienceLabels.length ? "is-cross-audience" : undefined}>{crossAudienceLabels.length ? (outfit.audience === "mens" ? "女装" : "男装") : outfit.audience === "mens" ? "男装" : "女装"}</span></div>
       <div className="library-actions">
         <button type="button" aria-pressed={outfit.in_pool} className={`library-toggle-button${outfit.in_pool ? " is-active" : ""}`} onClick={() => void togglePersonalRecommendation(outfit)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 8.5 10 3.5c.7 0 1.3.6 1.3 1.4v3h3.3c1.1 0 1.8 1 1.5 2l-1.2 5c-.2.7-.8 1.2-1.5 1.2H7.5V8.5ZM4 8.5h3.5v7.6H4V8.5Z" /></svg><span>{outfit.in_pool ? "移出个人首页推荐" : "设为个人首页推荐"}</span></button>

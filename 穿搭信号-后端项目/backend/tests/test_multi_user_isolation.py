@@ -42,6 +42,13 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert login_a.json()["user"]["id"] != login_b.json()["user"]["id"]
 
     assert client.get("/api/v1/outfits").status_code == 401
+    outfits_a = client.get("/api/v1/outfits", headers=_headers(token_a)).json()
+    outfits_b = client.get("/api/v1/outfits", headers=_headers(token_b)).json()
+    assert len(outfits_a) == len(outfits_b) == 1
+    assert outfits_a[0]["source"] == outfits_b[0]["source"] == "system"
+    assert outfits_a[0]["audience"] == "mens"
+    assert outfits_b[0]["audience"] == "womens"
+    assert outfits_a[0]["id"] != outfits_b[0]["id"]
     client.post("/api/v1/settings", json={"cold_offset": -4}, headers=_headers(token_a))
     assert client.get("/api/v1/settings", headers=_headers(token_a)).json()["cold_offset"] == -4
     assert client.get("/api/v1/settings", headers=_headers(token_b)).json()["cold_offset"] == 0
@@ -59,21 +66,6 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert outfit["id"] not in {
         item["id"] for item in client.get("/api/v1/outfits", headers=_headers(token_b)).json()
     }
-
-    mens_system = next(
-        item for item in client.get("/api/v1/outfits", headers=_headers(token_a)).json()
-        if item["source"] == "system"
-    )
-    client.post(
-        f"/api/v1/outfits/{mens_system['id']}/status",
-        headers=_headers(token_a), json={"in_pool": False},
-    )
-    assert client.get(
-        f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_a)
-    ).json()["in_pool"] is False
-    assert client.get(
-        f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_b)
-    ).json()["in_pool"] is True
 
     image = Image.new("RGB", (32, 48), "white")
     buffer = BytesIO()

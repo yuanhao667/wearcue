@@ -62,7 +62,10 @@ async def list_outfits(
     in_pool: Optional[bool] = Query(default=None)
 ) -> list:
     audience = store.get_settings(user["id"])["audience"]
-    return [outfit for outfit in store.list_outfits(in_pool=in_pool, user_id=user["id"]) if outfit["source"] != "system" or outfit["audience"] == audience]
+    return [
+        outfit for outfit in store.list_outfits(in_pool=in_pool, user_id=user["id"])
+        if outfit["source"] != "system" or outfit["audience"] == audience
+    ]
 
 
 @router.post("/outfits", tags=["outfits"])
@@ -212,8 +215,6 @@ async def confirm_inspiration(inspiration_id: str, payload: InspirationConfirmRe
     if inspiration["status"] not in {"needs_review", "ready"}:
         raise HTTPException(409, "识别结果尚未完成")
     existing = store.get_outfit_by_inspiration(inspiration_id, user["id"])
-    if existing and existing["source"] == "system":
-        existing = None
     values = payload.model_dump() | {"source": "inspiration", "inspiration_id": inspiration_id}
     if existing:
         values["in_pool"] = existing["in_pool"] or values["in_pool"]

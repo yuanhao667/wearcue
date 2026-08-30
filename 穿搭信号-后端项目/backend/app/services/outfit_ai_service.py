@@ -75,6 +75,25 @@ def _normalize_analysis(raw: Any) -> Dict[str, Any]:
     }
 
 
+def _profile_styling_points(profile: Dict[str, str]) -> List[str]:
+    height = {
+        "偏矮": "上装避免过长，腰线保持清晰，裤脚利落不堆叠",
+        "中等": "衣长与裤长保持自然比例，腰线清楚即可",
+        "偏高": "保留完整纵向线条，衣袖和裤长避免偏短",
+    }.get(profile.get("height_group"), "衣长与裤长保持自然比例")
+    weight = {
+        "偏轻": "用适度层次和有结构感的面料完善轮廓，避免过度紧贴",
+        "中等": "采用合身但不紧绷的常规松量",
+        "偏重": "选择有垂感且不过度贴身的松量，给肩腰和活动留出空间",
+    }.get(profile.get("weight_group"), "采用合身但不紧绷的常规松量")
+    age = {
+        "青年": "细节可保持简洁轻快，同时兼顾当前场景的得体度",
+        "壮年": "细节优先利落、稳重和易打理，同时保留舒适活动空间",
+        "老年": "优先舒适、轻便、易穿脱，并选择稳定耐走的鞋履",
+    }.get(profile.get("age_group"), "细节保持得体、舒适并方便活动")
+    return [f"{height}；{weight}。", f"{age}。"]
+
+
 def _with_scene_context(payload: Dict[str, Any]) -> Dict[str, Any]:
     context = dict(payload)
     context.update(SCENE_CONTEXT.get(_first_str(context.get("scene")), {}))
@@ -254,20 +273,35 @@ class OutfitAIService:
         }
 
     async def generate_advice(
-        self, items: List[Dict[str, Any]], weather_summary: Any, scene: str, audience: str
+        self,
+        items: List[Dict[str, Any]],
+        weather_summary: Any,
+        scene: str,
+        audience: str,
+        person_profile: Dict[str, str],
     ) -> Dict[str, Any]:
         """按需生成建议文案（点进详情时调用）。"""
         raw = await self._call(
             self.advice_prompt,
             _with_scene_context(
-                {"scene": scene, "audience": audience, "weather": weather_summary, "items": items}
+                {
+                    "scene": scene,
+                    "audience": audience,
+                    "weather": weather_summary,
+                    "items": items,
+                    "person_profile": person_profile,
+                }
             ),
             800,
             self.fast_model,
             self.quality_model,
         )
+        guide = _normalize_guide(raw.get("replication_guide"))
+        guide["styling_points"] = (
+            _profile_styling_points(person_profile) + guide["styling_points"]
+        )[:3]
         return {
-            "replication_guide": _normalize_guide(raw.get("replication_guide")),
+            "replication_guide": guide,
             "outfit_analysis": _normalize_analysis(raw.get("outfit_analysis")),
         }
 

@@ -21,6 +21,9 @@ export interface BackendSettings {
   longitude: number;
   timezone: string;
   audience: Audience;
+  height_group: "偏矮" | "中等" | "偏高";
+  weight_group: "偏轻" | "中等" | "偏重";
+  age_group: "青年" | "壮年" | "老年";
   cold_offset: number;
   reminder_enabled: boolean;
   reminder_time: string;

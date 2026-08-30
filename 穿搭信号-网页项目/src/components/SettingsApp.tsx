@@ -12,7 +12,15 @@ import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-locat
 import type { Audience, BackendSettings } from "@/domain/backend";
 
 type UserProfile = { nickname: string; avatar: string; gender?: "mens" | "womens"; invited?: boolean };
+type BodyProfile = Pick<BackendSettings, "height_group" | "weight_group" | "age_group">;
+const heightGroups: BodyProfile["height_group"][] = ["偏矮", "中等", "偏高"];
+const weightGroups: BodyProfile["weight_group"][] = ["偏轻", "中等", "偏重"];
+const ageGroups: BodyProfile["age_group"][] = ["青年", "壮年", "老年"];
 const emptyProfile: UserProfile = { nickname: "", avatar: "" };
+
+function rangeProgress(value: number, min: number, max: number) {
+  return { "--range-progress": `${((value - min) / (max - min)) * 100}%` } as CSSProperties;
+}
 
 function asCity(settings: BackendSettings): City {
   return { id: settings.city_id, name: simplifyLocationName(settings.city_name), country: "中国", latitude: settings.latitude, longitude: settings.longitude, timezone: settings.timezone };
@@ -33,6 +41,7 @@ export function SettingsApp() {
   const [message, setMessage] = useState("");
   const [cityOpen, setCityOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bodyDraft, setBodyDraft] = useState<BodyProfile | null>(null);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -47,8 +56,8 @@ export function SettingsApp() {
 
   async function update(patch: Record<string, unknown>) {
     setSaving(true); setMessage("");
-    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); setMessage("设置已保存"); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); }
+    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); setMessage("设置已保存"); return true; }
+    catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); return false; }
     finally { setSaving(false); }
   }
 
@@ -132,6 +141,21 @@ export function SettingsApp() {
     }
   }
 
+  const bodyProfile = settings ? bodyDraft ?? {
+    height_group: settings.height_group,
+    weight_group: settings.weight_group,
+    age_group: settings.age_group,
+  } : null;
+
+  function changeBodyProfile<K extends keyof BodyProfile>(key: K, value: BodyProfile[K]) {
+    if (!bodyProfile) return;
+    setBodyDraft({ ...bodyProfile, [key]: value });
+  }
+
+  async function saveBodyProfile() {
+    if (bodyProfile && await update(bodyProfile)) setBodyDraft(null);
+  }
+
   return <main className="paper-page settings-paper">
     <header className="settings-profile-head">
       <div className="settings-profile-id">
@@ -151,6 +175,7 @@ export function SettingsApp() {
       <section className="settings-paper-card"><div className="card-caption">每日提醒</div><div className="settings-card-title-row"><h2>晨间提醒</h2><label className="settings-switch"><input aria-label="开启晨间提醒" type="checkbox" checked={settings.reminder_enabled} onChange={(event) => void toggleReminder(event.target.checked)} /></label></div><p>每天在你设定的时间提醒查看穿搭。</p>{settings.reminder_enabled && <div className="paper-field"><span>提醒时间</span><TimePicker value={settings.reminder_time} onChange={(value) => void update({ reminder_time: value })} /></div>}</section>
       <section className="settings-paper-card"><div className="card-caption">体感偏好</div><h2>冷热偏好</h2><p>怕冷就向右微调，怕热就向左微调。</p><input className="paper-range" type="range" min="-6" max="6" step="2" value={settings.cold_offset} style={{ "--range-progress": `${((settings.cold_offset + 6) / 12) * 100}%` } as CSSProperties} onChange={(event) => void update({ cold_offset: Number(event.target.value) })} /><div className="range-labels"><span>更怕热</span><b>{settings.cold_offset === 0 ? "标准体感" : `${settings.cold_offset > 0 ? "+" : ""}${settings.cold_offset}°`}</b><span>更怕冷</span></div></section>
       <section className="settings-paper-card"><div className="card-caption">穿搭偏好</div><h2>性别与服饰</h2><p>选择一次，上传识别和每日推荐都会默认沿用；配件继续共用。</p><div className="choice-grid">{(["mens", "womens"] as Audience[]).map((audience) => <button key={audience} className={settings.audience === audience ? "selected-choice" : ""} onClick={() => void update({ audience })}><b>{audience === "mens" ? "男装" : "女装"}</b><span>{audience === "mens" ? "男士相关穿搭" : "女士相关穿搭"}</span></button>)}</div></section>
+      {bodyProfile && <section className="settings-paper-card body-profile-card"><div className="card-caption">AI 人物信息</div><h2>身高段、体重段与年龄段</h2><p>只保存大致区间，不记录精确数值，也不评价身材。修改后会用于新生成的穿搭建议和人物效果图。</p><div className="body-profile-ranges"><label><span>身高段 <b>{bodyProfile.height_group}</b></span><input aria-label="身高段" className="paper-range" type="range" min="0" max="2" step="1" value={heightGroups.indexOf(bodyProfile.height_group)} style={rangeProgress(heightGroups.indexOf(bodyProfile.height_group), 0, 2)} onChange={(event) => changeBodyProfile("height_group", heightGroups[Number(event.target.value)])} /><small><i>偏矮</i><i>中等</i><i>偏高</i></small></label><label><span>体重段 <b>{bodyProfile.weight_group}</b></span><input aria-label="体重段" className="paper-range" type="range" min="0" max="2" step="1" value={weightGroups.indexOf(bodyProfile.weight_group)} style={rangeProgress(weightGroups.indexOf(bodyProfile.weight_group), 0, 2)} onChange={(event) => changeBodyProfile("weight_group", weightGroups[Number(event.target.value)])} /><small><i>偏轻</i><i>中等</i><i>偏重</i></small></label><label><span>年龄段 <b>{bodyProfile.age_group}</b></span><input aria-label="年龄段" className="paper-range" type="range" min="0" max="2" step="1" value={ageGroups.indexOf(bodyProfile.age_group)} style={rangeProgress(ageGroups.indexOf(bodyProfile.age_group), 0, 2)} onChange={(event) => changeBodyProfile("age_group", ageGroups[Number(event.target.value)])} /><small><i>青年</i><i>壮年</i><i>老年</i></small></label></div><button className="settings-body-save" disabled={saving || !bodyDraft} onClick={() => void saveBodyProfile()}>{saving ? "保存中…" : "保存人物信息"}</button></section>}
     </div>}
     {message && status === "success" && <div className={`save-notice ${saving ? "" : "ready"}`} aria-live="polite">{saving ? "正在保存…" : message}</div>}
     {cityOpen && settings && <CityPicker current={asCity(settings)} onSelect={chooseCity} onLocate={locate} onClose={() => setCityOpen(false)} />}

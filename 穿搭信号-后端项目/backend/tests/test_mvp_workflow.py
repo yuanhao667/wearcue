@@ -13,6 +13,7 @@ from app.api import auth as auth_api
 from app.api import mvp, system
 from app.main import app
 from app.services.outfit_ai_service import OutfitAIService, OutfitAIServiceError
+from app.services.outfit_image_service import OutfitImageService
 from app.services.store import Store, user_local_date
 from app.services.vision_service import VisionService, VisionServiceError
 
@@ -47,7 +48,7 @@ async def _fake_ai_items(self, context):
     }
 
 
-async def _fake_ai_advice(self, items, weather_summary, scene, audience):
+async def _fake_ai_advice(self, items, weather_summary, scene, audience, person_profile):
     return {
         "replication_guide": {
             "formula": "长袖 T 恤＋长裤",
@@ -66,6 +67,13 @@ async def _fake_ai_advice(self, items, weather_summary, scene, audience):
 
 async def _fake_ai_name(self, recognition_result):
     return "黑灰层次通勤"
+
+
+async def _fake_outfit_image(self, label, audience, scene, items, constraints, person_profile):
+    image = Image.new("RGB", (32, 48), "#dce7e2")
+    buffer = BytesIO()
+    image.save(buffer, "PNG")
+    return buffer.getvalue()
 
 
 def _recommendation_payload() -> dict:
@@ -98,13 +106,25 @@ def test_backend_root_redirects_to_authenticated_frontend() -> None:
 
 
 def test_single_user_mvp_workflow(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
     monkeypatch.setattr(VisionService, "analyze", _fake_vision_analyze)
 
-    settings = client.post("/api/v1/settings", json={"audience": "mens", "cold_offset": -2})
+    settings = client.post(
+        "/api/v1/settings",
+        json={
+            "audience": "mens", "cold_offset": -2,
+            "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+        },
+    )
     assert settings.status_code == 200
     assert settings.json()["cold_offset"] == -2
+    assert {
+        key: settings.json()[key]
+        for key in ("height_group", "weight_group", "age_group")
+    } == {
+        "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+    }
 
     outfit_payload = {
         "label": "测试穿搭", "audience": "mens", "components": [_component()],
@@ -307,14 +327,29 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     monkeypatch.setattr(service, "_call", fake_call)
     items_result = asyncio.run(service.generate_items({"scene": "commute"}))
-    advice_result = asyncio.run(service.generate_advice([], "晴，30°C", "commute", "mens"))
+    advice_result = asyncio.run(
+        service.generate_advice(
+            [],
+            "晴，30°C",
+            "commute",
+            "mens",
+            {"height_group": "偏高", "weight_group": "中等", "age_group": "壮年"},
+        )
+    )
 
     assert calls[0][2:] == (500, "qwen-turbo", "qwen3.8-flash", 0.2)
     assert calls[0][1]["scene_name"] == "通勤"
     assert calls[0][1]["scene_requirements"].startswith("优先得体利落")
     assert calls[1][1]["scene_name"] == "通勤"
+    assert calls[1][1]["person_profile"] == {
+        "height_group": "偏高", "weight_group": "中等", "age_group": "壮年",
+    }
     assert calls[1][3:5] == ("qwen-turbo", "qwen3.8-flash")
     assert items_result["label"] == "适合通勤场景的清"
+    assert advice_result["replication_guide"]["styling_points"][:2] == [
+        "保留完整纵向线条，衣袖和裤长避免偏短；采用合身但不紧绷的常规松量。",
+        "细节优先利落、稳重和易打理，同时保留舒适活动空间。",
+    ]
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
 
 
@@ -426,7 +461,7 @@ def test_vision_ai_does_not_call_an_unconfigured_fallback(monkeypatch, tmp_path)
 
 
 def test_upload_rejects_fake_image(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
     response = client.post(
         "/api/v1/inspirations/upload",
@@ -436,7 +471,7 @@ def test_upload_rejects_fake_image(tmp_path, monkeypatch) -> None:
 
 
 def test_upload_rejects_image_over_five_megabytes(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
     oversized = b"\x89PNG\r\n\x1a\n" + b"0" * (5 * 1024 * 1024)
 
@@ -450,7 +485,7 @@ def test_upload_rejects_image_over_five_megabytes(tmp_path, monkeypatch) -> None
 
 
 def test_image_recognition_is_limited_to_thirty_successes_per_day(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
     monkeypatch.setattr(VisionService, "analyze", _fake_vision_analyze)
     image = Image.new("RGB", (24, 36), "white")
@@ -477,10 +512,11 @@ def test_image_recognition_is_limited_to_thirty_successes_per_day(tmp_path, monk
 
 
 def test_ai_usage_quotas_are_independent_and_non_ai_swaps_remain_available(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
     monkeypatch.setattr(OutfitAIService, "generate_items", _fake_ai_items)
     monkeypatch.setattr(OutfitAIService, "generate_advice", _fake_ai_advice)
+    monkeypatch.setattr(OutfitImageService, "generate", _fake_outfit_image)
 
     initial_quota = client.get("/api/v1/ai-usage-quota").json()
     assert initial_quota["vision"]["remaining"] == 30
@@ -528,16 +564,38 @@ def test_ai_usage_quotas_are_independent_and_non_ai_swaps_remain_available(tmp_p
 
 
 def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
+    client.post(
+        "/api/v1/settings",
+        json={"height_group": "偏高", "weight_group": "偏重", "age_group": "壮年"},
+    )
     calls = 0
 
-    async def count_advice(self, items, weather_summary, scene, audience):
+    captured_advice_profile = {}
+
+    async def count_advice(self, items, weather_summary, scene, audience, person_profile):
         nonlocal calls
         calls += 1
-        return await _fake_ai_advice(self, items, weather_summary, scene, audience)
+        captured_advice_profile.update(person_profile)
+        return await _fake_ai_advice(
+            self, items, weather_summary, scene, audience, person_profile
+        )
 
     monkeypatch.setattr(OutfitAIService, "generate_advice", count_advice)
+    image_calls = 0
+
+    captured_profile = {}
+
+    async def count_image(self, label, audience, scene, items, constraints, person_profile):
+        nonlocal image_calls
+        image_calls += 1
+        captured_profile.update(person_profile)
+        return await _fake_outfit_image(
+            self, label, audience, scene, items, constraints, person_profile
+        )
+
+    monkeypatch.setattr(OutfitImageService, "generate", count_image)
     payload = {
         "recommendation_id": "ai-reopen-detail",
         "scene": "commute",
@@ -553,12 +611,19 @@ def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path,
     assert reopened.json()["cached"] is True
     assert reopened.json()["replication_guide"] == first.json()["replication_guide"]
     assert reopened.json()["outfit_analysis"] == first.json()["outfit_analysis"]
+    assert reopened.json()["image_url"] == first.json()["image_url"]
+    assert client.get(reopened.json()["image_url"].replace("/recommendations", "/api/v1/recommendations")).status_code == 200
     assert reopened.json()["ai_quota"]["remaining"] == 3
     assert calls == 1
+    assert image_calls == 1
+    assert captured_profile == {
+        "height_group": "偏高", "weight_group": "偏重", "age_group": "壮年",
+    }
+    assert captured_advice_profile == captured_profile
 
 
 def test_failed_live_ai_swap_releases_quota(tmp_path, monkeypatch) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
 
     async def fail_items(self, context):
@@ -574,7 +639,7 @@ def test_failed_live_ai_swap_releases_quota(tmp_path, monkeypatch) -> None:
 
 
 def test_ai_quota_reservation_is_atomic(tmp_path) -> None:
-    test_store = Store(tmp_path, seed_defaults=False)
+    test_store = Store(tmp_path)
     local_date = user_local_date("Asia/Shanghai")
 
     with ThreadPoolExecutor(max_workers=12) as executor:
@@ -589,72 +654,22 @@ def test_ai_quota_reservation_is_atomic(tmp_path) -> None:
     assert test_store.get_ai_quota("concurrent-user", local_date, "swap")["remaining"] == 0
 
 
-def test_system_default_outfits_are_seeded_once(tmp_path, monkeypatch) -> None:
-    first_store = Store(tmp_path)
-    defaults = [outfit for outfit in first_store.list_outfits() if outfit["source"] == "system"]
+def test_new_account_library_starts_with_matching_ai_example(tmp_path, monkeypatch) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch)
 
-    assert len(defaults) == 6
-    assert sum(outfit["audience"] == "mens" for outfit in defaults) == 3
-    assert sum(outfit["audience"] == "womens" for outfit in defaults) == 3
-    assert all(outfit["in_pool"] and "favorite" not in outfit for outfit in defaults)
-    assert {outfit["label"] for outfit in defaults} == {
-        "休闲出行", "复古出行", "层次通勤", "利落通勤", "极简通勤", "甜酷出行",
-    }
-    assert all(
-        any(outfit["label"].endswith(scene) for scene in ("通勤", "约会", "出行"))
-        for outfit in defaults
-    )
-    assert all(component.get("asset_key") for outfit in defaults for component in outfit["components"])
-    summer_example = next(outfit for outfit in defaults if outfit["id"] == "outfit_8cec81248dc8")
-    summer_result = first_store.get_inspiration(summer_example["inspiration_id"])["result"]
-    assert summer_result["suggested_season"] == "summer"
-    assert (summer_example["suitable_min"], summer_example["suitable_max"]) == (24.0, 34.0)
-    for outfit in defaults:
-        original = first_store.inspiration_path(outfit["inspiration_id"])
-        assert original and original.is_file()
-        assert original.with_name(f"{original.stem}_medium{original.suffix}").is_file()
-        assert original.with_name(f"{original.stem}_thumb{original.suffix}").is_file()
+    mens = client.get("/api/v1/outfits").json()
+    assert len(mens) == 1
+    assert mens[0]["source"] == "system"
+    assert mens[0]["audience"] == "mens"
+    assert mens[0]["label"] == "都市层次出行"
+    assert mens[0]["in_pool"] is False
+    assert len(client.get("/api/v1/inspirations").json()) == 1
+    assert client.get(f"/api/v1/inspirations/{mens[0]['inspiration_id']}/image").status_code == 200
 
-    second_store = Store(tmp_path)
-    assert len(second_store.list_outfits()) == 6
-    assert len(second_store.list_inspirations()) == 6
-
-    client = _client(second_store, monkeypatch)
-    assert len(client.get("/api/v1/outfits").json()) == 3
     client.post("/api/v1/settings", json={"audience": "womens"})
-    womens_defaults = client.get("/api/v1/outfits").json()
-    assert len(womens_defaults) == 3
-    assert all(outfit["audience"] == "womens" for outfit in womens_defaults)
-    client.post("/api/v1/settings", json={"audience": "mens"})
-    assert len(client.get("/api/v1/outfits").json()) == 3
-
-    system_outfit = next(outfit for outfit in second_store.list_outfits() if outfit["source"] == "system" and outfit["audience"] == "mens")
-    confirmed = client.post(
-        f"/api/v1/inspirations/{system_outfit['inspiration_id']}/confirm",
-        json={
-            "label": system_outfit["label"], "audience": "womens",
-            "components": system_outfit["components"], "scene_ids": system_outfit["scene_ids"],
-            "suitable_min": system_outfit["suitable_min"], "suitable_max": system_outfit["suitable_max"],
-            "in_pool": False,
-        },
-    ).json()
-    assert confirmed["id"] != system_outfit["id"]
-    assert "favorite" not in confirmed and confirmed["in_pool"] is False
-    assert second_store.get_outfit(system_outfit["id"])["source"] == "system"
-
-
-def test_default_upgrade_restores_overwritten_system_outfit_without_losing_user_copy(tmp_path) -> None:
-    store = Store(tmp_path)
-    system_outfit = next(outfit for outfit in store.list_outfits() if outfit["source"] == "system" and outfit["audience"] == "mens")
-    store.save_outfit(system_outfit | {"source": "inspiration", "audience": "womens", "in_pool": False}, system_outfit["id"])
-    with store.connect() as db:
-        db.execute("UPDATE app_meta SET value='1' WHERE key='default_outfits_version'")
-
-    upgraded = Store(tmp_path)
-    restored = upgraded.get_outfit(system_outfit["id"])
-    user_copy = upgraded.get_outfit_by_inspiration(system_outfit["inspiration_id"])
-
-    assert restored["source"] == "system" and restored["audience"] == "mens"
-    assert user_copy["id"] != restored["id"]
-    assert user_copy["source"] == "inspiration" and user_copy["audience"] == "womens"
-    assert "favorite" not in user_copy and user_copy["in_pool"] is False
+    womens = client.get("/api/v1/outfits").json()
+    assert len(womens) == 1
+    assert womens[0]["source"] == "system"
+    assert womens[0]["audience"] == "womens"
+    assert womens[0]["label"] == "条纹休闲出行"

@@ -68,6 +68,9 @@ class SettingsUpdate(BaseModel):
     longitude: Optional[float] = Field(default=None, ge=-180, le=180)
     timezone: Optional[str] = None
     audience: Optional[Literal["mens", "womens"]] = None
+    height_group: Optional[Literal["偏矮", "中等", "偏高"]] = None
+    weight_group: Optional[Literal["偏轻", "中等", "偏重"]] = None
+    age_group: Optional[Literal["青年", "壮年", "老年"]] = None
     cold_offset: Optional[int] = Field(default=None, ge=-6, le=6, multiple_of=2)
     reminder_enabled: Optional[bool] = None
     reminder_time: Optional[str] = Field(default=None, pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
@@ -166,7 +169,9 @@ class ComfortFeedbackRequest(BaseModel):
 
 class RecommendationAdviceRequest(BaseModel):
     recommendation_id: str = Field(min_length=1, max_length=80)
+    label: str = Field(default="今日穿搭", min_length=1, max_length=30)
     scene: str = Field(pattern="^(commute|date|travel)$")
     audience: str = Field(pattern="^(mens|womens)$")
     items: List[OutfitComponent]
     constraints: dict = Field(default_factory=dict)
+    generate_advice: bool = True

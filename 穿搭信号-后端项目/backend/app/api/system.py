@@ -1,14 +1,18 @@
+import asyncio
 import logging
 import os
+from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse
 
 from app.auth import CurrentUser
 from app.domain.weather_rules import WeatherInput, evaluate_weather_rules
 from app.schemas import GarmentAssetResponse, RecommendationAdviceRequest, RecommendationRequest, WeatherRuleRequest
 from app.services.outfit_ai_service import OutfitAIService
+from app.services.outfit_image_service import OutfitImageService
 from app.services.recommendation_service import (
     NoRecommendationError,
     recommend_ai_outfit,
@@ -36,6 +40,8 @@ GARMENT_LABELS = {
     "acc_umbrella": "雨伞", "acc_baseball_cap": "棒球帽", "acc_gloves": "手套",
     "acc_beanie": "针织帽",
 }
+# ponytail: 进程内锁足够覆盖当前单 worker；扩到多 worker 时改为数据库任务锁。
+DETAIL_LOCKS: defaultdict[tuple[str, str], asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
 def _quota_date(user_id: str) -> str:
@@ -108,6 +114,7 @@ async def capabilities() -> dict:
         "comfort_feedback": True,
         "persistence": True,
         "vision_provider_configured": VisionService().configured,
+        "image_provider_configured": OutfitImageService().configured,
         "web_push_provider_configured": bool(
             os.getenv("VAPID_PRIVATE_KEY") and os.getenv("VAPID_PUBLIC_KEY") and os.getenv("VAPID_SUBJECT")
         ),
@@ -199,31 +206,81 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
 
 @router.post("/recommendations/advice", tags=["recommendations"])
 async def recommendation_advice(payload: RecommendationAdviceRequest, user: CurrentUser) -> dict:
-    local_date = _quota_date(user["id"])
-    cached = store.get_ai_advice(user["id"], payload.recommendation_id)
-    if cached:
-        return cached | {
+    async with DETAIL_LOCKS[(user["id"], payload.recommendation_id)]:
+        local_date = _quota_date(user["id"])
+        cached_advice = store.get_ai_advice(user["id"], payload.recommendation_id)
+        cached_image = store.get_ai_outfit_image(user["id"], payload.recommendation_id)
+        needs_advice = payload.generate_advice and not cached_advice
+        needs_image = not cached_image
+        if not needs_advice and not needs_image:
+            return (cached_advice or {}) | {
+                "image_url": f"/recommendations/{payload.recommendation_id}/image",
+                "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
+                "cached": True,
+            }
+        reservation_id = store.reserve_ai_usage(user["id"], local_date, "advice")
+        if not reservation_id:
+            raise HTTPException(429, "今日 AI 穿搭建议次数已用完，可先参考下方基础搭配，明天再来生成")
+        items = [item.model_dump() for item in payload.items]
+        settings = store.get_settings(user["id"])
+        try:
+            advice_task = (
+                OutfitAIService().generate_advice(
+                    items,
+                    payload.constraints,
+                    payload.scene,
+                    payload.audience,
+                    {
+                        key: settings[key]
+                        for key in ("height_group", "weight_group", "age_group")
+                    },
+                )
+                if needs_advice
+                else None
+            )
+            image_task = (
+                OutfitImageService().generate(
+                    payload.label,
+                    payload.audience,
+                    payload.scene,
+                    items,
+                    payload.constraints,
+                    {
+                        key: settings[key]
+                        for key in ("height_group", "weight_group", "age_group")
+                    },
+                )
+                if needs_image
+                else None
+            )
+            pending = [task for task in (advice_task, image_task) if task is not None]
+            generated = await asyncio.gather(*pending)
+            index = 0
+            result = cached_advice or {}
+            if needs_advice:
+                result = generated[index]
+                index += 1
+                store.set_ai_advice(user["id"], payload.recommendation_id, result)
+            if needs_image:
+                store.set_ai_outfit_image(user["id"], payload.recommendation_id, generated[index])
+        except Exception:
+            store.release_ai_usage(reservation_id)
+            raise
+        return result | {
+            "image_url": f"/recommendations/{payload.recommendation_id}/image",
             "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
-            "cached": True,
+            "cached": False,
         }
-    reservation_id = store.reserve_ai_usage(user["id"], local_date, "advice")
-    if not reservation_id:
-        raise HTTPException(429, "今日 AI 穿搭建议次数已用完，可先参考下方基础搭配，明天再来生成")
-    try:
-        result = await OutfitAIService().generate_advice(
-            [item.model_dump() for item in payload.items],
-            payload.constraints,
-            payload.scene,
-            payload.audience,
-        )
-        store.set_ai_advice(user["id"], payload.recommendation_id, result)
-    except Exception:
-        store.release_ai_usage(reservation_id)
-        raise
-    return result | {
-        "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
-        "cached": False,
-    }
+
+
+@router.get("/recommendations/{recommendation_id}/image", tags=["recommendations"], include_in_schema=False)
+async def recommendation_image(recommendation_id: str, user: CurrentUser) -> FileResponse:
+    cached = store.get_ai_outfit_image(user["id"], recommendation_id)
+    if not cached:
+        raise HTTPException(404, "穿搭参考图不存在")
+    return FileResponse(
+        cached["file_path"], media_type="image/jpeg", headers={"Cache-Control": "private, max-age=86400"}
+    )
 
 
 @router.get(

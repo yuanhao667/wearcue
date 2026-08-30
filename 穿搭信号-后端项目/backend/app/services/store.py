@@ -2,13 +2,14 @@ import hashlib
 import json
 import os
 import secrets
-import shutil
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 from zoneinfo import ZoneInfo
+
+from .image_service import ImageService
 
 
 AI_USAGE_LIMITS = {"vision": 30, "swap": 4, "advice": 4}
@@ -35,14 +36,15 @@ def user_local_date(tz_name: Optional[str]) -> str:
 
 
 class Store:
-    def __init__(self, data_dir: Optional[Path] = None, seed_defaults: bool = True) -> None:
+    def __init__(self, data_dir: Optional[Path] = None) -> None:
         self.data_dir = data_dir or Path(os.getenv("DATA_DIR", Path.cwd() / "data"))
         self.upload_dir = self.data_dir / "uploads"
+        self.generated_dir = self.data_dir / "generated"
         self.upload_dir.mkdir(parents=True, exist_ok=True)
+        self.generated_dir.mkdir(parents=True, exist_ok=True)
         self.db_path = self.data_dir / "outfit-signal.sqlite3"
         self._init()
-        if seed_defaults:
-            self._seed_defaults()
+        self._seed_existing_user_examples()
 
     def connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path, timeout=10)
@@ -142,12 +144,21 @@ class Store:
                     result_json TEXT NOT NULL, created_at TEXT NOT NULL,
                     PRIMARY KEY (user_id, recommendation_id)
                 );
+                CREATE TABLE IF NOT EXISTS ai_outfit_image_cache (
+                    user_id TEXT NOT NULL, recommendation_id TEXT NOT NULL,
+                    file_path TEXT NOT NULL, created_at TEXT NOT NULL,
+                    PRIMARY KEY (user_id, recommendation_id)
+                );
                 """
             )
             self._add_column(db, "outfits", "replication_json TEXT NOT NULL DEFAULT '{}'")
             self._add_column(db, "outfits", "analysis_json TEXT NOT NULL DEFAULT '{}'")
             self._add_column(db, "outfits", "owner_user_id TEXT")
             self._add_column(db, "inspirations", "owner_user_id TEXT")
+            for table in ("settings", "user_settings"):
+                self._add_column(db, table, "height_group TEXT NOT NULL DEFAULT '中等'")
+                self._add_column(db, table, "weight_group TEXT NOT NULL DEFAULT '中等'")
+                self._add_column(db, table, "age_group TEXT NOT NULL DEFAULT '青年'")
             for table in ("push_subscriptions", "notification_deliveries", "feedback"):
                 self._add_column(db, table, "user_id TEXT")
             self._add_column(db, "analysis_events", "usage_type TEXT NOT NULL DEFAULT 'vision'")
@@ -163,73 +174,68 @@ class Store:
                 """
             )
             db.execute(
-                """INSERT OR IGNORE INTO settings VALUES
-                (1,'1816670','北京',39.9042,116.4074,'Asia/Shanghai','mens',0,1,
-                 '07:30','[1,2,3,4,5]',?)""",
+                """INSERT OR IGNORE INTO settings
+                (id,city_id,city_name,latitude,longitude,timezone,audience,cold_offset,
+                 reminder_enabled,reminder_time,reminder_days,updated_at)
+                VALUES (1,'1816670','北京',39.9042,116.4074,'Asia/Shanghai','mens',0,1,
+                        '07:30','[1,2,3,4,5]',?)""",
                 (_now(),),
             )
 
-    def _seed_defaults(self) -> None:
+    def _seed_existing_user_examples(self) -> None:
+        with self.connect() as db:
+            users = db.execute("SELECT user_id,audience FROM user_settings").fetchall()
+        for user in users:
+            self._ensure_user_example(user["user_id"], user["audience"])
+
+    def _ensure_user_example(self, user_id: str, audience: str) -> None:
+        version_key = f"default_example_v1:{user_id}:{audience}"
+        with self.connect() as db:
+            if db.execute("SELECT 1 FROM app_meta WHERE key=?", (version_key,)).fetchone():
+                return
         defaults_dir = Path(__file__).resolve().parents[1] / "defaults"
-        manifest_path = defaults_dir / "outfits.json"
-        if not manifest_path.is_file():
-            return
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        version = int(manifest.get("version", 0))
-        with self.connect() as db:
-            row = db.execute(
-                "SELECT value FROM app_meta WHERE key='default_outfits_version'"
-            ).fetchone()
-        installed_version = int(row["value"]) if row else 0
-        if installed_version >= version:
-            return
-        for entry in manifest.get("outfits", []):
-            if int(entry.get("introduced_in", 1)) <= installed_version:
-                continue
-            seed = entry["inspiration"]
-            digest = seed["content_hash"]
-            paths = {
-                "original": self.upload_dir / f"{digest}.jpg",
-                "medium": self.upload_dir / f"{digest}_medium.jpg",
-                "thumbnail": self.upload_dir / f"{digest}_thumb.jpg",
+        manifest = json.loads((defaults_dir / "outfits.json").read_text(encoding="utf-8"))
+        entry = next(item for item in manifest["examples"] if item["audience"] == audience)
+        image_data = (defaults_dir / "images" / entry["image"]).read_bytes()
+        digest = hashlib.sha256(image_data).hexdigest()
+        paths = ImageService(self.upload_dir).process_and_store(image_data, digest)
+        upload_key = f"system-ai-example-v1-{audience}"
+        inspiration = self.get_inspiration_by_key(upload_key, user_id)
+        outfit = entry["outfit"]
+        if not inspiration:
+            result = {
+                "model_version": "WearCue-System-Example-v1",
+                "garment_audience": audience,
+                "requires_user_confirmation": False,
+                "suggested_scenes": outfit["scene_ids"],
+                "suggested_temperature": {"min": outfit["suitable_min"], "max": outfit["suitable_max"]},
+                "suggested_season": "winter" if outfit["suitable_max"] <= 12 else "summer",
+                "components": outfit["components"],
+                "replication_guide": outfit["replication_guide"],
+                "outfit_analysis": outfit["outfit_analysis"],
             }
-            for size, filename in seed["image_files"].items():
-                if not paths[size].is_file():
-                    shutil.copy2(defaults_dir / "images" / filename, paths[size])
-            inspiration = self.get_system_inspiration_by_hash(digest)
-            if not inspiration:
-                inspiration = self.create_inspiration(
-                    {
-                        "id": seed["id"], "upload_key": seed["upload_key"],
-                        "content_hash": digest, "original_name": seed["original_name"],
-                        "media_type": seed["media_type"], "file_path": str(paths["original"]),
-                        "status": "ready", "provider": seed.get("provider", "system"),
-                        "result_json": json.dumps(seed["result"], ensure_ascii=False),
-                    }
-                )
-            else:
-                with self.connect() as db:
-                    db.execute(
-                        """UPDATE inspirations SET status='ready',provider=?,result_json=?,updated_at=?
-                        WHERE id=? AND owner_user_id IS NULL""",
-                        (
-                            seed.get("provider", "system"),
-                            json.dumps(seed["result"], ensure_ascii=False),
-                            _now(), inspiration["id"],
-                        ),
-                    )
-            outfit_seed = entry["outfit"] | {
-                "source": "system", "inspiration_id": inspiration["id"]
-            }
-            existing = self.get_outfit(outfit_seed["id"])
-            if existing and existing["source"] != "system":
-                self.save_outfit(existing)
-            self.save_outfit(outfit_seed, outfit_seed["id"])
-        with self.connect() as db:
-            db.execute(
-                "INSERT OR REPLACE INTO app_meta VALUES ('default_outfits_version',?)",
-                (str(version),),
+            inspiration = self.create_inspiration(
+                {
+                    "upload_key": upload_key,
+                    "content_hash": digest,
+                    "original_name": entry["image"],
+                    "media_type": "image/jpeg",
+                    "file_path": paths["original"],
+                    "status": "ready",
+                    "provider": "system-ai-example",
+                    "result_json": json.dumps(result, ensure_ascii=False),
+                },
+                user_id,
             )
+        outfit_id = f"example_{audience}_{_hash(user_id)[:12]}"
+        if not self.get_outfit(outfit_id, user_id):
+            self.save_outfit(
+                outfit | {"audience": audience, "source": "system", "inspiration_id": inspiration["id"]},
+                outfit_id,
+                user_id,
+            )
+        with self.connect() as db:
+            db.execute("INSERT OR REPLACE INTO app_meta VALUES (?,?)", (version_key, "1"))
 
     @staticmethod
     def _settings(row: sqlite3.Row) -> Dict[str, Any]:
@@ -253,18 +259,19 @@ class Store:
                 "city_id": "1816670", "city_name": "北京", "latitude": 39.9042,
                 "longitude": 116.4074, "timezone": "Asia/Shanghai", "cold_offset": 0,
                 "reminder_enabled": 1, "reminder_time": "07:30",
-                "reminder_days": "[1,2,3,4,5]",
+                "reminder_days": "[1,2,3,4,5]", "height_group": "中等",
+                "weight_group": "中等", "age_group": "青年",
             }
         db.execute(
             """INSERT INTO user_settings
             (user_id,city_id,city_name,latitude,longitude,timezone,audience,cold_offset,
-             reminder_enabled,reminder_time,reminder_days,updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+             reminder_enabled,reminder_time,reminder_days,height_group,weight_group,age_group,updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 user_id, source["city_id"], source["city_name"], source["latitude"],
                 source["longitude"], source["timezone"], audience, source["cold_offset"],
                 source["reminder_enabled"], source["reminder_time"], source["reminder_days"],
-                _now(),
+                source["height_group"], source["weight_group"], source["age_group"], _now(),
             ),
         )
 
@@ -289,13 +296,11 @@ class Store:
                 self._create_user_settings(db, user_id, audience, is_first_user)
                 if is_first_user:
                     db.execute(
-                        "UPDATE outfits SET owner_user_id=? WHERE owner_user_id IS NULL AND source!='system'",
+                        "UPDATE outfits SET owner_user_id=? WHERE owner_user_id IS NULL",
                         (user_id,),
                     )
                     db.execute(
-                        """UPDATE inspirations SET owner_user_id=? WHERE owner_user_id IS NULL
-                        AND id NOT IN (SELECT inspiration_id FROM outfits
-                        WHERE source='system' AND inspiration_id IS NOT NULL)""",
+                        "UPDATE inspirations SET owner_user_id=? WHERE owner_user_id IS NULL",
                         (user_id,),
                     )
                     for table in ("push_subscriptions", "notification_deliveries", "feedback"):
@@ -311,6 +316,7 @@ class Store:
                 "INSERT INTO sessions VALUES (?,?,?,?)",
                 (_hash(token), user["id"], expires_at, now),
             )
+        self._ensure_user_example(user["id"], user["audience"])
         return {"token": token, "expires_at": expires_at, "user": self._user(user)}
 
     def user_for_token(self, token: str) -> Optional[Dict[str, Any]]:
@@ -354,7 +360,9 @@ class Store:
         values: List[Any] = [
             current["city_id"], current["city_name"], current["latitude"],
             current["longitude"], current["timezone"], current["audience"],
-            current["cold_offset"], int(current["reminder_enabled"]),
+            current["cold_offset"], current["height_group"], current["weight_group"],
+            current["age_group"],
+            int(current["reminder_enabled"]),
             current["reminder_time"], json.dumps(current["reminder_days"]), _now(),
         ]
         if user_id:
@@ -362,7 +370,8 @@ class Store:
         with self.connect() as db:
             db.execute(
                 f"""UPDATE {table} SET city_id=?,city_name=?,latitude=?,longitude=?,timezone=?,
-                audience=?,cold_offset=?,reminder_enabled=?,reminder_time=?,reminder_days=?,updated_at=?
+                audience=?,cold_offset=?,height_group=?,weight_group=?,age_group=?,reminder_enabled=?,
+                reminder_time=?,reminder_days=?,updated_at=?
                 WHERE {where}""",
                 values,
             )
@@ -371,6 +380,8 @@ class Store:
                     "UPDATE users SET audience=?,updated_at=? WHERE id=?",
                     (current["audience"], _now(), user_id),
                 )
+        if user_id and "audience" in payload:
+            self._ensure_user_example(user_id, current["audience"])
         return self.get_settings(user_id)
 
     def list_reminder_users(self) -> List[Dict[str, Any]]:
@@ -426,7 +437,7 @@ class Store:
         query = "SELECT * FROM outfits"
         values: List[Any] = []
         if user_id:
-            query += " WHERE owner_user_id=? OR source='system'"
+            query += " WHERE owner_user_id=?"
             values.append(user_id)
         query += " ORDER BY updated_at DESC"
         with self.connect() as db:
@@ -445,7 +456,7 @@ class Store:
     ) -> Optional[Dict[str, Any]]:
         with self.connect() as db:
             row = db.execute(
-                "SELECT * FROM outfits WHERE id=? AND (owner_user_id=? OR source='system')"
+                "SELECT * FROM outfits WHERE id=? AND owner_user_id=?"
                 if user_id else "SELECT * FROM outfits WHERE id=?",
                 (outfit_id, user_id) if user_id else (outfit_id,),
             ).fetchone()
@@ -457,9 +468,9 @@ class Store:
         query = "SELECT * FROM outfits WHERE inspiration_id=?"
         values: List[Any] = [inspiration_id]
         if user_id:
-            query += " AND (owner_user_id=? OR source='system')"
+            query += " AND owner_user_id=?"
             values.append(user_id)
-        query += " ORDER BY CASE WHEN source='system' THEN 1 ELSE 0 END,updated_at DESC LIMIT 1"
+        query += " ORDER BY updated_at DESC LIMIT 1"
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
             return self._apply_state(db, self._outfit(row), user_id) if row else None
@@ -489,9 +500,6 @@ class Store:
         if not outfit:
             return False
         with self.connect() as db:
-            if user_id and outfit["source"] == "system":
-                self._upsert_state(db, user_id, outfit_id, {"hidden": 1})
-                return True
             db.execute("DELETE FROM user_skip_events WHERE outfit_id=?", (outfit_id,))
             db.execute("DELETE FROM outfit_states WHERE outfit_id=?", (outfit_id,))
             if user_id:
@@ -537,7 +545,7 @@ class Store:
                 payload.get("outfit_analysis", existing.get("outfit_analysis") if existing else {}),
                 ensure_ascii=False,
             ),
-            "owner_user_id": None if source == "system" else user_id,
+            "owner_user_id": user_id,
         }
         with self.connect() as db:
             db.execute(
@@ -558,16 +566,7 @@ class Store:
         outfit = self.get_outfit(outfit_id, user_id)
         if not outfit:
             return None
-        if outfit["source"] != "system":
-            return self.save_outfit(payload, outfit_id, user_id)
-        changes: Dict[str, Any] = {}
-        if "in_pool" in payload:
-            changes["in_pool"] = int(payload["in_pool"])
-        if "scene_ids" in payload:
-            changes["scene_ids_json"] = json.dumps(payload["scene_ids"], ensure_ascii=False)
-        with self.connect() as db:
-            self._upsert_state(db, user_id, outfit_id, changes)
-        return self.get_outfit(outfit_id, user_id)
+        return self.save_outfit(payload, outfit_id, user_id)
 
     def create_inspiration(
         self, payload: Dict[str, Any], user_id: Optional[str] = None
@@ -637,22 +636,13 @@ class Store:
             row = db.execute(query, values).fetchone()
         return self._inspiration(row) if row else None
 
-    def get_system_inspiration_by_hash(self, content_hash: str) -> Optional[Dict[str, Any]]:
-        with self.connect() as db:
-            row = db.execute(
-                """SELECT * FROM inspirations WHERE content_hash=? AND owner_user_id IS NULL
-                ORDER BY created_at LIMIT 1""",
-                (content_hash,),
-            ).fetchone()
-        return self._inspiration(row) if row else None
-
     def get_inspiration(
         self, inspiration_id: str, user_id: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         query = "SELECT * FROM inspirations WHERE id=?"
         values: List[Any] = [inspiration_id]
         if user_id:
-            query += " AND (owner_user_id=? OR owner_user_id IS NULL)"
+            query += " AND owner_user_id=?"
             values.append(user_id)
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
@@ -664,7 +654,7 @@ class Store:
         query = "SELECT file_path FROM inspirations WHERE id=?"
         values: List[Any] = [inspiration_id]
         if user_id:
-            query += " AND (owner_user_id=? OR owner_user_id IS NULL)"
+            query += " AND owner_user_id=?"
             values.append(user_id)
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
@@ -674,7 +664,7 @@ class Store:
         query = "SELECT * FROM inspirations"
         values: List[Any] = []
         if user_id:
-            query += " WHERE owner_user_id=? OR owner_user_id IS NULL"
+            query += " WHERE owner_user_id=?"
             values.append(user_id)
         query += " ORDER BY created_at DESC"
         with self.connect() as db:
@@ -853,6 +843,28 @@ class Store:
                 (user_id, recommendation_id, result_json, created_at) VALUES (?,?,?,?)""",
                 (user_id, recommendation_id, json.dumps(result, ensure_ascii=False), _now()),
             )
+
+    def get_ai_outfit_image(self, user_id: str, recommendation_id: str) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            row = db.execute(
+                """SELECT file_path,created_at FROM ai_outfit_image_cache
+                WHERE user_id=? AND recommendation_id=?""",
+                (user_id, recommendation_id),
+            ).fetchone()
+        if not row or not Path(row["file_path"]).is_file():
+            return None
+        return dict(row)
+
+    def set_ai_outfit_image(self, user_id: str, recommendation_id: str, image_data: bytes) -> str:
+        digest = hashlib.sha256(image_data).hexdigest()
+        file_path = ImageService(self.generated_dir).process_and_store(image_data, digest)["original"]
+        with self.connect() as db:
+            db.execute(
+                """INSERT OR REPLACE INTO ai_outfit_image_cache
+                (user_id,recommendation_id,file_path,created_at) VALUES (?,?,?,?)""",
+                (user_id, recommendation_id, file_path, _now()),
+            )
+        return file_path
 
     def record_feedback(self, week_key: str, choice: str, user_id: str) -> Dict[str, Any]:
         current = self.get_settings(user_id)

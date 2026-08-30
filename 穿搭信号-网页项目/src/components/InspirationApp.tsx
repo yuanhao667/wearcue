@@ -192,8 +192,8 @@ export function InspirationApp() {
   function componentEditor(item: OutfitComponent, index: number) {
     return <article key={`${item.slot}-${index}`} className="component-row">
       {item.suggested && <span className="suggested-component-badge">AI 补充</span>}
-      <OutfitIcon item={item} audience={garmentAudience} colorize />
-      <div className="component-result"><strong>{item.variant_type}</strong><span>{thicknessLabel(item.thickness)}</span></div>
+      <OutfitIcon item={item} audience={garmentAudience} />
+      <div className="component-result"><strong>{item.variant_type}</strong><span>{item.color_name}、{thicknessLabel(item.thickness)}</span></div>
       <button className="component-edit-button" type="button" onClick={() => { setStyleMenuOpen(false); setEditingIndex(index); }}>编辑</button>
     </article>;
   }
@@ -309,7 +309,7 @@ export function InspirationApp() {
     {editingComponent && <div className="component-editor-backdrop" role="presentation" onMouseDown={() => { setStyleMenuOpen(false); setEditingIndex(null); }}>
       <section className="component-editor-dialog" role="dialog" aria-modal="true" aria-labelledby="component-editor-title" onKeyDown={(event) => { if (event.key === "Escape") { setStyleMenuOpen(false); setEditingIndex(null); } }} onMouseDown={(event) => event.stopPropagation()}>
         <div className="component-editor-head"><h2 id="component-editor-title">编辑单品</h2><button type="button" aria-label="关闭编辑" onClick={() => { setStyleMenuOpen(false); setEditingIndex(null); }}>×</button></div>
-        <OutfitIcon item={editingComponent} audience={garmentAudience} colorize />
+        <OutfitIcon item={editingComponent} audience={garmentAudience} />
         <div className="component-editor-field"><span>款式</span><div className={`component-style-select${styleMenuOpen ? " is-open" : ""}`}>
           <button className="component-style-trigger" type="button" aria-haspopup="listbox" aria-expanded={styleMenuOpen} onClick={() => setStyleMenuOpen((open) => !open)}><span>{editingComponent.variant_type}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg></button>
           {styleMenuOpen && <div className="component-style-menu" role="listbox" aria-label="选择服装款式">{garmentIconsFor(editingComponent.slot, garmentAudience).map((option) => <button type="button" role="option" aria-selected={editingComponent.asset_key === option.iconKey} className={editingComponent.asset_key === option.iconKey ? "is-selected" : ""} key={option.iconKey} onClick={() => { updateEditingComponent({ asset_key: option.iconKey, variant_type: option.label }); setStyleMenuOpen(false); }}>{option.label}</button>)}</div>}

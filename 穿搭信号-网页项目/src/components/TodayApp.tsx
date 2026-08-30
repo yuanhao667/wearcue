@@ -11,6 +11,7 @@ import { apiJson } from "@/lib/backend-api";
 import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
+import { outfitItemSortKey } from "@/domain/outfit-order";
 
 export interface TodayInitialData {
   settings: BackendSettings;
@@ -30,8 +31,6 @@ const scenes: Array<{ id: SceneId; label: string }> = [
   { id: "travel", label: "出行" },
 ];
 
-const HAT_KEYS = new Set(["acc_baseball_cap", "acc_beanie", "acc_sun_hat"]);
-const SLOT_ORDER: Record<string, number> = { top: 1, outerwear: 2, onepiece: 3, bottom: 4, shoes: 5, equipment: 6 };
 const HOME_SWAP_CONTEXT_STEP_COUNT = 5;
 const HOME_SWAP_AI_STEPS = [
   "AI 正在查看地理位置",
@@ -65,10 +64,6 @@ export function homeSwapStatus(step: number, aiAvailable: boolean) {
   ];
 }
 
-function itemSortKey(item: { slot: string; functional_icon_key?: string }) {
-  if (item.functional_icon_key && HAT_KEYS.has(item.functional_icon_key)) return 0;
-  return SLOT_ORDER[item.slot] ?? 99;
-}
 function dateLabel() {
   return new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "long" }).format(new Date());
 }
@@ -298,7 +293,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
   }
 
   function outfitItem(item: BackendRecommendation["items"][number], index: number) {
-    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong>{item.variant_type}</strong><em>{thicknessLabel(item.thickness)}</em></div></div>;
+    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong>{item.variant_type}</strong><em>{item.color_name}、{thicknessLabel(item.thickness)}</em></div></div>;
   }
 
   function viewOutfit() {
@@ -361,7 +356,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
             <div className="recommendation-outfit-area" ref={outfitAreaRef}>
               <div className="recommendation-outfit-head"><span>今日搭配<small>{recommendation.items.length} 件{recommendation.items.length > 6 ? " · 可滚动" : ""}{swapQuota ? ` · 今日 AI 生成剩余 ${swapQuota.remaining}/${swapQuota.limit}` : ""} · 非 AI 不限次</small></span><button aria-busy={swapRequestPending} disabled={swapping} onClick={() => void swap()}>{!swapRequestPending && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 5.5A6 6 0 1 0 14 9" /><path d="M10.5 2.5h3v3" /></svg>}<span>{swapRequestPending ? homeSwapStatus(swapStatusStep, swapQuota?.remaining !== 0) : "换一套"}</span></button></div>
               <div className="recommendation-outfit-strip" aria-label={`今日搭配，共 ${recommendation.items.length} 件`} tabIndex={recommendation.items.length > 6 ? 0 : undefined}>
-                {[...recommendation.items].sort((a, b) => itemSortKey(a) - itemSortKey(b)).map(outfitItem)}
+                {[...recommendation.items].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b)).map(outfitItem)}
               </div>
             </div>
             </article>
