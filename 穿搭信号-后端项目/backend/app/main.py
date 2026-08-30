@@ -59,7 +59,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/", include_in_schema=False)
 async def root() -> RedirectResponse:
-    return RedirectResponse(settings.cors_origins[0])
+    return RedirectResponse(settings.cors_origins[0] if settings.cors_origins else "/api/v1/health")
 
 
 @app.get("/assets-review", include_in_schema=False)

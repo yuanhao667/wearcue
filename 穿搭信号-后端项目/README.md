@@ -60,7 +60,7 @@ PYTHONPATH=. python -m unittest discover -s tests -v
 
 AI 模型按任务分流：视觉识别使用 `VISION_MODEL`；首页换一套、AI 命名与详情建议使用 `AI_FAST_MODEL`，系统推荐预生成使用 `AI_QUALITY_MODEL`。当前生产只依赖 qwen3.8-flash 与 qwen-turbo：视觉识别不配置其他备用模型，实时文本任务失败时可在两者之间切换一次。所有结构化调用均关闭思考模式。AIHubMix 主域名在本地网络不可达时，使用其官方同能力备用接口 `https://api.inferera.com/v1`。
 
-业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`garment-assets` 和 `runtime-status`。除健康检查、天气规则与公开素材外，个人数据接口都要求 Bearer 会话。
+业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`weather` 和 `garment-assets`。除健康检查与公开 SVG 素材目录外，业务 API 都要求 Bearer 会话；旧的运行状态、能力声明、独立规则评估和单素材详情路由已移除。
 
 ## veFaaS 部署准备
 
@@ -74,8 +74,8 @@ vefaas gateway list --first -o json
 
 首次发布前必须先登录，并确认账号下存在可用的 API Gateway。确认目标后再执行创建应用的部署命令；不要在未确认账号和网关时直接发布。
 
-域名可以绑定到 veFaaS/APIG 的 HTTP 入口，但域名本身不保存数据。当前 SQLite 与本地图片卷用于本地完整验收；正式云端上线前还要提供云数据库和对象存储，由部署环境注入连接信息。`GET /api/v1/capabilities` 会把生产 AI、Push、云数据库和对象存储分别显示为“已跑通”或“待配置”。
+域名可以绑定到 veFaaS/APIG 的 HTTP 入口，但域名本身不保存数据。当前 SQLite 与本地图片卷用于本地完整验收；正式云端上线前还要提供云数据库和对象存储，由部署环境注入连接信息。生产配置通过部署环境和平台健康检查确认，不再对外暴露内部配置状态。
 
 ## 参考项目复用
 
-服务分层、`/api/v1` 路由、Open-Meteo Provider、统一错误处理、能力声明和素材静态服务延续 Wardrowbe 的成熟结构。Wardrowbe 仓库本身没有可直接交付的服装图片素材，只有品牌/PWA 资源；其 README、界面截图和公开资源保存在 `reference-assets/wardrowbe/`。实际服装 SVG 库保存在 `backend/app/static/garments/`。
+服务分层、`/api/v1` 路由、Open-Meteo Provider、统一错误处理和素材静态服务参考了 Wardrowbe 的工程结构。交付目录不保留未参与运行的参考截图、README、Logo 或 PWA 素材；需要保留的归属与许可信息见 `THIRD_PARTY_NOTICES.md` 和 `third-party-licenses/`。实际服装 SVG 库保存在 `backend/app/static/garments/`。

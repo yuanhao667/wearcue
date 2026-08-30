@@ -1,8 +1,7 @@
 import hashlib
 import os
-from datetime import date
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
@@ -18,7 +17,7 @@ from app.schemas import (
     SettingsUpdate,
     SkipRequest,
 )
-from app.services.image_service import ImageService
+from app.services.image_service import ImagePixelLimitError, ImageService
 from app.services.outfit_ai_service import (
     OutfitAIService,
     OutfitAIServiceError,
@@ -123,6 +122,8 @@ async def upload_inspiration(
     media_type, _ = detected
     try:
         paths = ImageService(store.upload_dir).process_and_store(content, digest)
+    except ImagePixelLimitError as exc:
+        raise HTTPException(413, "图片分辨率过高，请压缩后再上传") from exc
     except Exception as exc:
         raise HTTPException(415, "图片内容已损坏或无法解析") from exc
     result = store.create_inspiration(
@@ -271,25 +272,3 @@ async def record_skip(payload: SkipRequest, user: CurrentUser) -> dict:
 @router.post("/feedback/comfort", tags=["feedback"])
 async def record_comfort_feedback(payload: ComfortFeedbackRequest, user: CurrentUser) -> dict:
     return store.record_feedback(payload.week_key, payload.choice, user["id"])
-
-
-@router.get("/runtime-status", tags=["system"])
-async def runtime_status() -> dict:
-    vision_configured = VisionService().configured
-    return {
-        "authentication": {"ready": True, "provider": "invite-code-session", "data_isolation": "per-user"},
-        "persistence": {"ready": True, "provider": "sqlite", "path": "data/outfit-signal.sqlite3"},
-        "uploads": {"ready": True, "provider": "local-volume", "max_bytes": MAX_UPLOAD_BYTES},
-        "vision": {
-            "workflow_ready": True,
-            "provider": "external" if vision_configured else "unconfigured",
-            "production_configured": vision_configured,
-        },
-        "web_push": {"workflow_ready": True, "production_configured": bool(os.getenv("VAPID_PRIVATE_KEY") and os.getenv("VAPID_PUBLIC_KEY") and os.getenv("VAPID_SUBJECT"))},
-        "cloud": {
-            "domain_ready": False,
-            "database_configured": False,
-            "object_storage_configured": False,
-        },
-        "today": date.today().isoformat(),
-    }

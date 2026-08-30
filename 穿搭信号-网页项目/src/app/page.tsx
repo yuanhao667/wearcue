@@ -1,15 +1,8 @@
 import { TodayApp } from "@/components/TodayApp";
 import type { BackendRecommendation, BackendSettings, TodayWeather } from "@/domain/backend";
-import { unstable_cache } from "next/cache";
-import { authenticatedBackendFetch, BACKEND_URL } from "@/lib/server-auth";
+import { authenticatedBackendFetch } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
-
-async function publicBackendJson<T>(path: string, init?: RequestInit) {
-  const response = await fetch(`${BACKEND_URL}/api/v1${path}`, { ...init, cache: "no-store", signal: AbortSignal.timeout(8000) });
-  if (!response.ok) throw new Error(`Backend returned ${response.status}`);
-  return response.json() as Promise<T>;
-}
 
 async function privateBackendJson<T>(path: string, init?: RequestInit) {
   const response = await authenticatedBackendFetch(path, init);
@@ -17,19 +10,11 @@ async function privateBackendJson<T>(path: string, init?: RequestInit) {
   return response.json() as Promise<T>;
 }
 
-const cachedWeatherForSettings = unstable_cache(
-  async (settings: BackendSettings) => {
-    const query = new URLSearchParams({ latitude: String(settings.latitude), longitude: String(settings.longitude), city: settings.city_name });
-    return publicBackendJson<{ weather: TodayWeather }>(`/weather/today?${query}`);
-  },
-  ["wearcue-home-weather"],
-  { revalidate: 60 },
-);
-
 async function initialToday() {
   try {
     const settings = await privateBackendJson<BackendSettings>("/settings");
-    const { weather } = await cachedWeatherForSettings(settings);
+    const query = new URLSearchParams({ latitude: String(settings.latitude), longitude: String(settings.longitude), city: settings.city_name });
+    const { weather } = await privateBackendJson<{ weather: TodayWeather }>(`/weather/today?${query}`);
     const recommendation = await privateBackendJson<BackendRecommendation>("/recommendations/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -44,7 +29,6 @@ async function initialToday() {
         uv_index_max: weather.uv_index_max,
         cold_offset: settings.cold_offset,
         scene: "commute",
-        audience: settings.audience,
         city_id: settings.city_id,
         local_date: weather.date,
         excluded_template_ids: [],

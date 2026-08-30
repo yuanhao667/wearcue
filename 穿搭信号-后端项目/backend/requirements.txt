@@ -1,7 +1,8 @@
-fastapi==0.128.8
+fastapi==0.141.1
 httpx==0.28.1
 pydantic==2.13.4
-Pillow==12.1.1
-python-multipart==0.0.22
+Pillow==12.3.0
+python-multipart==0.0.32
 pywebpush==2.1.2
+starlette==1.3.1
 uvicorn[standard]==0.39.0

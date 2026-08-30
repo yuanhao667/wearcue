@@ -213,7 +213,6 @@ export interface RecommendationRequest {
   uv_index_max: number;
   cold_offset: number;
   scene: SceneId;
-  audience: Audience;
   city_id: string;
   city_name: string;
   latitude: number;

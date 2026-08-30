@@ -37,7 +37,12 @@ def user_local_date(tz_name: Optional[str]) -> str:
 
 class Store:
     def __init__(self, data_dir: Optional[Path] = None) -> None:
-        self.data_dir = data_dir or Path(os.getenv("DATA_DIR", Path.cwd() / "data"))
+        configured_data_dir = os.getenv("DATA_DIR")
+        self.data_dir = data_dir or (
+            Path(configured_data_dir)
+            if configured_data_dir
+            else Path(__file__).resolve().parents[3] / "data"
+        )
         self.upload_dir = self.data_dir / "uploads"
         self.generated_dir = self.data_dir / "generated"
         self.upload_dir.mkdir(parents=True, exist_ok=True)
@@ -501,12 +506,20 @@ class Store:
         if not outfit:
             return False
         with self.connect() as db:
-            db.execute("DELETE FROM user_skip_events WHERE outfit_id=?", (outfit_id,))
-            db.execute("DELETE FROM outfit_states WHERE outfit_id=?", (outfit_id,))
             if user_id:
+                db.execute(
+                    "DELETE FROM user_skip_events WHERE user_id=? AND outfit_id=?",
+                    (user_id, outfit_id),
+                )
+                db.execute(
+                    "DELETE FROM outfit_states WHERE user_id=? AND outfit_id=?",
+                    (user_id, outfit_id),
+                )
                 return bool(db.execute(
                     "DELETE FROM outfits WHERE id=? AND owner_user_id=?", (outfit_id, user_id)
                 ).rowcount)
+            db.execute("DELETE FROM user_skip_events WHERE outfit_id=?", (outfit_id,))
+            db.execute("DELETE FROM outfit_states WHERE outfit_id=?", (outfit_id,))
             return bool(db.execute("DELETE FROM outfits WHERE id=?", (outfit_id,)).rowcount)
 
     def save_outfit(

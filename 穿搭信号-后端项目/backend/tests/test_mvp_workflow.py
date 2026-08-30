@@ -1,5 +1,4 @@
 import asyncio
-import json
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 
@@ -13,7 +12,7 @@ from app.api import auth as auth_api
 from app.api import mvp, system
 from app.main import app
 from app.services.outfit_ai_service import OutfitAIService, OutfitAIServiceError
-from app.services.outfit_image_service import OutfitImageService
+from app.services.outfit_image_service import OutfitImageService, safe_image_url
 from app.services.store import Store, user_local_date
 from app.services.vision_service import VisionService, VisionServiceError
 
@@ -534,6 +533,22 @@ def test_outfit_image_receives_scene_context(
 
 
 @pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://cdn.example.com/outfit.png", True),
+        ("https://8.8.8.8/outfit.png", True),
+        ("http://cdn.example.com/outfit.png", False),
+        ("https://localhost/outfit.png", False),
+        ("https://127.0.0.1/outfit.png", False),
+        ("https://10.0.0.1/outfit.png", False),
+        ("file:///tmp/outfit.png", False),
+    ],
+)
+def test_generated_image_url_requires_public_https(url: str, expected: bool) -> None:
+    assert safe_image_url(url) is expected
+
+
+@pytest.mark.parametrize(
     ("scene", "raw_label", "expected"),
     [("commute", "清爽通勤风", "清爽通勤风"), ("date", "清爽约会风", "精致约会"), ("travel", "清爽出行装", "舒适出行")],
 )
@@ -778,6 +793,46 @@ def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path,
     assert captured_advice_profile == captured_profile
 
 
+def test_detail_cache_changes_with_current_profile(tmp_path, monkeypatch) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch)
+    advice_calls = 0
+    image_calls = 0
+
+    async def count_advice(self, items, weather_summary, scene, audience, person_profile):
+        nonlocal advice_calls
+        advice_calls += 1
+        return await _fake_ai_advice(
+            self, items, weather_summary, scene, audience, person_profile
+        )
+
+    async def count_image(self, label, audience, scene, items, constraints, person_profile):
+        nonlocal image_calls
+        image_calls += 1
+        return await _fake_outfit_image(
+            self, label, audience, scene, items, constraints, person_profile
+        )
+
+    monkeypatch.setattr(OutfitAIService, "generate_advice", count_advice)
+    monkeypatch.setattr(OutfitImageService, "generate", count_image)
+    payload = {
+        "recommendation_id": "profile-sensitive-detail",
+        "scene": "commute",
+        "items": [_component()],
+        "constraints": {"calibrated_apparent_min": 20},
+    }
+
+    first = client.post("/api/v1/recommendations/advice", json=payload)
+    client.post("/api/v1/settings", json={"height_group": "偏高"})
+    changed = client.post("/api/v1/recommendations/advice", json=payload)
+
+    assert first.status_code == changed.status_code == 200
+    assert first.json()["image_url"] != changed.json()["image_url"]
+    assert changed.json()["cached"] is False
+    assert changed.json()["ai_quota"]["remaining"] == 2
+    assert advice_calls == image_calls == 2
+
+
 def test_detail_ai_reads_current_account_gender_scene_and_profile(tmp_path, monkeypatch) -> None:
     test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch, audience="womens")
@@ -806,7 +861,6 @@ def test_detail_ai_reads_current_account_gender_scene_and_profile(tmp_path, monk
         json={
             "recommendation_id": "current-settings-detail",
             "scene": "date",
-            "audience": "mens",
             "items": [_component()],
             "constraints": {"calibrated_apparent_min": 20},
         },
@@ -815,6 +869,18 @@ def test_detail_ai_reads_current_account_gender_scene_and_profile(tmp_path, monk
     assert response.status_code == 200
     expected = ("date", "womens", {"height_group": "偏矮", "weight_group": "偏轻"})
     assert captured == {"advice": expected, "image": expected}
+
+
+def test_weather_and_removed_diagnostic_routes_are_not_public() -> None:
+    client = TestClient(app)
+
+    assert client.get("/api/v1/cities?q=北京").status_code == 401
+    assert client.get(
+        "/api/v1/weather/today?latitude=39.9&longitude=116.4&city=北京"
+    ).status_code == 401
+    assert client.get("/api/v1/capabilities").status_code == 404
+    assert client.get("/api/v1/runtime-status").status_code == 404
+    assert client.post("/api/v1/rules/evaluate", json={}).status_code == 404
 
 
 def test_failed_live_ai_swap_releases_quota(tmp_path, monkeypatch) -> None:

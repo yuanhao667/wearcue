@@ -1,10 +1,16 @@
 from io import BytesIO
+import os
 from pathlib import Path
 
 from PIL import Image, ImageOps
 
 
 SIZES = {"original": (2400, 2400), "medium": (800, 800), "thumbnail": (400, 400)}
+MAX_IMAGE_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", "40000000"))
+
+
+class ImagePixelLimitError(ValueError):
+    pass
 
 
 class ImageService:
@@ -15,7 +21,10 @@ class ImageService:
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
     def process_and_store(self, image_data: bytes, digest: str) -> dict[str, str]:
-        image = ImageOps.exif_transpose(Image.open(BytesIO(image_data)))
+        with Image.open(BytesIO(image_data)) as opened:
+            if opened.width * opened.height > MAX_IMAGE_PIXELS:
+                raise ImagePixelLimitError("图片像素尺寸过大")
+            image = ImageOps.exif_transpose(opened).copy()
         if image.mode in ("RGBA", "LA", "P"):
             source = image.convert("RGBA")
             background = Image.new("RGBA", source.size, "white")

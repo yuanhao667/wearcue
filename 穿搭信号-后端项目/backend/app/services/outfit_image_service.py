@@ -1,8 +1,10 @@
 import base64
+import ipaddress
 import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 import httpx
 
@@ -11,6 +13,19 @@ from .outfit_ai_service import scene_context_for
 
 class OutfitImageServiceError(RuntimeError):
     pass
+
+
+MAX_GENERATED_IMAGE_BYTES = 20 * 1024 * 1024
+
+
+def safe_image_url(value: str) -> bool:
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or not parsed.hostname:
+        return False
+    try:
+        return ipaddress.ip_address(parsed.hostname).is_global
+    except ValueError:
+        return parsed.hostname.lower() != "localhost"
 
 
 class OutfitImageService:
@@ -112,16 +127,31 @@ class OutfitImageService:
                     image = base64.b64decode(output["b64_json"], validate=True)
                 else:
                     image_url = output.get("url") or output.get("content_url")
-                    if not image_url:
+                    if not image_url or not safe_image_url(image_url):
                         raise OutfitImageServiceError("AI 生图未返回图片")
-                    download = await client.get(image_url)
-                    if download.status_code == 401:
-                        download = await client.get(
-                            image_url, headers={"Authorization": "Bearer " + self.key}
-                        )
-                    download.raise_for_status()
-                    image = download.content
-                if not image or len(image) > 20 * 1024 * 1024:
+                    api_host = urlparse(self.url).hostname
+
+                    async def download_image(headers: dict[str, str] | None = None) -> bytes | None:
+                        async with client.stream("GET", image_url, headers=headers) as download:
+                            if download.status_code == 401:
+                                return None
+                            download.raise_for_status()
+                            declared = int(download.headers.get("content-length", "0") or "0")
+                            if declared > MAX_GENERATED_IMAGE_BYTES:
+                                raise OutfitImageServiceError("AI 生图结果无效")
+                            content = bytearray()
+                            async for chunk in download.aiter_bytes():
+                                content.extend(chunk)
+                                if len(content) > MAX_GENERATED_IMAGE_BYTES:
+                                    raise OutfitImageServiceError("AI 生图结果无效")
+                            return bytes(content)
+
+                    image = await download_image()
+                    if image is None and urlparse(image_url).hostname == api_host:
+                        image = await download_image({"Authorization": "Bearer " + self.key})
+                    if image is None:
+                        raise OutfitImageServiceError("AI 生图下载未授权")
+                if not image or len(image) > MAX_GENERATED_IMAGE_BYTES:
                     raise OutfitImageServiceError("AI 生图结果无效")
                 return image
             except OutfitImageServiceError:

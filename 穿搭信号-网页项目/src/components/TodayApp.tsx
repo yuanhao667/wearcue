@@ -97,7 +97,6 @@ export function requestFrom(weather: TodayWeather, settings: BackendSettings, sc
     uv_index_max: weather.uv_index_max,
     cold_offset: settings.cold_offset,
     scene,
-    audience: settings.audience,
     city_id: settings.city_id,
     city_name: weather.city || settings.city_name,
     latitude: weather.latitude,

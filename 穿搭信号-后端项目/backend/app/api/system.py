@@ -1,6 +1,7 @@
 import asyncio
+import hashlib
+import json
 import logging
-import os
 from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional
@@ -9,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
 
 from app.auth import CurrentUser
-from app.domain.weather_rules import WeatherInput, evaluate_weather_rules
+from app.domain.weather_rules import WeatherInput
 from app.schemas import GarmentAssetResponse, RecommendationAdviceRequest, RecommendationRequest, WeatherRuleRequest
 from app.services.outfit_ai_service import OutfitAIService
 from app.services.outfit_image_service import OutfitImageService
@@ -21,7 +22,6 @@ from app.services.recommendation_service import (
     recommend_system_ai_outfit,
 )
 from app.services.store import AI_USAGE_LIMITS, store, user_local_date
-from app.services.vision_service import VisionService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -42,10 +42,36 @@ GARMENT_LABELS = {
 }
 # ponytail: 进程内锁足够覆盖当前单 worker；扩到多 worker 时改为数据库任务锁。
 DETAIL_LOCKS: defaultdict[tuple[str, str], asyncio.Lock] = defaultdict(asyncio.Lock)
+PROMPT_ROOT = Path(__file__).resolve().parents[1] / "prompts"
+DETAIL_PROMPT_DIGEST = hashlib.sha256(
+    b"\0".join(
+        (PROMPT_ROOT / name).read_bytes()
+        for name in ("outfit_advice.txt", "outfit_image.txt")
+    )
+).hexdigest()[:16]
 
 
 def _quota_date(user_id: str) -> str:
     return user_local_date(store.get_settings(user_id).get("timezone"))
+
+
+def _detail_cache_id(
+    payload: RecommendationAdviceRequest,
+    audience: str,
+    person_profile: dict,
+) -> str:
+    context = {
+        "prompt": DETAIL_PROMPT_DIGEST,
+        "label": payload.label,
+        "scene": payload.scene,
+        "items": [item.model_dump(mode="json") for item in payload.items],
+        "constraints": payload.constraints,
+        "audience": audience,
+        "person_profile": person_profile,
+    }
+    encoded = json.dumps(context, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:20]
+    return f"{payload.recommendation_id}-{digest}"
 
 
 def _non_ai_recommendation(
@@ -93,39 +119,6 @@ def _weather_input(payload: WeatherRuleRequest) -> WeatherInput:
 @router.get("/health", tags=["system"])
 async def health() -> dict:
     return {"status": "healthy", "service": "wearcue-backend", "version": "0.1.0"}
-
-
-@router.get("/capabilities", tags=["system"])
-async def capabilities() -> dict:
-    return {
-        "weather_provider": True,
-        "deterministic_rules": True,
-        "official_recommendations": True,
-        "garment_assets": True,
-        "production_entry": True,
-        "multi_user_auth": True,
-        "per_user_data_isolation": True,
-        "user_settings": True,
-        "personal_outfits": True,
-        "garment_details": True,
-        "image_upload": True,
-        "vision_workflow": True,
-        "notification_workflow": True,
-        "comfort_feedback": True,
-        "persistence": True,
-        "vision_provider_configured": VisionService().configured,
-        "image_provider_configured": OutfitImageService().configured,
-        "web_push_provider_configured": bool(
-            os.getenv("VAPID_PRIVATE_KEY") and os.getenv("VAPID_PUBLIC_KEY") and os.getenv("VAPID_SUBJECT")
-        ),
-        "cloud_database_configured": False,
-        "object_storage_configured": False,
-    }
-
-
-@router.post("/rules/evaluate", tags=["recommendations"])
-async def evaluate(payload: WeatherRuleRequest) -> dict:
-    return evaluate_weather_rules(_weather_input(payload)).to_dict()
 
 
 @router.post("/recommendations/preview", tags=["recommendations"])
@@ -206,15 +199,21 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
 
 @router.post("/recommendations/advice", tags=["recommendations"])
 async def recommendation_advice(payload: RecommendationAdviceRequest, user: CurrentUser) -> dict:
-    async with DETAIL_LOCKS[(user["id"], payload.recommendation_id)]:
+    settings = store.get_settings(user["id"])
+    generation_audience = settings["audience"]
+    person_profile = {
+        key: settings[key] for key in ("height_group", "weight_group")
+    }
+    cache_id = _detail_cache_id(payload, generation_audience, person_profile)
+    async with DETAIL_LOCKS[(user["id"], cache_id)]:
         local_date = _quota_date(user["id"])
-        cached_advice = store.get_ai_advice(user["id"], payload.recommendation_id)
-        cached_image = store.get_ai_outfit_image(user["id"], payload.recommendation_id)
+        cached_advice = store.get_ai_advice(user["id"], cache_id)
+        cached_image = store.get_ai_outfit_image(user["id"], cache_id)
         needs_advice = payload.generate_advice and not cached_advice
         needs_image = not cached_image
         if not needs_advice and not needs_image:
             return (cached_advice or {}) | {
-                "image_url": f"/recommendations/{payload.recommendation_id}/image",
+                "image_url": f"/recommendations/{cache_id}/image",
                 "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
                 "cached": True,
             }
@@ -222,11 +221,6 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
         if not reservation_id:
             raise HTTPException(429, "今日 AI 穿搭建议次数已用完，可先参考下方基础搭配，明天再来生成")
         items = [item.model_dump() for item in payload.items]
-        settings = store.get_settings(user["id"])
-        generation_audience = settings["audience"]
-        person_profile = {
-            key: settings[key] for key in ("height_group", "weight_group")
-        }
         try:
             advice_task = (
                 OutfitAIService().generate_advice(
@@ -258,14 +252,14 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
             if needs_advice:
                 result = generated[index]
                 index += 1
-                store.set_ai_advice(user["id"], payload.recommendation_id, result)
+                store.set_ai_advice(user["id"], cache_id, result)
             if needs_image:
-                store.set_ai_outfit_image(user["id"], payload.recommendation_id, generated[index])
+                store.set_ai_outfit_image(user["id"], cache_id, generated[index])
         except Exception:
             store.release_ai_usage(reservation_id)
             raise
         return result | {
-            "image_url": f"/recommendations/{payload.recommendation_id}/image",
+            "image_url": f"/recommendations/{cache_id}/image",
             "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
             "cached": False,
         }
@@ -305,17 +299,3 @@ async def garment_assets(
             )
         )
     return assets
-
-
-@router.get("/garment-assets/{collection}/{key}", response_model=GarmentAssetResponse, tags=["garment-assets"])
-async def garment_asset_detail(collection: str, key: str) -> GarmentAssetResponse:
-    if collection not in {"mens", "womens", "accessories"}:
-        raise HTTPException(404, "素材不存在")
-    path = GARMENT_ROOT / collection / (key + ".svg")
-    if not path.is_file():
-        raise HTTPException(404, "素材不存在")
-    return GarmentAssetResponse(
-        key=key, collection=collection, category=key.split("_")[0],
-        url="/assets/garments/%s/%s.svg" % (collection, key),
-        label=GARMENT_LABELS.get(key, key),
-    )

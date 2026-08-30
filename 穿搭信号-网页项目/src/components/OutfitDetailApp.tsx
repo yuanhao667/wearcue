@@ -64,10 +64,7 @@ export function OutfitDetailApp({ id }: { id: string }) {
   useEffect(() => {
     if (loading) return;
     const targetItems = recommendation?.items ?? savedOutfit?.components;
-    if (!targetItems || savedOutfit?.inspiration_id) {
-      setAdviceDone(true);
-      return;
-    }
+    if (!targetItems || savedOutfit?.inspiration_id) return;
     const needsAdvice = Boolean(
       recommendation?.source === "ai"
       && !recommendation.replication_guide
