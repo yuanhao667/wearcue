@@ -81,8 +81,7 @@ export function AppNav() {
             {profile.avatar ? <span className="avatar-photo" style={{ backgroundImage: `url(${profile.avatar})` }} /> : avatarLetter}
           </button>
           {showSettingsNudge && pathname !== "/settings" && pathname !== "/login" && <button className="settings-nudge" type="button" onClick={() => { setShowSettingsNudge(false); router.push("/settings"); }}>
-            <strong>完善个人设置</strong>
-            <span>让推荐和人物效果更贴合你</span>
+            <strong>完善个人设置</strong><span>让推荐和人物效果更贴合你</span>
           </button>}
         </div>
       </header>

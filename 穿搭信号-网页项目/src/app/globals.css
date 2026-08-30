@@ -1205,12 +1205,13 @@ body {
 .avatar-photo { width: 100%; height: 100%; display: block; background-position: center; background-size: cover; }
 .account-avatar:hover, .account-avatar.active { box-shadow: 0 0 0 3px rgba(200,255,50,.22); }
 .account-menu { position: relative; justify-self: end; }
-.settings-nudge { position: absolute; z-index: 120; top: calc(100% + 13px); right: -4px; width: min(238px, calc(100vw - 32px)); box-sizing: border-box; border: 1px solid #dce2df; border-radius: 15px; background: #fff; padding: 14px 16px; color: var(--ink); text-align: left; box-shadow: 0 14px 40px rgba(17,19,21,.14); cursor: pointer; }
-.settings-nudge::before { content: ""; position: absolute; right: 15px; bottom: 100%; border: 7px solid transparent; border-bottom-color: #fff; }
-.settings-nudge strong, .settings-nudge span { display: block; }
-.settings-nudge strong { font-size: 14px; line-height: 1.3; }
-.settings-nudge span { margin-top: 4px; color: var(--graphite); font-size: 12px; line-height: 1.45; }
-.settings-nudge:hover { border-color: var(--deep-green); }
+.settings-nudge { position: absolute; z-index: 120; top: calc(100% + 13px); right: -4px; display: flex; width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; align-items: center; gap: 6px; border: 0; border-radius: 13px; background: #111; padding: 12px 16px; color: #fff; white-space: nowrap; box-shadow: 0 12px 32px rgba(17,19,21,.22); cursor: pointer; }
+.settings-nudge::before { content: ""; position: absolute; right: 17px; bottom: 100%; width: 0; height: 0; border: 7px solid transparent; border-bottom-color: #111; }
+.settings-nudge strong, .settings-nudge span { display: inline; font-size: 13px; line-height: 1.35; }
+.settings-nudge strong { font-weight: 750; }
+.settings-nudge span { color: rgba(255,255,255,.86); }
+.settings-nudge:hover { background: #242424; }
+.settings-nudge:hover::before { border-bottom-color: #242424; }
 .profile-dialog { position: absolute; z-index: 120; top: calc(100% + 12px); right: 0; width: min(160px, calc(100vw - 32px)); box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 16px; background: #fff; padding: 8px 12px 6px; box-shadow: 0 18px 54px rgba(17,19,21,.16); }
 .profile-menu-info { margin-bottom: 5px; border-radius: 10px; background: #f1f3f4; padding: 2px 6px; }
 .profile-menu-info .profile-menu-row { border-bottom: 0; padding: 9px 4px; font-weight: 500; }
