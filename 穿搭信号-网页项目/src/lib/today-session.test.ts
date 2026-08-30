@@ -13,7 +13,8 @@ describe("today session cache", () => {
 
     saveTodaySession(settings, weather, recommendation, now);
     expect(readTodaySession(now + 1_000)?.recommendation.template_id).toBe("commute-1");
-    expect(readTodaySession(now + 31 * 60 * 1_000)).toBeNull();
+    expect(readTodaySession(now + 119 * 60 * 1_000)?.recommendation.template_id).toBe("commute-1");
+    expect(readTodaySession(now + 121 * 60 * 1_000)).toBeNull();
     expect(readTodaySession(Date.parse("2026-08-31T00:00:00Z"))).toBeNull();
   });
 });

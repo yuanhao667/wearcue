@@ -1890,7 +1890,7 @@ body:has(.upload-paper)::before { display: none; }
 .outfit-detail-photo { position: relative; min-width: 0; box-sizing: border-box; margin: 0; }
 .outfit-detail-photo img { width: 100%; height: auto; display: block; }
 .outfit-detail-photo-placeholder { min-height: 620px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px; box-sizing: border-box; text-align: center; background: #f4f6f5; color: #697278; }
-.outfit-detail-photo-placeholder b { width: 112px; height: 112px; display: grid; place-items: center; border-radius: 50%; background: #183f31; }
+.outfit-detail-photo-placeholder b { width: 112px; height: 112px; display: grid; place-items: center; border-radius: 50%; background: #183f31; color: var(--sunshine); }
 .outfit-detail-photo-placeholder h3, .outfit-detail-photo-placeholder p { margin: 0; }
 .outfit-detail-photo-placeholder .cross-audience-notice { width: 100%; box-sizing: border-box; text-align: left; }
 .outfit-detail-items, .replication-card { min-width: 0; box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 26px; }

@@ -8,7 +8,7 @@ export type TodaySessionCache = {
 };
 
 const TODAY_SESSION_KEY = "wearcue_today_session_v1";
-const TODAY_SESSION_TTL = 30 * 60 * 1000;
+const TODAY_SESSION_TTL = 2 * 60 * 60 * 1000;
 
 function dateInTimezone(timestamp: number, timezone: string) {
   const parts = new Intl.DateTimeFormat("en", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" })
