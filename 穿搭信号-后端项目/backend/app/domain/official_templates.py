@@ -37,8 +37,8 @@ _BASE: Dict[ThermalBand, Sequence[Tuple[str, Tuple[TemplateItem, ...]]]] = {
         ("松弛日常", (_item("top", "short_sleeve", "轻薄 Polo", "米白", "thin"), _item("bottom", "long_bottom", "垂感长裤", "石墨灰", "thin"), _item("shoes", "daily_shoes", "休闲鞋", "灰绿"))),
     ),
     ThermalBand.mild: (
-        ("薄层通勤", (_item("top", "long_sleeve", "长袖衬衫", "奶油白", "thin"), _item("bottom", "long_bottom", "直筒长裤", "黑色"), _item("shoes", "daily_shoes", "运动鞋", "银灰"))),
-        ("衬衫节奏", (_item("top", "long_sleeve", "宽松衬衫", "浅蓝", "thin"), _item("bottom", "long_bottom", "直筒裤", "藏蓝"), _item("shoes", "daily_shoes", "板鞋", "灰白"))),
+        ("薄层日常", (_item("top", "long_sleeve", "长袖 T 恤", "奶油白", "thin"), _item("bottom", "long_bottom", "直筒休闲裤", "黑色"), _item("shoes", "daily_shoes", "运动鞋", "银灰"))),
+        ("长袖节奏", (_item("top", "long_sleeve", "宽松长袖 T 恤", "浅蓝", "thin"), _item("bottom", "long_bottom", "直筒裤", "藏蓝"), _item("shoes", "daily_shoes", "板鞋", "灰白"))),
     ),
     ThermalBand.cool: (
         ("轻机能叠穿", (_item("top", "long_sleeve", "长袖打底", "浅灰"), _item("outerwear", "light_outerwear", "轻量夹克", "黑色"), _item("bottom", "long_bottom", "工装裤", "橄榄绿"), _item("shoes", "daily_shoes", "运动鞋", "黑色"))),

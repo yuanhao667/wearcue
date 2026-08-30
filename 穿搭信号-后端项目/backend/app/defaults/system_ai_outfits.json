@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "outfits": [
     {
       "id": "system-ai-hot-mens-01",
@@ -11,7 +11,7 @@
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "浅蓝",
           "color_value": "#A8D8EA",
           "color_type": "solid",
@@ -21,7 +21,7 @@
           "slot": "bottom",
           "functional_icon_key": "long_bottom",
           "asset_key": "bottom_casual_pants",
-          "variant_type": "九分西裤",
+          "variant_type": "九分休闲裤",
           "color_name": "深灰",
           "color_value": "#3B3B3B",
           "color_type": "solid",
@@ -31,7 +31,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "透气乐福鞋",
+          "variant_type": "透气运动鞋",
           "color_name": "黑色",
           "color_value": "#1C1C1C",
           "color_type": "solid",
@@ -41,23 +41,23 @@
       "replication_guide": {
         "formula": "上装＋下装＋鞋",
         "steps": [
-          "先穿短袖衬衫，下摆自然塞入裤腰",
-          "搭配九分西裤，裤脚刚好露出脚踝",
-          "最后穿上透气乐福鞋"
+          "先穿宽松短袖 T 恤，下摆自然塞入裤腰",
+          "搭配九分休闲裤，裤脚刚好露出脚踝",
+          "最后穿上透气运动鞋"
         ],
         "styling_points": [
-          "衬衫袖口可微微卷起增加利落感",
-          "搭配一条细款深色皮带提升正式度"
+          "休闲上衣袖口可微微卷起增加利落感",
+          "搭配一条细款深色皮带提升日常利落感"
         ],
         "weather_note": "体感30-34℃闷热，选择透气轻薄面料保持清爽",
-        "substitute": "短袖衬衫可替换为POLO衫，西裤可替换为轻薄休闲裤"
+        "substitute": "宽松短袖 T 恤可替换为POLO衫，休闲裤可替换为轻薄休闲裤"
       },
       "outfit_analysis": {
-        "summary": "针对炎热通勤场景，以轻薄透气为主，保持商务休闲的得体感",
+        "summary": "针对炎热通勤场景，以轻薄透气为主，保持日常休闲的得体感",
         "structure_points": [
-          "上薄下稳，浅蓝衬衫提亮整体",
+          "上薄下稳，浅蓝休闲上衣提亮整体",
           "九分裤露踝设计增加透气感",
-          "乐福鞋兼顾正式与舒适"
+          "低帮运动鞋兼顾轻便与舒适"
         ],
         "completion_advice": [
           "可佩戴简约腕表提升质感",
@@ -65,19 +65,19 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-hot-womens-01",
       "thermal_band": "hot",
       "audience": "womens",
-      "label": "清凉通勤套装",
+      "label": "清凉通勤穿搭",
       "items": [
         {
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "浅蓝色",
           "color_value": "#b3d4e5",
           "color_type": "solid",
@@ -97,7 +97,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "低跟乐福鞋",
+          "variant_type": "轻便低帮鞋",
           "color_name": "裸粉色",
           "color_value": "#e8c8b8",
           "color_type": "solid",
@@ -105,25 +105,25 @@
         }
       ],
       "replication_guide": {
-        "formula": "短袖衬衫＋A字短裙＋低跟乐福鞋",
+        "formula": "宽松短袖 T 恤＋A字短裙＋轻便低帮鞋",
         "steps": [
-          "先穿上短袖衬衫并整理领口",
+          "先穿上宽松短袖 T 恤并整理领口",
           "搭配高腰A字短裙，塞好衣角",
-          "最后穿上低跟乐福鞋"
+          "最后穿上轻便低帮鞋"
         ],
         "styling_points": [
-          "衬衫下摆可塞入裙腰提升比例",
+          "休闲上衣下摆可塞入裙腰提升比例",
           "选择轻薄透气面料保持清爽"
         ],
         "weather_note": "今日体感炎热（30-34°C），需选择透气轻薄单品",
-        "substitute": "短袖衬衫可替换为短袖针织衫或雪纺上衣"
+        "substitute": "宽松短袖 T 恤可替换为短袖针织衫或雪纺上衣"
       },
       "outfit_analysis": {
-        "summary": "清爽利落的通勤搭配，适合炎热天气下的办公出行",
+        "summary": "清爽利落的通勤搭配，适合炎热天气下的上班或上学",
         "structure_points": [
           "上短下短展现轻盈感",
           "高腰设计优化身材比例",
-          "低跟鞋兼顾舒适与正式感"
+          "低跟鞋兼顾舒适与轻松感"
         ],
         "completion_advice": [
           "可搭配简约金属耳饰提升精致度",
@@ -131,7 +131,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-warm-mens-01",
@@ -143,7 +143,7 @@
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "浅蓝色",
           "color_value": "#A8D8EA",
           "color_type": "solid",
@@ -153,7 +153,7 @@
           "slot": "bottom",
           "functional_icon_key": "long_bottom",
           "asset_key": "bottom_casual_pants",
-          "variant_type": "修身西裤",
+          "variant_type": "修身休闲裤",
           "color_name": "深灰色",
           "color_value": "#4A4A4A",
           "color_type": "solid",
@@ -163,7 +163,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "乐福鞋",
+          "variant_type": "低帮运动鞋",
           "color_name": "黑色",
           "color_value": "#1A1A1A",
           "color_type": "solid",
@@ -173,19 +173,19 @@
       "replication_guide": {
         "formula": "上装＋下装＋鞋",
         "steps": [
-          "先穿短袖衬衫",
-          "搭配修身西裤",
-          "最后穿乐福鞋"
+          "先穿宽松短袖 T 恤",
+          "搭配修身休闲裤",
+          "最后穿低帮运动鞋"
         ],
         "styling_points": [
-          "衬衫下摆可束入裤腰",
+          "休闲上衣下摆可束入裤腰",
           "袖口可卷至手肘处"
         ],
         "weather_note": "体感温暖偏热，保持透气清爽",
         "substitute": "同厚度、相近版型的基础款即可替换。"
       },
       "outfit_analysis": {
-        "summary": "以轻薄短袖衬衫搭配修身西裤，兼顾通勤正式感与夏日舒适度",
+        "summary": "以轻薄宽松短袖 T 恤搭配修身休闲裤，兼顾通勤轻松感与夏日舒适度",
         "structure_points": [
           "上薄下稳",
           "色彩冷暖对比"
@@ -196,7 +196,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-warm-womens-01",
@@ -208,7 +208,7 @@
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "米白色",
           "color_value": "#f5f0e6",
           "color_type": "solid",
@@ -218,7 +218,7 @@
           "slot": "bottom",
           "functional_icon_key": "long_bottom",
           "asset_key": "bottom_casual_pants",
-          "variant_type": "高腰直筒西裤",
+          "variant_type": "高腰直筒休闲裤",
           "color_name": "浅灰色",
           "color_value": "#c8c8c8",
           "color_type": "solid",
@@ -228,7 +228,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "乐福鞋",
+          "variant_type": "低帮运动鞋",
           "color_name": "裸色",
           "color_value": "#d9b99b",
           "color_type": "solid",
@@ -238,21 +238,21 @@
       "replication_guide": {
         "formula": "上装＋下装＋鞋",
         "steps": [
-          "先穿短袖衬衫",
-          "搭配高腰西裤",
-          "最后穿乐福鞋"
+          "先穿宽松短袖 T 恤",
+          "搭配高腰休闲裤",
+          "最后穿低帮运动鞋"
         ],
         "styling_points": [
-          "衬衫下摆可扎入裤腰提升比例",
-          "选择垂感面料更显干练"
+          "休闲上衣下摆可扎入裤腰提升比例",
+          "选择垂感面料更显利落"
         ],
         "weather_note": "气温26-30°C，体感温暖偏热，轻薄透气为主",
         "substitute": "短袖T恤或短袖针织衫可替换上装"
       },
       "outfit_analysis": {
-        "summary": "清爽干练的通勤造型，适合温暖天气下的日常办公出行",
+        "summary": "清爽利落的通勤造型，适合温暖天气下的日常上班或上学",
         "structure_points": [
-          "上薄下长平衡温度与正式感",
+          "上薄下长平衡温度与轻松感",
           "浅色系视觉降温"
         ],
         "completion_advice": [
@@ -261,7 +261,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-mild-mens-01",
@@ -273,7 +273,7 @@
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "浅蓝色",
           "color_value": "#a8d8ea",
           "color_type": "solid",
@@ -293,7 +293,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "休闲皮鞋",
+          "variant_type": "休闲运动鞋",
           "color_name": "棕色",
           "color_value": "#6b4226",
           "color_type": "solid",
@@ -303,22 +303,22 @@
       "replication_guide": {
         "formula": "上装＋下装＋鞋",
         "steps": [
-          "穿上浅蓝色短袖衬衫，扣至倒数第二颗扣子",
+          "穿上浅蓝色宽松短袖 T 恤，扣至倒数第二颗扣子",
           "搭配深灰色直筒休闲裤，裤长刚好盖住鞋面",
-          "穿上棕色休闲皮鞋，系好鞋带"
+          "穿上棕色休闲运动鞋，系好鞋带"
         ],
         "styling_points": [
-          "衬衫下摆可自然垂落或半塞入裤腰",
+          "休闲上衣下摆可自然垂落或半塞入裤腰",
           "裤脚可轻微卷边增加层次感"
         ],
         "weather_note": "气温22-26℃，体感舒适微暖，适合轻薄透气面料",
-        "substitute": "短袖衬衫可替换为短袖Polo衫，休闲裤可替换为卡其裤"
+        "substitute": "宽松短袖 T 恤可替换为短袖Polo衫，休闲裤可替换为卡其裤"
       },
       "outfit_analysis": {
-        "summary": "清爽利落的轻商务通勤搭配，适合温和气候下的日常办公场景",
+        "summary": "清爽利落的轻松日常通勤搭配，适合温和气候下的日常上班或上学场景",
         "structure_points": [
           "浅蓝与深灰形成经典冷暖对比",
-          "轻薄衬衫保证透气性",
+          "轻薄休闲上衣保证透气性",
           "直筒裤型修饰腿型"
         ],
         "completion_advice": [
@@ -328,7 +328,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-mild-womens-01",
@@ -340,7 +340,7 @@
           "slot": "top",
           "functional_icon_key": "short_sleeve",
           "asset_key": "top_tshirt_short",
-          "variant_type": "短袖衬衫",
+          "variant_type": "宽松短袖 T 恤",
           "color_name": "米白色",
           "color_value": "#f5f0e6",
           "color_type": "solid",
@@ -360,7 +360,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "平底乐福鞋",
+          "variant_type": "平底运动鞋",
           "color_name": "棕色",
           "color_value": "#8b5e3c",
           "color_type": "solid",
@@ -378,26 +378,26 @@
         }
       ],
       "replication_guide": {
-        "formula": "短袖衬衫＋高腰阔腿裤＋平底乐福鞋＋轻薄针织开衫",
+        "formula": "宽松短袖 T 恤＋高腰阔腿裤＋平底运动鞋＋轻薄针织开衫",
         "steps": [
-          "先穿短袖衬衫，下摆塞入裤腰",
+          "先穿宽松短袖 T 恤，下摆塞入裤腰",
           "搭配高腰阔腿裤，拉长腿部线条",
           "披上轻薄针织开衫，早晚温差时保暖",
-          "最后穿平底乐福鞋，舒适通勤"
+          "最后穿平底运动鞋，舒适通勤"
         ],
         "styling_points": [
-          "衬衫下摆全塞或半塞，突出腰线",
+          "休闲上衣下摆全塞或半塞，突出腰线",
           "开衫可披肩式穿搭，增加层次感"
         ],
         "weather_note": "今日体感22-26°C，温和宜人，早晚微凉可搭开衫",
-        "substitute": "短袖衬衫可换为短袖针织衫，阔腿裤可换为直筒裤"
+        "substitute": "宽松短袖 T 恤可换为短袖针织衫，阔腿裤可换为直筒裤"
       },
       "outfit_analysis": {
-        "summary": "以米白衬衫搭配浅卡其阔腿裤，整体色调温柔知性，适合日常通勤场景，轻薄开衫应对早晚温差。",
+        "summary": "以米白休闲上衣搭配浅卡其阔腿裤，整体色调温柔知性，适合日常通勤场景，轻薄开衫应对早晚温差。",
         "structure_points": [
           "上短下长比例，高腰裤拉长身材",
           "轻薄开衫增加层次但不厚重",
-          "平底乐福鞋兼顾舒适与正式感"
+          "平底运动鞋兼顾舒适与轻松感"
         ],
         "completion_advice": [
           "可搭配简约金属项链提升精致度",
@@ -406,7 +406,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-cool-mens-01",
@@ -418,7 +418,7 @@
           "slot": "top",
           "functional_icon_key": "long_sleeve",
           "asset_key": "top_tshirt_long",
-          "variant_type": "长袖衬衫",
+          "variant_type": "长袖 T 恤",
           "color_name": "浅蓝色",
           "color_value": "#a9c8e6",
           "color_type": "solid",
@@ -438,7 +438,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "乐福鞋",
+          "variant_type": "低帮运动鞋",
           "color_name": "棕色",
           "color_value": "#6b4423",
           "color_type": "solid",
@@ -448,7 +448,7 @@
           "slot": "outerwear",
           "functional_icon_key": "light_outerwear",
           "asset_key": "outer_light_jacket",
-          "variant_type": "轻薄休闲西装",
+          "variant_type": "轻薄休闲夹克",
           "color_name": "藏青色",
           "color_value": "#2c3e50",
           "color_type": "solid",
@@ -458,24 +458,24 @@
       "replication_guide": {
         "formula": "上装＋下装＋鞋＋外套",
         "steps": [
-          "先穿长袖衬衫",
+          "先穿长袖 T 恤",
           "搭配修身休闲裤",
-          "穿上乐福鞋",
-          "披上轻薄休闲西装"
+          "穿上低帮运动鞋",
+          "披上轻薄休闲夹克"
         ],
         "styling_points": [
-          "衬衫下摆可自然垂落或半扎",
-          "西装保持自然垂落"
+          "休闲上衣下摆可自然垂落或半扎",
+          "休闲夹克保持自然垂落"
         ],
         "weather_note": "17-21°C微凉，早晚偏凉需外套，午间舒适",
-        "substitute": "衬衫可换为薄款针织衫，休闲裤可换为卡其裤"
+        "substitute": "休闲上衣可换为薄款针织衫，休闲裤可换为卡其裤"
       },
       "outfit_analysis": {
-        "summary": "以轻薄层次应对微凉通勤，兼顾干练与舒适",
+        "summary": "以轻薄层次应对微凉通勤，兼顾利落与舒适",
         "structure_points": [
           "内薄外薄的层次搭配",
           "深灰下装稳定视觉重心",
-          "乐福鞋提升通勤质感"
+          "低帮运动鞋提升通勤质感"
         ],
         "completion_advice": [
           "可搭配简约腕表",
@@ -483,7 +483,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-cool-womens-01",
@@ -505,7 +505,7 @@
           "slot": "bottom",
           "functional_icon_key": "long_bottom",
           "asset_key": "bottom_casual_pants",
-          "variant_type": "直筒西装裤",
+          "variant_type": "直筒休闲裤",
           "color_name": "深灰",
           "color_value": "#3d3d3d",
           "color_type": "solid",
@@ -515,7 +515,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "低跟乐福鞋",
+          "variant_type": "轻便低帮鞋",
           "color_name": "黑色",
           "color_value": "#1a1a1a",
           "color_type": "solid",
@@ -533,22 +533,22 @@
         }
       ],
       "replication_guide": {
-        "formula": "长袖针织衫＋直筒西装裤＋薄风衣＋低跟乐福鞋",
+        "formula": "长袖针织衫＋直筒休闲裤＋薄风衣＋轻便低帮鞋",
         "steps": [
           "内搭长袖针织衫",
-          "搭配直筒西装裤并整理裤线",
+          "搭配直筒休闲裤并整理裤线",
           "外搭薄款风衣，系带或敞开",
-          "穿上低跟乐福鞋"
+          "穿上轻便低帮鞋"
         ],
         "styling_points": [
-          "风衣敞开穿更显干练",
+          "风衣敞开穿更显利落",
           "针织衫下摆可半塞进裤腰拉长比例"
         ],
         "weather_note": "体感微凉，早晚需薄外套，午间可脱下风衣",
-        "substitute": "薄款风衣可替换为轻薄西装外套，针织衫可替换为薄款衬衫"
+        "substitute": "薄款风衣可替换为轻薄休闲夹克，针织衫可替换为薄款休闲上衣"
       },
       "outfit_analysis": {
-        "summary": "以米色针织衫与卡其风衣打造柔和通勤基调，深灰西装裤提升利落感，整体微凉适宜、干练优雅。",
+        "summary": "以米色针织衫与卡其风衣打造柔和通勤基调，深灰休闲裤提升利落感，整体微凉适宜、利落优雅。",
         "structure_points": [
           "上薄下稳，色彩由浅入深过渡",
           "直筒裤型修饰腿型且方便通勤"
@@ -559,7 +559,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-cold-womens-01",
@@ -601,7 +601,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "乐福鞋",
+          "variant_type": "低帮运动鞋",
           "color_name": "黑色",
           "color_value": "#2b2b2b",
           "color_type": "solid",
@@ -614,21 +614,21 @@
           "先穿长袖针织衫",
           "套上薄款风衣",
           "搭配高腰直筒裤",
-          "最后穿乐福鞋"
+          "最后穿低帮运动鞋"
         ],
         "styling_points": [
           "风衣敞开穿露出腰线",
           "针织衫下摆塞入裤腰显比例"
         ],
         "weather_note": "体感12–16°C偏凉，薄风衣挡风刚好，早晚稍冷可扣起风衣",
-        "substitute": "针织衫可换为薄款卫衣；风衣可换为轻薄西装外套"
+        "substitute": "针织衫可换为薄款卫衣；风衣可换为轻薄休闲夹克"
       },
       "outfit_analysis": {
         "summary": "以米色针织+卡其风衣+深灰裤打造温柔通勤感，层次分明且保暖适中",
         "structure_points": [
           "上浅下深稳定视觉重心",
           "风衣增加纵向线条显高",
-          "乐福鞋兼顾舒适与正式感"
+          "低帮运动鞋兼顾舒适与轻松感"
         ],
         "completion_advice": [
           "可加一条细丝巾点缀颈部",
@@ -636,7 +636,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-freezing-mens-01",
@@ -658,7 +658,7 @@
           "slot": "bottom",
           "functional_icon_key": "warm_bottom",
           "asset_key": "bottom_sweatpants",
-          "variant_type": "加厚直筒西裤",
+          "variant_type": "加厚直筒休闲裤",
           "color_name": "藏青",
           "color_value": "#1c2541",
           "color_type": "solid",
@@ -699,7 +699,7 @@
         "formula": "保暖上装＋保暖下装＋保暖外套＋皮靴＋手套",
         "steps": [
           "内搭高领针织衫",
-          "穿上加厚直筒西裤",
+          "穿上加厚直筒休闲裤",
           "套上羊毛大衣",
           "穿切尔西皮靴",
           "戴上皮质触屏手套"
@@ -709,10 +709,10 @@
           "裤脚与靴筒自然衔接，避免堆叠"
         ],
         "weather_note": "体感6–10°C，偏冷，早晚寒意明显，需注重保暖层次",
-        "substitute": "高领针织衫可换为同类厚度的圆领毛衣＋衬衫叠穿"
+        "substitute": "高领针织衫可换为同类厚度的圆领毛衣＋休闲上衣叠穿"
       },
       "outfit_analysis": {
-        "summary": "以深灰与黑色为主调，利用厚针织与羊毛大衣构建保暖层次，兼顾通勤的干练与温度。",
+        "summary": "以深灰与黑色为主调，利用厚针织与羊毛大衣构建保暖层次，兼顾通勤的利落与温度。",
         "structure_points": [
           "内紧外松的廓形对比",
           "深色同色系营造高级感",
@@ -724,7 +724,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-freezing-womens-01",
@@ -814,19 +814,19 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-cold-mens-01",
       "thermal_band": "cold",
       "audience": "mens",
-      "label": "冷调通勤套装",
+      "label": "冷调通勤穿搭",
       "items": [
         {
           "slot": "top",
           "functional_icon_key": "long_sleeve",
           "asset_key": "top_tshirt_long",
-          "variant_type": "长袖衬衫",
+          "variant_type": "长袖 T 恤",
           "color_name": "浅灰",
           "color_value": "#d3d3d3",
           "color_type": "solid",
@@ -836,7 +836,7 @@
           "slot": "bottom",
           "functional_icon_key": "long_bottom",
           "asset_key": "bottom_casual_pants",
-          "variant_type": "直筒西裤",
+          "variant_type": "直筒休闲裤",
           "color_name": "藏青",
           "color_value": "#1b2a4e",
           "color_type": "solid",
@@ -856,7 +856,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "德比皮鞋",
+          "variant_type": "低帮运动鞋",
           "color_name": "黑色",
           "color_value": "#1a1a1a",
           "color_type": "solid",
@@ -866,20 +866,20 @@
       "replication_guide": {
         "formula": "上装＋下装＋外套＋鞋",
         "steps": [
-          "先穿浅灰长袖衬衫",
-          "搭配藏青直筒西裤",
+          "先穿浅灰长袖 T 恤",
+          "搭配藏青直筒休闲裤",
           "披上卡其轻薄风衣",
-          "最后穿黑色德比皮鞋"
+          "最后穿黑色低帮运动鞋"
         ],
         "styling_points": [
-          "衬衫下摆塞入裤腰，保持利落线条",
-          "风衣敞开穿，露出衬衫与裤腰比例"
+          "休闲上衣下摆塞入裤腰，保持利落线条",
+          "风衣敞开穿，露出休闲上衣与裤腰比例"
         ],
         "weather_note": "体感偏冷（12-16℃），轻薄风衣提供基础保暖与通勤质感",
-        "substitute": "衬衫可换为纯色针织衫，风衣可换为轻薄西装外套"
+        "substitute": "休闲上衣可换为纯色针织衫，风衣可换为轻薄休闲夹克"
       },
       "outfit_analysis": {
-        "summary": "冷调通勤场景下的轻商务搭配，兼顾保暖与干练气质",
+        "summary": "冷调通勤场景下的轻松日常搭配，兼顾保暖与利落气质",
         "structure_points": [
           "上浅下深配色，视觉重心稳定",
           "风衣增加层次，同时应对早晚温差"
@@ -890,7 +890,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-severe-mens-01",
@@ -932,7 +932,7 @@
           "slot": "shoes",
           "functional_icon_key": "daily_shoes",
           "asset_key": "shoe_sneaker",
-          "variant_type": "加绒皮鞋",
+          "variant_type": "加绒运动鞋",
           "color_name": "黑色",
           "color_value": "#111111",
           "color_type": "solid",
@@ -955,7 +955,7 @@
           "先穿高领羊毛衫打底",
           "搭配加绒休闲裤",
           "外穿长款羽绒服",
-          "穿上加绒皮鞋",
+          "穿上加绒运动鞋",
           "最后戴上触屏手套"
         ],
         "styling_points": [
@@ -978,7 +978,7 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-severe-womens-01",
@@ -1068,12 +1068,12 @@
         ]
       },
       "scene": "commute",
-      "prompt_version": 3
+      "prompt_version": 4
     },
     {
       "id": "system-ai-date-hot-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "hot",
       "audience": "mens",
       "label": "温柔雅致约会装",
@@ -1141,7 +1141,7 @@
     {
       "id": "system-ai-date-hot-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "hot",
       "audience": "womens",
       "label": "法式慵懒约会装",
@@ -1209,7 +1209,7 @@
     {
       "id": "system-ai-date-warm-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "warm",
       "audience": "mens",
       "label": "温柔质感约会装",
@@ -1274,7 +1274,7 @@
     {
       "id": "system-ai-date-warm-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "warm",
       "audience": "womens",
       "label": "温柔法式浪漫",
@@ -1341,7 +1341,7 @@
     {
       "id": "system-ai-date-mild-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "mild",
       "audience": "mens",
       "label": "温柔质感约会装",
@@ -1407,7 +1407,7 @@
     {
       "id": "system-ai-date-mild-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "mild",
       "audience": "womens",
       "label": "温柔法式浪漫",
@@ -1475,7 +1475,7 @@
     {
       "id": "system-ai-date-cool-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cool",
       "audience": "mens",
       "label": "温柔层次约会装",
@@ -1554,7 +1554,7 @@
     {
       "id": "system-ai-date-cool-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cool",
       "audience": "womens",
       "label": "温柔法式约会装",
@@ -1633,7 +1633,7 @@
     {
       "id": "system-ai-date-cold-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cold",
       "audience": "mens",
       "label": "温柔质感约会",
@@ -1712,7 +1712,7 @@
     {
       "id": "system-ai-date-cold-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cold",
       "audience": "womens",
       "label": "温柔知性约会",
@@ -1791,7 +1791,7 @@
     {
       "id": "system-ai-date-freezing-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "freezing",
       "audience": "mens",
       "label": "温柔绅士暖调",
@@ -1870,7 +1870,7 @@
     {
       "id": "system-ai-date-freezing-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "freezing",
       "audience": "womens",
       "label": "温柔暖调约会",
@@ -1949,7 +1949,7 @@
     {
       "id": "system-ai-date-severe-mens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "severe",
       "audience": "mens",
       "label": "暖调绅士约会",
@@ -2028,7 +2028,7 @@
     {
       "id": "system-ai-date-severe-womens-01",
       "scene": "date",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "severe",
       "audience": "womens",
       "label": "温柔优雅约会装",
@@ -2107,7 +2107,7 @@
     {
       "id": "system-ai-travel-hot-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "hot",
       "audience": "mens",
       "label": "轻旅机能风",
@@ -2174,7 +2174,7 @@
     {
       "id": "system-ai-travel-hot-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "hot",
       "audience": "womens",
       "label": "松弛轻旅装",
@@ -2242,7 +2242,7 @@
     {
       "id": "system-ai-travel-warm-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "warm",
       "audience": "mens",
       "label": "轻旅机能松弛装",
@@ -2309,7 +2309,7 @@
     {
       "id": "system-ai-travel-warm-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "warm",
       "audience": "womens",
       "label": "轻旅活力",
@@ -2374,7 +2374,7 @@
     {
       "id": "system-ai-travel-mild-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "mild",
       "audience": "mens",
       "label": "轻旅机能松弛装",
@@ -2440,7 +2440,7 @@
     {
       "id": "system-ai-travel-mild-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "mild",
       "audience": "womens",
       "label": "轻旅松弛机能风",
@@ -2508,7 +2508,7 @@
     {
       "id": "system-ai-travel-cool-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cool",
       "audience": "mens",
       "label": "轻旅机能漫步",
@@ -2586,7 +2586,7 @@
     {
       "id": "system-ai-travel-cool-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cool",
       "audience": "womens",
       "label": "松弛轻旅机能风",
@@ -2665,7 +2665,7 @@
     {
       "id": "system-ai-travel-cold-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cold",
       "audience": "mens",
       "label": "轻旅机能暖行",
@@ -2744,7 +2744,7 @@
     {
       "id": "system-ai-travel-cold-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "cold",
       "audience": "womens",
       "label": "松弛感轻旅装",
@@ -2823,7 +2823,7 @@
     {
       "id": "system-ai-travel-freezing-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "freezing",
       "audience": "mens",
       "label": "极寒轻旅机能装",
@@ -2901,7 +2901,7 @@
     {
       "id": "system-ai-travel-freezing-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "freezing",
       "audience": "womens",
       "label": "极寒轻旅机能装",
@@ -2979,7 +2979,7 @@
     {
       "id": "system-ai-travel-severe-mens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "severe",
       "audience": "mens",
       "label": "极寒轻旅机能装",
@@ -3058,7 +3058,7 @@
     {
       "id": "system-ai-travel-severe-womens-01",
       "scene": "travel",
-      "prompt_version": 3,
+      "prompt_version": 4,
       "thermal_band": "severe",
       "audience": "womens",
       "label": "极寒松弛轻旅",

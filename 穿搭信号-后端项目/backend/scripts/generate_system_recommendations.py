@@ -24,7 +24,7 @@ BANDS = [
 AUDIENCES = ["mens", "womens"]
 SCENES = ["commute", "date", "travel"]
 OUT_PATH = PROJECT_DIR / "backend" / "app" / "defaults" / "system_ai_outfits.json"
-PROMPT_VERSION = 3
+PROMPT_VERSION = 4
 
 
 def load_existing():
@@ -49,12 +49,7 @@ async def main() -> None:
         print("AI 未配置，无法生成系统推荐")
         return
 
-    outfits = [
-        outfit | {"scene": outfit.get("scene") or "commute", "prompt_version": PROMPT_VERSION}
-        for outfit in load_existing()
-        if (outfit.get("scene") or "commute") == "commute"
-        or outfit.get("prompt_version") == PROMPT_VERSION
-    ]
+    outfits = [outfit for outfit in load_existing() if outfit.get("prompt_version") == PROMPT_VERSION]
     save(outfits)
     done = {outfit["id"] for outfit in outfits}
 

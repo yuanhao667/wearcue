@@ -261,6 +261,20 @@ def test_ai_name_keeps_the_models_valid_scene_choice(monkeypatch) -> None:
     ) == "轻旅出行"
 
 
+def test_ai_name_does_not_frame_commute_as_business(monkeypatch) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, recognition_result, max_tokens, model, fallback_model):
+        return {"name": "商务正装通勤"}
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    assert asyncio.run(
+        service.generate_name(
+            {"components": [_component()], "suggested_scenes": ["commute"]}
+        )
+    ) == "日常通勤"
+
+
 def test_text_ai_retries_once_with_the_task_fallback_model(monkeypatch) -> None:
     monkeypatch.setenv("AI_API_URL", "https://example.test/v1")
     monkeypatch.setenv("AI_API_KEY", "test-key")
@@ -339,8 +353,9 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     assert calls[0][2:] == (500, "qwen-turbo", "qwen3.8-flash", 0.2)
     assert calls[0][1]["scene_name"] == "通勤"
-    assert calls[0][1]["scene_requirements"].startswith("优先轻松自然")
-    assert "传统商务正装" in calls[0][1]["scene_requirements"]
+    assert calls[0][1]["scene_requirements"].startswith("中国语境下的通勤")
+    assert "严禁主动生成" in calls[0][1]["scene_requirements"]
+    assert "西装或西服、领带、西裤" in calls[0][1]["scene_requirements"]
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
         "height_group": "偏高", "weight_group": "中等",
@@ -359,7 +374,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
 @pytest.mark.parametrize(
     ("scene", "scene_name", "keyword"),
-    [("commute", "通勤", "轻松自然"), ("date", "约会", "清爽约会"), ("travel", "出行", "轻机能")],
+    [("commute", "通勤", "通勤仅指日常上班或上学"), ("date", "约会", "清爽约会"), ("travel", "出行", "轻机能")],
 )
 def test_all_user_selected_scenes_are_expanded_for_ai(
     monkeypatch, scene: str, scene_name: str, keyword: str
@@ -382,10 +397,30 @@ def test_all_user_selected_scenes_are_expanded_for_ai(
     assert keyword in captured["scene_requirements"]
 
 
+def test_generated_commute_rejects_business_clothing(monkeypatch) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, content, max_tokens, model, fallback_model, temperature=0.7):
+        return {
+            "label": "商务通勤",
+            "items": [
+                {
+                    "slot": "bottom",
+                    "functional_icon_key": "long_bottom",
+                    "variant_type": "直筒西裤",
+                }
+            ],
+        }
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    with pytest.raises(OutfitAIServiceError, match="商务正装元素"):
+        asyncio.run(service.generate_items({"scene": "commute"}))
+
+
 @pytest.mark.parametrize(
     ("scene", "requirement_start", "keyword"),
     [
-        ("commute", "优先轻松自然", "传统商务正装"),
+        ("commute", "中国语境下的通勤", "严禁主动生成"),
         ("travel", "优先舒适", "轻机能"),
     ],
 )

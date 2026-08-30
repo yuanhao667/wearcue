@@ -1,7 +1,9 @@
 import asyncio
+import json
 import unittest
 from unittest.mock import patch
 
+from app.domain.official_templates import official_templates
 from app.domain.weather_rules import WeatherInput
 from app.services.outfit_ai_service import OutfitAIService
 from app.services.recommendation_service import (
@@ -9,6 +11,7 @@ from app.services.recommendation_service import (
     recommend_ai_outfit,
     recommend_official_outfit,
     recommend_system_ai_outfit,
+    system_ai_templates,
 )
 
 
@@ -91,6 +94,20 @@ class RecommendationTests(unittest.TestCase):
             self.assertEqual(result["label"], "夏日约会感")
             with self.assertRaises(NoRecommendationError):
                 recommend_system_ai_outfit(weather, "travel", "mens")
+
+    def test_system_commute_examples_have_no_business_clothing(self):
+        forbidden = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
+        commute = [item for item in system_ai_templates() if item.get("scene") == "commute"]
+        self.assertEqual(len(commute), 14)
+        for outfit in commute:
+            text = json.dumps(outfit, ensure_ascii=False)
+            self.assertFalse(any(term in text for term in forbidden), outfit["id"])
+
+    def test_official_templates_have_no_business_clothing(self):
+        forbidden = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
+        for template in official_templates():
+            text = str((template.label, template.items))
+            self.assertFalse(any(term in text for term in forbidden), template.id)
 
     def test_live_ai_result_is_deterministically_corrected_for_snow_and_wind(self):
         captured = {}

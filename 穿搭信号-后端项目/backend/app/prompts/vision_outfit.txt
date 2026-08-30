@@ -25,6 +25,7 @@ garment_audience 只判断整套服装版型属于 mens、womens 或 unisex；�
 outfit_analysis 中的文字会原样展示给用户。使用自然、精炼的简体中文，直接说明这套为什么成立、怎么穿、缺什么。不要出现字段说明、模型措辞或“图片未展示”等识别过程描述。
 
 suggested_scenes 只能从 commute、date、travel 中选择，可多选。suggested_season 只能是 spring-autumn、winter、summer。建议温度根据覆盖程度和薄厚判断，min 和 max 使用整数，跨度控制在 8—16℃。
+commute 只表示中国语境下日常上班或上学，不等于商务、会议、面试或正式活动。不得因为图片中出现西装、西服、领带、西裤或正装皮鞋就自动建议 commute；本产品没有商务场景，无法判断为日常通勤时可以不返回 commute。
 
 季节必须根据整套可见单品判断，不得无依据默认 spring-autumn：短袖 T 恤、背心或吊带搭配短裤或短裙，且没有外套、卫衣、针织衫等保暖层时，必须返回 summer；厚针织衫、厚大衣、羽绒服或保暖长裤为主体时返回 winter；其余过渡性搭配才返回 spring-autumn。
 

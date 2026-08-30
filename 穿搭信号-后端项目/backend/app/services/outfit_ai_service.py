@@ -28,10 +28,11 @@ FUNCTIONAL_TO_ASSET: Dict[str, str] = {
 VALID_SLOTS = {"top", "bottom", "outerwear", "onepiece", "shoes", "equipment"}
 VALID_THICKNESS = {"thin", "regular", "thick"}
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+COMMUTE_BUSINESS_TERMS = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
 SCENE_CONTEXT: Dict[str, Dict[str, str]] = {
     "commute": {
         "scene_name": "通勤",
-        "scene_requirements": "优先轻松自然、日常得体、轮廓简洁、易打理，方便工作或上学及日常走动；采用休闲通勤和轻松层次，避免默认生成成套西装、衬衫领带、商务皮鞋等传统商务正装，除非输入衣物明确包含这些款式；方案名突出松弛、简约、轻便或日常得体，不能只写天气感。",
+        "scene_requirements": "中国语境下的通勤仅指日常上班或上学，不是商务、会议、面试或正式活动。优先轻松自然、日常得体、轮廓简洁、易打理和方便走动；严禁主动生成、推荐或作为替代项加入西装或西服、领带、西裤、德比皮鞋、正装皮鞋或商务皮鞋，不得使用轻商务、正式感等措辞。优先选择 T 恤、卫衣、针织衫、休闲衬衫、夹克、风衣、牛仔裤、休闲裤、运动裤、半身裙、运动鞋或板鞋等日常单品；方案名突出松弛、简约、轻便或日常得体，不能只写天气感。",
     },
     "date": {
         "scene_name": "约会",
@@ -98,6 +99,14 @@ def _with_scene_context(payload: Dict[str, Any]) -> Dict[str, Any]:
     return context
 
 
+def _reject_business_commute(raw: Dict[str, Any], context: Dict[str, Any]) -> None:
+    if _first_str(context.get("scene")) != "commute":
+        return
+    text = json.dumps(raw, ensure_ascii=False)
+    if any(term in text for term in COMMUTE_BUSINESS_TERMS):
+        raise OutfitAIServiceError("通勤方案误用了商务正装元素")
+
+
 def _normalize_label(raw: Any, context: Dict[str, Any]) -> str:
     scene = _first_str(context.get("scene"))
     label = _first_str(raw, SCENE_LABEL_FALLBACKS.get(scene, "AI 穿搭方案"))
@@ -115,6 +124,8 @@ def _normalize_outfit_name(raw: Any, recognition_result: Dict[str, Any]) -> str:
     ]
     if suggested_scenes:
         scene = next((scene_name for scene_name in suggested_scenes if scene_name in name), suggested_scenes[0])
+        if scene == "通勤" and any(term in name for term in COMMUTE_BUSINESS_TERMS):
+            return "日常通勤"
         style = name
         for scene_name in NAMING_SCENES.values():
             style = style.replace(scene_name, "")
@@ -249,6 +260,7 @@ class OutfitAIService:
         raw = await self._call(
             self.prompt, enriched_context, 1200, self.quality_model, self.fast_model
         )
+        _reject_business_commute(raw, enriched_context)
         return self._normalize(raw, enriched_context)
 
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -262,6 +274,7 @@ class OutfitAIService:
             self.quality_model,
             temperature=0.2,
         )
+        _reject_business_commute(raw, enriched_context)
         items = self._normalize_items(raw.get("items"))
         if not items:
             raise OutfitAIServiceError("AI 未返回可映射到图标的单品")
