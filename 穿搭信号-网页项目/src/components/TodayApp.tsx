@@ -9,6 +9,7 @@ import { OutfitIcon } from "./OutfitIcon";
 import { TypingHeadline } from "./TypingHeadline";
 import { apiJson } from "@/lib/backend-api";
 import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
+import { fetchBrowserWeather } from "@/lib/browser-weather";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
@@ -143,7 +144,6 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
   const activeRecommendationRaw = useSyncExternalStore(subscribeActiveRecommendation, activeRecommendationSnapshot, () => "");
   let nickname = "";
   try { nickname = savedProfile ? String(JSON.parse(savedProfile).nickname || "").trim() : ""; } catch { nickname = ""; }
-  const loadedOnce = useRef(Boolean(initial));
   const [settings, setSettings] = useState<BackendSettings | null>(initial?.settings ?? null);
   const outfitAreaRef = useRef<HTMLDivElement>(null);
   const [weather, setWeather] = useState<TodayWeather | null>(initial?.weather ?? null);
@@ -172,9 +172,21 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
     setStatus("loading");
     setMessage("");
     try {
-      const nextSettings = await apiJson<BackendSettings>("/settings");
-      const query = new URLSearchParams({ latitude: String(nextSettings.latitude), longitude: String(nextSettings.longitude), city: nextSettings.city_name });
-      const { weather: nextWeather } = await apiJson<{ weather: TodayWeather }>(`/weather/today?${query}`);
+      let nextSettings = await apiJson<BackendSettings>("/settings");
+      if (nextSettings.city_id === "1816670" || nextSettings.city_id.startsWith("geo-")) {
+        try {
+          const location = await locateCurrentDistrict();
+          nextSettings = {
+            ...nextSettings,
+            city_id: location.id,
+            city_name: location.name,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            timezone: location.timezone,
+          };
+        } catch { /* 用户拒绝定位时沿用个人设置中的城市 */ }
+      }
+      const nextWeather = await fetchBrowserWeather(nextSettings.latitude, nextSettings.longitude, nextSettings.city_name);
       const nextRecommendation = await apiJson<BackendRecommendation>("/recommendations/preview", {
         method: "POST",
         body: JSON.stringify(requestFrom(nextWeather, nextSettings, activeScene)),
@@ -191,10 +203,9 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
   }, []);
 
   useEffect(() => {
-    if (loadedOnce.current) return;
-    loadedOnce.current = true;
-    void loadToday("commute");
-  }, [loadToday]);
+    const timer = window.setTimeout(() => void loadToday(initial?.recommendation.scene ?? "commute"), 0);
+    return () => window.clearTimeout(timer);
+  }, [initial?.recommendation.scene, loadToday]);
 
   useEffect(() => {
     void apiJson<AIUsageQuota>("/ai-usage-quota")
