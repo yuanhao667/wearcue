@@ -1271,6 +1271,18 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .login-submit svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; animation: login-arrow-nudge 1.8s ease-in-out infinite; will-change: transform; }
 @keyframes login-arrow-nudge { 0%, 20%, 100% { transform: translate3d(0,0,0); } 52% { transform: translate3d(7px,0,0); } 68% { transform: translate3d(2.5px,0,0); } 82% { transform: translate3d(4.5px,0,0); } }
 .login-submit:disabled { cursor: wait; opacity: .58; }
+.login-submit[aria-disabled="true"]:not(:disabled) { opacity: .82; }
+.login-permission { display: grid; grid-template-columns: 20px 1fr; align-items: center; gap: 10px; margin-top: -2px; border-radius: 12px; padding: 7px 10px; color: #5e666a; cursor: pointer; }
+.login-permission input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.login-permission-check { width: 18px; height: 18px; display: grid; place-items: center; box-sizing: border-box; border: 1px solid #bac1c4; border-radius: 5px; background: #fff; color: #173b2c; }
+.login-permission-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.7); transition: opacity .15s ease, transform .18s ease; }
+.login-permission input:checked + .login-permission-check { border-color: #c8ff32; background: #c8ff32; }
+.login-permission input:checked + .login-permission-check svg { opacity: 1; transform: scale(1); }
+.login-permission > span:last-child { display: grid; gap: 1px; }
+.login-permission strong { color: #394145; font-size: 12px; font-weight: 700; }
+.login-permission small { color: #969ca0; font-size: 10px; line-height: 1.35; }
+.login-permission.is-shaking { animation: login-permission-shake .42s ease-in-out; }
+@keyframes login-permission-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
 .login-footnote { margin: -3px 0 0; color: #969ca0; font-size: 10px; text-align: center; }
 
 @media (max-width: 860px) {

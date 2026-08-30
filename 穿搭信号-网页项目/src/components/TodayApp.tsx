@@ -8,7 +8,7 @@ import { profileSnapshot, subscribeProfile } from "./AppNav";
 import { OutfitIcon } from "./OutfitIcon";
 import { TypingHeadline } from "./TypingHeadline";
 import { apiJson } from "@/lib/backend-api";
-import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
+import { locateCurrentDistrict, simplifyLocationName, takeLoginLocation } from "@/lib/browser-location";
 import { fetchBrowserWeather } from "@/lib/browser-weather";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
@@ -175,7 +175,7 @@ export function TodayApp({ initial }: { initial: TodayInitialData | null }) {
       let nextSettings = await apiJson<BackendSettings>("/settings");
       if (nextSettings.city_id === "1816670" || nextSettings.city_id.startsWith("geo-")) {
         try {
-          const location = await locateCurrentDistrict();
+          const location = takeLoginLocation() ?? await locateCurrentDistrict();
           nextSettings = {
             ...nextSettings,
             city_id: location.id,
