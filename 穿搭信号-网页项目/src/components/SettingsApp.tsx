@@ -11,7 +11,7 @@ import type { City } from "@/domain/types";
 import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-location";
 import type { Audience, BackendSettings } from "@/domain/backend";
 
-type UserProfile = { nickname: string; avatar: string; gender?: "mens" | "womens"; invited?: boolean };
+type UserProfile = { id?: string; nickname: string; avatar: string; gender?: "mens" | "womens"; invited?: boolean };
 type CurrentUser = { id: string };
 type BodyProfile = Pick<BackendSettings, "height_group" | "weight_group">;
 const heightGroups: BodyProfile["height_group"][] = ["偏矮", "中等", "偏高"];
