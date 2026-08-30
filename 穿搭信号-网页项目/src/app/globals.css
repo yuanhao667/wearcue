@@ -1856,10 +1856,10 @@ body:has(.upload-paper)::before { display: none; }
 .detail-outfit-advice .outfit-analysis-module > span { display: block; color: #747b80; font-size: 11px; font-weight: 650; }
 .detail-outfit-advice .outfit-analysis-module > p { margin: 8px 0 0; color: #34393d; font-size: 15px; line-height: 1.55; }
 .detail-outfit-advice .outfit-analysis-module ul { margin-top: 10px; }
-.detail-outfit-advice ul { gap: 0; }
+.detail-outfit-advice ul { flex-direction: column; align-items: flex-start; gap: 4px; }
 .detail-outfit-advice li { padding-left: 0; }
 .detail-outfit-advice li::before { display: none; }
-.detail-outfit-advice li + li { margin-left: 14px; border-left: 1px solid #c9ced1; padding-left: 14px; }
+.detail-outfit-advice li + li { margin-left: 0; border-left: 0; padding-left: 0; }
 .detail-outfit-advice .outfit-advice-completion { margin-top: 14px; border-top-color: #e5e8ea; padding-top: 14px; }
 
 .outfit-detail-page { padding-top: 20px; padding-bottom: 64px; }
