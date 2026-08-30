@@ -18,12 +18,15 @@
 4. 尊重 audience：mens 只给男装款；womens 可含裙装、连衣裙等。
 5. 颜色用中文基础色名 + 十六进制色值；厚度用 thin / regular / thick。
 6. scene 是用户本次明确选择的场景，scene_name 是中文名称，scene_requirements 是该场景的穿搭侧重点。必须按当前场景生成，不得忽略、替换或混合成其他场景；场景差异必须同时体现在具体款式、颜色或层次、建议以及方案名中。方案名不得只用“清爽、保暖、夏日”等通用天气词加 scene_name 机械拼接；相同天气下的通勤、约会、出行必须呈现不同风格。天气硬条件与场景要求冲突时，天气安全优先。
-7. 只输出如下 JSON 结构，不要输出任何其他文字或代码块标记：
+7. replication_guide.steps 必须逐件覆盖本次输出的 items。每一步必须自然写明对应单品的 color_name、thickness 和 variant_type；thickness 要转换为“薄款”“常规”或“厚款”，不得遗漏、编造或使用“上装”“下装”等泛称替代。例如：“先穿牛仔蓝、常规厚度的牛仔衬衫”。
+8. 只输出如下 JSON 结构，不要输出任何其他文字或代码块标记：
 {
   "label": "方案名（8字以内）",
   "items": [
-    {"slot": "top", "functional_icon_key": "short_sleeve", "variant_type": "短袖T恤", "color_name": "白色", "color_value": "#f4f1e8", "thickness": "thin"}
+    {"slot": "top", "functional_icon_key": "short_sleeve", "variant_type": "短袖T恤", "color_name": "白色", "color_value": "#f4f1e8", "thickness": "thin"},
+    {"slot": "bottom", "functional_icon_key": "long_bottom", "variant_type": "直筒长裤", "color_name": "藏青色", "color_value": "#24344d", "thickness": "regular"},
+    {"slot": "shoes", "functional_icon_key": "daily_shoes", "variant_type": "低帮运动鞋", "color_name": "黑色", "color_value": "#202124", "thickness": "regular"}
   ],
-  "replication_guide": {"formula": "上装＋下装＋鞋", "steps": ["先穿上装", "搭配下装", "最后穿鞋"], "styling_points": ["上装保持自然垂落"], "weather_note": "当天体感说明", "substitute": "同类基础款可替换"},
+  "replication_guide": {"formula": "短袖T恤＋直筒长裤＋低帮运动鞋", "steps": ["先穿白色、薄款的短袖T恤", "搭配藏青色、常规的直筒长裤", "最后穿黑色、常规的低帮运动鞋"], "styling_points": ["上装保持自然垂落"], "weather_note": "当天体感说明", "substitute": "同类基础款可替换"},
   "outfit_analysis": {"summary": "整体概括", "structure_points": ["结构要点"], "completion_advice": ["补全建议"]}
 }

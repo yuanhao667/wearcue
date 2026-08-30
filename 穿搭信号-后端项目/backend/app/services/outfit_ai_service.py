@@ -59,7 +59,7 @@ def _normalize_guide(raw: Any) -> Dict[str, Any]:
     steps = raw.get("steps") or []
     return {
         "formula": _first_str(raw.get("formula"), "今日推荐"),
-        "steps": [_first_str(step) for step in steps if _first_str(step)][:5] or ["按推荐单品逐件穿着"],
+        "steps": [_first_str(step) for step in steps if _first_str(step)][:8] or ["按推荐单品逐件穿着"],
         "styling_points": [_first_str(point) for point in (raw.get("styling_points") or []) if _first_str(point)][:3],
         "weather_note": _first_str(raw.get("weather_note"), "按当天体感增减外层。"),
         "substitute": _first_str(raw.get("substitute"), "同厚度、相近版型的基础款即可替换。"),

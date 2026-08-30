@@ -352,6 +352,9 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
         "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
     ]
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
+    assert "replication_guide.steps 必须逐件覆盖输入 items" in service.advice_prompt
+    assert "color_name、thickness 和 variant_type" in service.advice_prompt
+    assert "replication_guide.steps 必须逐件覆盖本次输出的 items" in service.prompt
 
 
 @pytest.mark.parametrize(

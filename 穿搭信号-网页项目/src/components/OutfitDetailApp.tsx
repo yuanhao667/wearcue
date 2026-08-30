@@ -14,6 +14,21 @@ export function detailAdviceStatus(step: number) {
   return DETAIL_ADVICE_STEPS[step % DETAIL_ADVICE_STEPS.length];
 }
 
+type DetailStepItem = { variant_type: string; color_name: string; thickness: string };
+
+export function detailSteps(steps: string[], items: DetailStepItem[]) {
+  const remaining = [...items];
+  const enriched = steps.map((step) => {
+    const matchedIndex = remaining.findIndex((item) => step.includes(item.variant_type));
+    const item = remaining.splice(matchedIndex >= 0 ? matchedIndex : 0, 1)[0];
+    if (!item) return step;
+    const thickness = thicknessLabel(item.thickness);
+    if (step.includes(item.color_name) && step.includes(thickness)) return step;
+    return `${step}（${item.color_name}、${thickness}）`;
+  });
+  return enriched.concat(remaining.map((item) => `搭配${item.color_name}、${thicknessLabel(item.thickness)}的${item.variant_type}`));
+}
+
 function subscribe() { return () => undefined; }
 function snapshot() { return localStorage.getItem("wearcue_active_outfit_v1") || ""; }
 
@@ -136,13 +151,14 @@ export function OutfitDetailApp({ id }: { id: string }) {
     steps: items.map((item) => `选择${thicknessLabel(item.thickness)}${item.variant_type}`),
     styling_points: [], weather_note: "按当天体感增减外层。", substitute: "选择相同版型和薄厚的单品即可。",
   };
+  const steps = detailSteps(guide.steps, items);
   return <main className="paper-page outfit-detail-page">
     <Link className="outfit-detail-back" href={savedOutfit ? "/closet" : "/"}>← 返回{savedOutfit ? "穿搭灵感" : "今日推荐"}</Link>
     <header className="outfit-detail-head"><h1>{displayLabel}</h1><strong>{guide.formula}</strong></header>
     <div className="outfit-detail-layout">
       <section className={`outfit-detail-visual-card${showPhotoColumn ? "" : " icons-only"}`}>
         {showPhotoColumn && <section className="outfit-detail-photo-card"><div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>{imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}</section>}
-        <section className="outfit-detail-items"><div className="outfit-detail-grid">{items.map((item, index) => <article key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={audience} /><strong>{item.variant_type}</strong><span>{item.color_name}、{thicknessLabel(item.thickness)}</span></article>)}</div></section>
+        <section className="outfit-detail-items"><div className="outfit-detail-grid">{items.map((item, index) => <article key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={audience} /><strong>{item.variant_type}</strong></article>)}</div></section>
       </section>
       <section className="review-card outfit-detail-result-card">
         <div className="outfit-detail-bear" aria-hidden="true"><img src="/illustrations/inspiration-bear.png" alt="" /></div>
@@ -164,7 +180,7 @@ export function OutfitDetailApp({ id }: { id: string }) {
               </div>
               {analysis.completion_advice.length > 0 && <div className="outfit-advice-completion"><span>补全这套</span><div className="outfit-advice-completion-list">{analysis.completion_advice.map((advice) => <p key={advice}>{advice}</p>)}</div></div>}
             </section>}
-            <div className="replication-steps"><span>穿搭步骤</span><ol>{guide.steps.map((step) => <li key={step}>{step}</li>)}</ol></div>
+            <div className="replication-steps"><span>穿搭步骤</span><ol>{steps.map((step, index) => <li key={`${index}-${step}`}>{step}</li>)}</ol></div>
             {guide.styling_points.length > 0 && <div className="replication-note"><span>版型与层次</span><p>{guide.styling_points.join("；")}</p></div>}
             <div className="replication-note accent"><span>今天怎么调整</span><p>{guide.weather_note}</p></div>
             <div className="replication-note"><span>没有同款</span><p>{guide.substitute}</p></div>

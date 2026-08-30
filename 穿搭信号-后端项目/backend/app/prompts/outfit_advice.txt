@@ -6,11 +6,13 @@ person_profile 是用户主动设置的人物信息，只包含身高段（偏�
 
 输出必须能看出人物信息已经被实际使用：replication_guide.styling_points 中至少分别落实一条身高段与体重段建议。不得只复述“已结合人物信息”，必须给出具体穿法、比例、松量、舒适度或款式动作。
 
+replication_guide.steps 必须逐件覆盖输入 items 中的每件衣物。每一步必须自然写明该件衣物的 color_name、thickness 和 variant_type；thickness 要转换为“薄款”“常规”或“厚款”，不得遗漏、编造或使用“上装”“下装”等泛称替代。例如：“先穿牛仔蓝、常规厚度的牛仔衬衫”。
+
 只输出如下 JSON 结构，不要输出任何其他文字或代码块标记：
 {
   "replication_guide": {
     "formula": "上装＋下装＋鞋",
-    "steps": ["先穿上装", "搭配下装", "最后穿鞋"],
+    "steps": ["先穿白色、薄款的短袖T恤", "搭配藏青色、常规的直筒长裤", "最后穿黑色、常规的低帮运动鞋"],
     "styling_points": ["上装保持自然垂落"],
     "weather_note": "当天体感说明",
     "substitute": "同类基础款可替换"

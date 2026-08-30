@@ -1864,8 +1864,8 @@ body:has(.upload-paper)::before { display: none; }
 .outfit-detail-head h1 { margin: 0; color: #111315; font-size: clamp(48px, 6vw, 76px); font-weight: 300; letter-spacing: -.065em; line-height: 1; }
 .outfit-detail-head > strong { display: block; margin-top: 16px; color: #5f666b; font-size: 17px; font-weight: 500; }
 .outfit-detail-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 24px; align-items: start; }
-.outfit-detail-visual-card { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 12px; align-items: start; box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 14px; }
-.outfit-detail-visual-card.icons-only { grid-template-columns: 120px; }
+.outfit-detail-visual-card { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 104px; gap: 12px; align-items: start; box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 14px; }
+.outfit-detail-visual-card.icons-only { grid-template-columns: 104px; }
 .outfit-detail-photo-card { position: relative; min-width: 0; box-sizing: border-box; overflow: hidden; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 0; }
 .outfit-detail-visual-card .outfit-detail-photo-card { border: 0; border-radius: 16px; }
 .outfit-detail-photo-card > .card-caption { position: absolute; z-index: 2; top: 14px; left: 14px; padding: 7px 11px; border: 1px solid rgba(255, 255, 255, .62); border-radius: 999px; background: rgba(255, 255, 255, .82); color: #4f585e; font-size: 13px; font-weight: 600; line-height: 1; letter-spacing: .04em; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
@@ -1886,10 +1886,9 @@ body:has(.upload-paper)::before { display: none; }
 .detail-advice-loading { width: 100%; min-height: 520px; }
 .detail-advice-loading > p { max-width: 360px; line-height: 1.6; }
 .outfit-detail-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 0; overflow-y: auto; overflow-x: hidden; }
-.outfit-detail-grid article { width: 120px; min-width: 120px; flex: 0 0 120px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; border: 0; border-radius: 13px; background: #f8f9fa; padding: 14px; text-align: center; }
-.outfit-detail-grid .outfit-icon-frame { width: 60px; height: 60px; border: 0; background: transparent; }
-.outfit-detail-grid strong { width: 100%; margin-top: 5px; overflow: hidden; color: #25292c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.outfit-detail-grid span { margin-top: 2px; color: #8a9297; font-size: 10px; }
+.outfit-detail-grid article { width: 104px; min-width: 104px; flex: 0 0 104px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; border: 0; border-radius: 11px; background: #f8f9fa; padding: 12px; text-align: center; }
+.outfit-detail-grid .outfit-icon-frame { width: 52px; height: 52px; border: 0; background: transparent; }
+.outfit-detail-grid strong { width: 100%; margin-top: 4px; overflow: hidden; color: #25292c; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .replication-steps { margin-top: 14px; border-top: 1px solid #e5e8ea; padding-top: 14px; }
 .replication-steps > span { display: block; color: #8a9297; font-size: 10px; font-weight: 650; }
 .replication-steps ol { display: grid; gap: 5px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: step; }
@@ -1983,9 +1982,11 @@ body:has(.upload-paper)::before { display: none; }
   .outfit-detail-head { margin-bottom: 24px; }
   .outfit-detail-head h1 { font-size: clamp(38px, 13vw, 46px); }
   .outfit-detail-head > strong { font-size: 15px; line-height: 1.5; }
-  .outfit-detail-visual-card { grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; padding: 10px; }
-  .outfit-detail-visual-card.icons-only { grid-template-columns: 96px; }
-  .outfit-detail-grid article { width: 96px; min-width: 96px; flex-basis: 96px; padding: 8px; }
+  .outfit-detail-visual-card { grid-template-columns: minmax(0, 1fr) 84px; gap: 8px; padding: 10px; }
+  .outfit-detail-visual-card.icons-only { grid-template-columns: 84px; }
+  .outfit-detail-grid article { width: 84px; min-width: 84px; flex-basis: 84px; padding: 7px; }
+  .outfit-detail-grid .outfit-icon-frame { width: 46px; height: 46px; }
+  .outfit-detail-grid strong { font-size: 10px; }
   .outfit-detail-items,
   .replication-card { padding: 18px; border-radius: 18px; }
   .outfit-detail-grid { gap: 8px; margin-top: 0; }
