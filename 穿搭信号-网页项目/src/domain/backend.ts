@@ -97,6 +97,18 @@ export interface OutfitAnalysis {
   completion_advice: string[];
 }
 
+export interface AIQuota {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface AIUsageQuota {
+  vision: AIQuota;
+  swap: AIQuota;
+  advice: AIQuota;
+}
+
 export interface RecommendationConstraints {
   thermal_band: string;
   calibrated_apparent_min: number;
@@ -105,6 +117,26 @@ export interface RecommendationConstraints {
   needs_removable_layer: boolean;
   needs_waterproof: boolean;
   needs_windproof: boolean;
+  city_id?: string;
+  city_name?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  local_date?: string;
+  current_temperature?: number;
+  current_apparent_temperature?: number;
+  temperature_min?: number;
+  temperature_max?: number;
+  apparent_min?: number;
+  apparent_max?: number;
+  max_precipitation_probability?: number;
+  total_precipitation?: number;
+  total_snowfall?: number;
+  max_wind_speed?: number;
+  max_wind_gust?: number;
+  uv_index_max?: number;
+  weather_code?: number;
+  cold_offset?: number;
   needs_sun_protection: boolean;
 }
 
@@ -117,7 +149,9 @@ export interface BackendRecommendation {
   constraints: RecommendationConstraints;
   items: OutfitComponent[];
   outfit_analysis?: OutfitAnalysis | null;
-  replication_guide: ReplicationGuide;
+  replication_guide?: ReplicationGuide | null;
+  ai_quota?: AIQuota;
+  ai_fallback_reason?: "quota_exhausted" | "provider_failed";
 }
 
 export interface Outfit {
@@ -129,7 +163,6 @@ export interface Outfit {
   scene_ids: SceneId[];
   suitable_min: number;
   suitable_max: number;
-  favorite: boolean;
   in_pool: boolean;
   inspiration_id?: string | null;
   skip_count: number;
@@ -150,6 +183,7 @@ export interface VisionResult {
   components: OutfitComponent[];
   outfit_analysis: OutfitAnalysis;
   replication_guide: ReplicationGuide;
+  ai_generated_name?: string;
 }
 
 export interface Inspiration {
@@ -179,6 +213,15 @@ export interface RecommendationRequest {
   scene: SceneId;
   audience: Audience;
   city_id: string;
+  city_name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
   local_date: string;
+  current_temperature: number;
+  current_apparent_temperature: number;
+  temperature_min: number;
+  temperature_max: number;
+  weather_code: number;
   excluded_template_ids: string[];
 }

@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
-  <title id="title">女式厚大衣</title><desc id="desc">长衣身、翻领和双扣构成的简洁面性女式厚大衣，可通过 currentColor 着色。</desc>
-  <defs><mask id="details"><rect width="96" height="96" fill="#fff"/><path d="m39 14 9 20 9-20 5 22-9 13-5-13-5 13-9-13Z" fill="#000"/><circle cx="48" cy="55" r="2.5" fill="#000"/><circle cx="48" cy="67" r="2.5" fill="#000"/></mask></defs>
-  <path d="M27 18c7-4 14-7 21-7s14 3 21 7l17 34c1 3 0 6-3 8l-6 3c-3 2-6 0-7-3l-5-13-2 17 8 27H25l8-27-2-17-5 13c-1 3-4 5-7 3l-6-3c-3-2-4-5-3-8Z" fill="currentColor" mask="url(#details)"/>
-</svg>

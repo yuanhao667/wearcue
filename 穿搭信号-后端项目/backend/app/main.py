@@ -7,8 +7,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="穿搭信号 API",
+    title="WearCue API",
     description="天气规则、个人穿搭、图片识别流程、提醒与反馈服务",
     version="0.1.0",
     docs_url="/docs" if settings.debug else None,
@@ -58,8 +58,8 @@ app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/", include_in_schema=False)
-async def root() -> FileResponse:
-    return FileResponse(Path(__file__).resolve().parent / "static" / "index.html")
+async def root() -> RedirectResponse:
+    return RedirectResponse(settings.cors_origins[0])
 
 
 @app.get("/assets-review", include_in_schema=False)

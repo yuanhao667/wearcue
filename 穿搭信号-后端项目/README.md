@@ -1,4 +1,4 @@
-# 穿搭信号后端项目
+# WearCue 后端项目
 
 当前交付是邀请码登录、按账号隔离数据的多用户版本，仅保留通勤/约会/出行，提供：
 
@@ -10,7 +10,7 @@
 - 按账号隔离设置、个人穿搭、图片、收藏、推荐池、提醒和反馈；
 - SQLite 本地数据持久化，并自动把升级前数据归入首个登录账号；
 - 图片上传、EXIF 纠正、三档缩略图、幂等去重；
-- Mock/生产视觉 Provider、人工确认、收藏与“我的穿搭”；
+- 生产视觉 Provider、人工确认、收藏与“我的穿搭”；
 - 个人穿搭优先、官方模板兜底；
 - Web Push 订阅、VAPID Provider、每日发送幂等；
 - 连续跳过和每周冷热反馈；
@@ -30,7 +30,7 @@ uvicorn --env-file .env app.main:app --app-dir backend --reload --port 8000
 
 打开：
 
-- 后端集成验收页：<http://localhost:8000/>
+- 后端根地址：<http://localhost:8000/>（自动跳转前端，避免未携带会话访问个人接口）
 - 最终素材验收页：<http://localhost:8000/assets-review>
 - API 文档：<http://localhost:8000/docs>
 - 健康检查：<http://localhost:8000/api/v1/health>
@@ -56,7 +56,9 @@ PYTHONPATH=. python -m unittest discover -s tests -v
 
 ## 当前产品范围
 
-微信登录和自定义场景已按产品决策移除。每个邀请码对应一个独立账号，同一邀请码可以在其他设备登录同一账号；邀请码只以摘要形式存储。视觉模型未配置时，识别接口使用低置信度 Mock 结果并强制人工确认；只有调用分析接口时显式传入 `allow_external=true`，图片才会发送给已配置的第三方视觉 Provider。
+微信登录和自定义场景已按产品决策移除。每个邀请码对应一个独立账号，同一邀请码可以在其他设备登录同一账号；邀请码只以摘要形式存储。视觉模型未配置时，识别接口明确返回不可用；配置后，只有用户主动点击识别时，图片才会发送给第三方视觉 Provider。
+
+AI 模型按任务分流：视觉识别使用 `VISION_MODEL`；首页换一套、AI 命名与详情建议使用 `AI_FAST_MODEL`，系统推荐预生成使用 `AI_QUALITY_MODEL`。当前生产只依赖 qwen3.8-flash 与 qwen-turbo：视觉识别不配置其他备用模型，实时文本任务失败时可在两者之间切换一次。所有结构化调用均关闭思考模式。AIHubMix 主域名在本地网络不可达时，使用其官方同能力备用接口 `https://api.inferera.com/v1`。
 
 业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`garment-assets` 和 `runtime-status`。除健康检查、天气规则与公开素材外，个人数据接口都要求 Bearer 会话。
 

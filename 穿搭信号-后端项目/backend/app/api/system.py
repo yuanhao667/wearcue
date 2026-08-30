@@ -16,7 +16,7 @@ from app.services.recommendation_service import (
     recommend_personal_outfit,
     recommend_system_ai_outfit,
 )
-from app.services.store import store
+from app.services.store import AI_USAGE_LIMITS, store, user_local_date
 from app.services.vision_service import VisionService
 
 router = APIRouter()
@@ -38,6 +38,38 @@ GARMENT_LABELS = {
 }
 
 
+def _quota_date(user_id: str) -> str:
+    return user_local_date(store.get_settings(user_id).get("timezone"))
+
+
+def _non_ai_recommendation(
+    payload: RecommendationRequest,
+    weather: WeatherInput,
+    audience: str,
+) -> dict:
+    try:
+        return recommend_system_ai_outfit(
+            weather=weather,
+            scene=payload.scene,
+            audience=audience,
+            city_id=payload.city_id,
+            local_date=payload.local_date,
+            excluded_template_ids=payload.excluded_template_ids,
+        )
+    except NoRecommendationError:
+        pass
+    except Exception:
+        logger.exception("system recommendation failed, falling back to official templates")
+    return recommend_official_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        city_id=payload.city_id,
+        local_date=payload.local_date,
+        excluded_template_ids=payload.excluded_template_ids,
+    )
+
+
 def _weather_input(payload: WeatherRuleRequest) -> WeatherInput:
     return WeatherInput(
         apparent_min=payload.apparent_min,
@@ -54,7 +86,7 @@ def _weather_input(payload: WeatherRuleRequest) -> WeatherInput:
 
 @router.get("/health", tags=["system"])
 async def health() -> dict:
-    return {"status": "healthy", "service": "outfit-signal-backend", "version": "0.1.0"}
+    return {"status": "healthy", "service": "wearcue-backend", "version": "0.1.0"}
 
 
 @router.get("/capabilities", tags=["system"])
@@ -102,28 +134,16 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
     )
     if personal:
         return personal
-    # 系统推荐（预生成，不调 AI，快）
-    try:
-        return recommend_system_ai_outfit(
-            weather=weather,
-            scene=payload.scene,
-            audience=audience,
-            city_id=payload.city_id,
-            local_date=payload.local_date,
-            excluded_template_ids=payload.excluded_template_ids,
-        )
-    except NoRecommendationError:
-        pass
-    except Exception:
-        logger.exception("system recommendation failed, falling back to official templates")
-    return recommend_official_outfit(
-        weather=weather,
-        scene=payload.scene,
-        audience=audience,
-        city_id=payload.city_id,
-        local_date=payload.local_date,
-        excluded_template_ids=payload.excluded_template_ids,
-    )
+    return _non_ai_recommendation(payload, weather, audience)
+
+
+@router.get("/ai-usage-quota", tags=["system"])
+async def ai_usage_quota(user: CurrentUser) -> dict:
+    local_date = _quota_date(user["id"])
+    return {
+        usage_type: store.get_ai_quota(user["id"], local_date, usage_type)
+        for usage_type in AI_USAGE_LIMITS
+    }
 
 
 @router.post("/recommendations/swap", tags=["recommendations"])
@@ -139,54 +159,71 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
     )
     if personal:
         return personal
-    # 换一套：实时 AI 生成
+    local_date = _quota_date(user["id"])
+    reservation_id = store.reserve_ai_usage(user["id"], local_date, "swap")
+    if not reservation_id:
+        recommendation = _non_ai_recommendation(payload, weather, audience)
+        return recommendation | {
+            "ai_quota": store.get_ai_quota(user["id"], local_date, "swap"),
+            "ai_fallback_reason": "quota_exhausted",
+        }
     try:
-        return await recommend_ai_outfit(
+        recommendation = await recommend_ai_outfit(
             weather=weather,
             scene=payload.scene,
             audience=audience,
             city_id=payload.city_id,
             local_date=payload.local_date,
+            weather_context={
+                "city_name": payload.city_name,
+                "latitude": payload.latitude,
+                "longitude": payload.longitude,
+                "timezone": payload.timezone,
+                "current_temperature": payload.current_temperature,
+                "current_apparent_temperature": payload.current_apparent_temperature,
+                "temperature_min": payload.temperature_min,
+                "temperature_max": payload.temperature_max,
+                "weather_code": payload.weather_code,
+            },
         )
     except Exception:
-        logger.exception("AI recommendation failed, falling back to official templates")
-        return recommend_official_outfit(
-            weather=weather,
-            scene=payload.scene,
-            audience=audience,
-            city_id=payload.city_id,
-            local_date=payload.local_date,
-            excluded_template_ids=payload.excluded_template_ids,
-        )
-
-
-def _summary_from_constraints(constraints: dict) -> str:
-    parts = [f"全天体感 {constraints.get('calibrated_apparent_min', 0)}° 左右"]
-    if constraints.get("needs_waterproof"):
-        parts.append("可能有降水")
-    if constraints.get("needs_heavy_rain_protection"):
-        parts.append("雨量较大")
-    if constraints.get("needs_snow_protection"):
-        parts.append("可能下雪")
-    if constraints.get("needs_windproof"):
-        parts.append("风力较强")
-    if constraints.get("needs_sun_protection"):
-        parts.append("紫外线较强")
-    if constraints.get("avoid_umbrella"):
-        parts.append("阵风大，慎用雨伞")
-    return "，".join(parts)
+        store.release_ai_usage(reservation_id)
+        logger.exception("AI recommendation failed, falling back to non-AI recommendations")
+        recommendation = _non_ai_recommendation(payload, weather, audience)
+        return recommendation | {
+            "ai_quota": store.get_ai_quota(user["id"], local_date, "swap"),
+            "ai_fallback_reason": "provider_failed",
+        }
+    return recommendation | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
 
 
 @router.post("/recommendations/advice", tags=["recommendations"])
 async def recommendation_advice(payload: RecommendationAdviceRequest, user: CurrentUser) -> dict:
-    del user
-    summary = _summary_from_constraints(payload.constraints)
-    return await OutfitAIService().generate_advice(
-        [item.model_dump() for item in payload.items],
-        summary,
-        payload.scene,
-        payload.audience,
-    )
+    local_date = _quota_date(user["id"])
+    cached = store.get_ai_advice(user["id"], payload.recommendation_id)
+    if cached:
+        return cached | {
+            "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
+            "cached": True,
+        }
+    reservation_id = store.reserve_ai_usage(user["id"], local_date, "advice")
+    if not reservation_id:
+        raise HTTPException(429, "今日 AI 穿搭建议次数已用完，可先参考下方基础搭配，明天再来生成")
+    try:
+        result = await OutfitAIService().generate_advice(
+            [item.model_dump() for item in payload.items],
+            payload.constraints,
+            payload.scene,
+            payload.audience,
+        )
+        store.set_ai_advice(user["id"], payload.recommendation_id, result)
+    except Exception:
+        store.release_ai_usage(reservation_id)
+        raise
+    return result | {
+        "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
+        "cached": False,
+    }
 
 
 @router.get(

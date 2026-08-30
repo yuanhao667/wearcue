@@ -1,8 +1,8 @@
 {
-  "version": 4,
+  "version": 5,
   "outfits": [
     {
-      "introduced_in": 2,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_b4262086f764",
         "upload_key": "ba6c8cfdb5b81cf88906e677fe31d69704c02e26af6e1c76e9e2885f2edc7742",
@@ -97,7 +97,7 @@
       },
       "outfit": {
         "id": "outfit_a779d08e1071",
-        "label": "长袖衬衫＋短裤＋低帮鞋",
+        "label": "休闲出行",
         "audience": "mens",
         "source": "system",
         "components": [
@@ -150,7 +150,6 @@
         ],
         "suitable_min": 20.0,
         "suitable_max": 28.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "长袖衬衫＋短裤＋低帮鞋",
@@ -177,7 +176,7 @@
       }
     },
     {
-      "introduced_in": 2,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_8b3abaf65efa",
         "upload_key": "eb89d1ad6f22c6c2226d103201d82b6dbbbf94e9f95e566fafaf996f3e8d8d3f",
@@ -287,7 +286,7 @@
       },
       "outfit": {
         "id": "outfit_954371a8be19",
-        "label": "薄款外套＋长袖 T 恤＋常规长裤",
+        "label": "复古出行",
         "audience": "mens",
         "source": "system",
         "components": [
@@ -354,7 +353,6 @@
         ],
         "suitable_min": 12.0,
         "suitable_max": 20.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "薄款外套＋长袖 T 恤＋常规长裤＋低帮鞋",
@@ -382,7 +380,7 @@
       }
     },
     {
-      "introduced_in": 2,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_005f6ba2704b",
         "upload_key": "fca8f6817709ad9df91107e53b3bf673663a6faecb9dd7cccce7df4257df9817",
@@ -509,7 +507,7 @@
       },
       "outfit": {
         "id": "outfit_b2f803d5800b",
-        "label": "厚羽绒服＋长袖衬衫＋常规长裤",
+        "label": "层次通勤",
         "audience": "mens",
         "source": "system",
         "components": [
@@ -590,7 +588,6 @@
         ],
         "suitable_min": 5.0,
         "suitable_max": 15.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "厚羽绒服＋长袖衬衫＋常规长裤＋低帮鞋＋针织帽",
@@ -621,7 +618,7 @@
       }
     },
     {
-      "introduced_in": 3,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_df20f9856cf9",
         "upload_key": "1115191e03c0257511455b49012d749d85b1766a4925cf7096bce263d8364d24",
@@ -734,7 +731,7 @@
       },
       "outfit": {
         "id": "outfit_3253b4e3c20b",
-        "label": "薄款外套＋短袖 T 恤＋常规长裤",
+        "label": "利落通勤",
         "audience": "womens",
         "source": "system",
         "components": [
@@ -801,7 +798,6 @@
         ],
         "suitable_min": 18.0,
         "suitable_max": 26.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "薄款外套＋短袖 T 恤＋常规长裤＋低帮鞋",
@@ -830,7 +826,7 @@
       }
     },
     {
-      "introduced_in": 3,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_983997902f90",
         "upload_key": "e2e3a945b0a73685e18ad2d94f0b851d54f1abe692c902144fe0b6332f59bb7f",
@@ -943,7 +939,7 @@
       },
       "outfit": {
         "id": "outfit_c15d193cb959",
-        "label": "厚羽绒服＋常规长裤＋低帮鞋",
+        "label": "极简通勤",
         "audience": "womens",
         "source": "system",
         "components": [
@@ -1010,7 +1006,6 @@
         ],
         "suitable_min": 5.0,
         "suitable_max": 12.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "厚羽绒服＋常规长裤＋低帮鞋＋针织帽",
@@ -1039,7 +1034,7 @@
       }
     },
     {
-      "introduced_in": 4,
+      "introduced_in": 5,
       "inspiration": {
         "id": "inspiration_a0690a867921",
         "upload_key": "63378457305f59ddcfe13b5c1949d5d978fc81c17f92b7f5395543c0927db5b9",
@@ -1137,7 +1132,7 @@
       },
       "outfit": {
         "id": "outfit_8cec81248dc8",
-        "label": "短袖 T 恤＋短裙＋低帮鞋",
+        "label": "甜酷出行",
         "audience": "womens",
         "source": "system",
         "components": [
@@ -1190,7 +1185,6 @@
         ],
         "suitable_min": 24.0,
         "suitable_max": 34.0,
-        "favorite": true,
         "in_pool": true,
         "replication_guide": {
           "formula": "修身短袖T恤＋格纹短裙＋低帮鞋",

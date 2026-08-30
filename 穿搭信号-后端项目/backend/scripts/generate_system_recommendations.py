@@ -22,7 +22,9 @@ BANDS = [
     ("severe", -2, 3),
 ]
 AUDIENCES = ["mens", "womens"]
+SCENES = ["commute", "date", "travel"]
 OUT_PATH = PROJECT_DIR / "backend" / "app" / "defaults" / "system_ai_outfits.json"
+PROMPT_VERSION = 3
 
 
 def load_existing():
@@ -36,7 +38,7 @@ def load_existing():
 
 def save(outfits):
     OUT_PATH.write_text(
-        json.dumps({"version": 1, "outfits": outfits}, ensure_ascii=False, indent=2),
+        json.dumps({"version": PROMPT_VERSION, "outfits": outfits}, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
@@ -47,58 +49,71 @@ async def main() -> None:
         print("AI 未配置，无法生成系统推荐")
         return
 
-    outfits = load_existing()
+    outfits = [
+        outfit | {"scene": outfit.get("scene") or "commute", "prompt_version": PROMPT_VERSION}
+        for outfit in load_existing()
+        if (outfit.get("scene") or "commute") == "commute"
+        or outfit.get("prompt_version") == PROMPT_VERSION
+    ]
+    save(outfits)
     done = {outfit["id"] for outfit in outfits}
 
-    for band, low, high in BANDS:
-        for audience in AUDIENCES:
-            outfit_id = f"system-ai-{band}-{audience}-01"
-            if outfit_id in done:
-                continue
-            context = {
-                "scene": "commute",
-                "audience": audience,
-                "city_id": "unknown",
-                "local_date": "today",
-                "thermal_band": band,
-                "calibrated_apparent_min": low,
-                "apparent_max": high,
-                "apparent_delta": round(high - low, 1),
-                "needs_waterproof": False,
-                "needs_heavy_rain_protection": False,
-                "needs_snow_protection": False,
-                "needs_windproof": False,
-                "needs_sun_protection": False,
-                "needs_strong_sun_protection": False,
-                "avoid_umbrella": False,
-                "equipment": [],
-                "warnings": [],
-            }
-            result = None
-            for attempt in range(2):
-                try:
-                    result = await service.generate(context)
-                    break
-                except Exception as exc:  # noqa: BLE001
-                    print(f"retry {attempt + 1} {band} {audience}: {exc}")
-                    await asyncio.sleep(3)
-            if result is None:
-                print(f"FAIL {band} {audience}")
-                continue
-            outfits.append(
-                {
-                    "id": outfit_id,
-                    "thermal_band": band,
+    for scene in SCENES:
+        for band, low, high in BANDS:
+            for audience in AUDIENCES:
+                outfit_id = (
+                    f"system-ai-{band}-{audience}-01"
+                    if scene == "commute"
+                    else f"system-ai-{scene}-{band}-{audience}-01"
+                )
+                if outfit_id in done:
+                    continue
+                context = {
+                    "scene": scene,
                     "audience": audience,
-                    "label": result["label"],
-                    "items": result["items"],
-                    "replication_guide": result["replication_guide"],
-                    "outfit_analysis": result["outfit_analysis"],
+                    "city_id": "unknown",
+                    "local_date": "today",
+                    "thermal_band": band,
+                    "calibrated_apparent_min": low,
+                    "apparent_max": high,
+                    "apparent_delta": round(high - low, 1),
+                    "needs_waterproof": False,
+                    "needs_heavy_rain_protection": False,
+                    "needs_snow_protection": False,
+                    "needs_windproof": False,
+                    "needs_sun_protection": False,
+                    "needs_strong_sun_protection": False,
+                    "avoid_umbrella": False,
+                    "equipment": [],
+                    "warnings": [],
                 }
-            )
-            save(outfits)
-            print(f"OK {band} {audience}: {result['label']}")
-            await asyncio.sleep(2)
+                result = None
+                for attempt in range(2):
+                    try:
+                        result = await service.generate(context)
+                        break
+                    except Exception as exc:  # noqa: BLE001
+                        print(f"retry {attempt + 1} {scene} {band} {audience}: {exc}")
+                        await asyncio.sleep(3)
+                if result is None:
+                    print(f"FAIL {scene} {band} {audience}")
+                    continue
+                outfits.append(
+                    {
+                        "id": outfit_id,
+                        "scene": scene,
+                        "prompt_version": PROMPT_VERSION,
+                        "thermal_band": band,
+                        "audience": audience,
+                        "label": result["label"],
+                        "items": result["items"],
+                        "replication_guide": result["replication_guide"],
+                        "outfit_analysis": result["outfit_analysis"],
+                    }
+                )
+                save(outfits)
+                print(f"OK {scene} {band} {audience}: {result['label']}")
+                await asyncio.sleep(2)
 
     print(f"done, total {len(outfits)} outfits -> {OUT_PATH}")
 

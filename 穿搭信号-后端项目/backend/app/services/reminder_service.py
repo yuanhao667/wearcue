@@ -8,6 +8,7 @@ from app.services.push_service import PushService, SubscriptionGoneError
 from app.services.recommendation_service import (
     recommend_official_outfit,
     recommend_personal_outfit,
+    recommend_system_ai_outfit,
 )
 from app.services.store import store
 from app.services.weather_service import WeatherService
@@ -94,13 +95,25 @@ async def _run_due_reminders_once() -> None:
                 audience=user["audience"],
                 outfits=store.list_outfits(in_pool=True, user_id=user["user_id"]),
             )
-            recommendation = personal or recommend_official_outfit(
-                weather=weather_input,
-                scene="commute",
-                audience=user["audience"],
-                city_id=user.get("city_id") or "unknown",
-                local_date=weather["date"],
-            )
+            if personal:
+                recommendation = personal
+            else:
+                try:
+                    recommendation = recommend_system_ai_outfit(
+                        weather=weather_input,
+                        scene="commute",
+                        audience=user["audience"],
+                        city_id=user.get("city_id") or "unknown",
+                        local_date=weather["date"],
+                    )
+                except Exception:
+                    recommendation = recommend_official_outfit(
+                        weather=weather_input,
+                        scene="commute",
+                        audience=user["audience"],
+                        city_id=user.get("city_id") or "unknown",
+                        local_date=weather["date"],
+                    )
             message = _build_message(recommendation, weather)
 
             subscriptions = store.enabled_subscriptions(user["user_id"])

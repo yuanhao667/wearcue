@@ -29,7 +29,16 @@ class RecommendationRequest(WeatherRuleRequest):
     scene: str = Field(pattern="^(commute|date|travel)$")
     audience: str = Field(pattern="^(mens|womens)$")
     city_id: str = "unknown"
+    city_name: str = ""
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    timezone: str = "UTC"
     local_date: str = "today"
+    current_temperature: Optional[float] = None
+    current_apparent_temperature: Optional[float] = None
+    temperature_min: Optional[float] = None
+    temperature_max: Optional[float] = None
+    weather_code: Optional[int] = None
     excluded_template_ids: List[str] = Field(default_factory=list)
 
 
@@ -100,20 +109,18 @@ class OutfitAnalysis(BaseModel):
 
 
 class OutfitSaveRequest(BaseModel):
-    label: str = Field(default="我的穿搭", min_length=1, max_length=40)
+    label: str = Field(default="我的穿搭", min_length=1, max_length=30)
     audience: Literal["mens", "womens"] = "mens"
     components: List[OutfitComponent] = Field(min_length=1)
     scene_ids: List[str] = Field(default_factory=lambda: ["commute"])
     suitable_min: float = Field(default=15, ge=-40, le=50)
     suitable_max: float = Field(default=28, ge=-40, le=60)
-    favorite: bool = False
     in_pool: bool = False
     outfit_analysis: Optional[OutfitAnalysis] = None
     replication_guide: Optional[ReplicationGuide] = None
 
 
 class OutfitStatusRequest(BaseModel):
-    favorite: Optional[bool] = None
     in_pool: Optional[bool] = None
     scene_ids: Optional[List[str]] = None
 
@@ -158,6 +165,7 @@ class ComfortFeedbackRequest(BaseModel):
 
 
 class RecommendationAdviceRequest(BaseModel):
+    recommendation_id: str = Field(min_length=1, max_length=80)
     scene: str = Field(pattern="^(commute|date|travel)$")
     audience: str = Field(pattern="^(mens|womens)$")
     items: List[OutfitComponent]

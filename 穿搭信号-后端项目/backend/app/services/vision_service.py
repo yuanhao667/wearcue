@@ -131,6 +131,7 @@ class VisionService:
         self.url = os.getenv("VISION_API_URL", "").rstrip("/")
         self.key = os.getenv("VISION_API_KEY", "")
         self.model = os.getenv("VISION_MODEL", "")
+        self.fallback_model = os.getenv("VISION_FALLBACK_MODEL", "")
         self.prompt = (Path(__file__).resolve().parents[1] / "prompts" / "vision_outfit.txt").read_text()
 
     @property
@@ -141,38 +142,53 @@ class VisionService:
         if not self.configured:
             raise VisionServiceError("生产视觉模型尚未配置")
         encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
-        payload = {
-            "model": self.model,
-            "enable_thinking": False,
-            "temperature": 0,
-            "max_tokens": 1000,
-            "response_format": {"type": "json_object"},
-            "messages": [
-                {"role": "system", "content": self.prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "识别并分析这张穿搭照片，只返回系统要求的 JSON。"},
-                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + encoded}},
+        models = list(dict.fromkeys(filter(None, [self.model, self.fallback_model])))
+        async with httpx.AsyncClient(timeout=45) as client:
+            for index, selected_model in enumerate(models):
+                payload = {
+                    "model": selected_model,
+                    "enable_thinking": False,
+                    "temperature": 0,
+                    "max_tokens": 1000,
+                    "response_format": {"type": "json_object"},
+                    "messages": [
+                        {"role": "system", "content": self.prompt},
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "识别并分析这张穿搭照片，只返回系统要求的 JSON。",
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": "data:image/jpeg;base64," + encoded},
+                                },
+                            ],
+                        },
                     ],
                 }
-            ],
-        }
-        try:
-            async with httpx.AsyncClient(timeout=45) as client:
-                response = await client.post(
-                    self.url + "/chat/completions",
-                    headers={"Authorization": "Bearer " + self.key},
-                    json=payload,
-                )
-                response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            if isinstance(content, list):
-                content = "".join(part.get("text", "") for part in content)
-            raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
-            result = VisionResult.model_validate(json.loads(raw))
-            return normalize_vision_result(result.model_dump())
-        except httpx.TimeoutException as exc:
-            raise VisionServiceError("视觉模型响应超时，请重新识别") from exc
-        except (httpx.HTTPError, KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
-            raise VisionServiceError("视觉模型返回失败，请重试或手动确认") from exc
+                try:
+                    response = await client.post(
+                        self.url + "/chat/completions",
+                        headers={"Authorization": "Bearer " + self.key},
+                        json=payload,
+                    )
+                    response.raise_for_status()
+                    content = response.json()["choices"][0]["message"]["content"]
+                    if isinstance(content, list):
+                        content = "".join(part.get("text", "") for part in content)
+                    raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
+                    result = VisionResult.model_validate(json.loads(raw))
+                    return normalize_vision_result(result.model_dump())
+                except httpx.HTTPStatusError as caught:
+                    error = caught
+                    retryable = caught.response.status_code == 429 or caught.response.status_code >= 500
+                except (httpx.RequestError, KeyError, TypeError, ValueError) as caught:
+                    error = caught
+                    retryable = True
+                if not retryable or index == len(models) - 1:
+                    if isinstance(error, httpx.TimeoutException):
+                        raise VisionServiceError("视觉模型响应超时，请重新识别") from error
+                    raise VisionServiceError("视觉模型返回失败，请重试或手动确认") from error
+        raise VisionServiceError("视觉模型返回失败，请重试或手动确认")

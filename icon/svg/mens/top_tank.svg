@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" color="#111111" role="img" aria-labelledby="title desc">
-  <title id="title">男式基础背心</title><desc id="desc">加宽肩带、直身和圆领构成的面性男式基础背心，可通过 currentColor 着色。</desc>
-  <defs><mask id="cutouts"><rect width="96" height="96" fill="#fff"/><ellipse cx="48" cy="12" rx="7" ry="13" fill="#000"/><ellipse cx="21" cy="35" rx="10" ry="22" fill="#000" transform="rotate(8 21 35)"/><ellipse cx="75" cy="35" rx="10" ry="22" fill="#000" transform="rotate(-8 75 35)"/></mask></defs>
-  <g transform="translate(48 48) scale(.95) translate(-48 -48)">
-    <path d="M27 11Q48 6 69 11l7 72H20Z" fill="currentColor" mask="url(#cutouts)"/>
-  </g>
-</svg>

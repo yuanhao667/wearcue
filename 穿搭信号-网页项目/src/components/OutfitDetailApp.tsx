@@ -5,10 +5,15 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { OutfitIcon } from "./OutfitIcon";
 import { apiAsset, apiJson } from "@/lib/backend-api";
-import type { BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
+import type { AIQuota, BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
 
 const HAT_KEYS = new Set(["acc_baseball_cap", "acc_beanie", "acc_sun_hat"]);
 const SLOT_ORDER: Record<string, number> = { top: 1, outerwear: 2, onepiece: 3, bottom: 4, shoes: 5, equipment: 6 };
+const DETAIL_ADVICE_STEPS = ["AI 正在分析这套单品组合", "AI 正在生成穿搭步骤", "AI 正在检查天气适配", "AI 正在整理替代建议"];
+
+export function detailAdviceStatus(step: number) {
+  return DETAIL_ADVICE_STEPS[step % DETAIL_ADVICE_STEPS.length];
+}
 
 function itemSortKey(item: { slot: string; functional_icon_key?: string }) {
   if (item.functional_icon_key && HAT_KEYS.has(item.functional_icon_key)) return 0;
@@ -25,7 +30,10 @@ export function OutfitDetailApp({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [aiAdvice, setAiAdvice] = useState<ReplicationGuide | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<OutfitAnalysis | null>(null);
+  const [adviceQuota, setAdviceQuota] = useState<AIQuota | null>(null);
+  const [adviceError, setAdviceError] = useState("");
   const [adviceDone, setAdviceDone] = useState(false);
+  const [adviceStatusStep, setAdviceStatusStep] = useState(0);
   const recommendation = useMemo<BackendRecommendation | null>(() => {
     if (!raw) return null;
     try {
@@ -47,18 +55,34 @@ export function OutfitDetailApp({ id }: { id: string }) {
       return;
     }
     let active = true;
-    void apiJson<{ replication_guide: ReplicationGuide; outfit_analysis: OutfitAnalysis }>("/recommendations/advice", {
+    void apiJson<{ replication_guide: ReplicationGuide; outfit_analysis: OutfitAnalysis; ai_quota: AIQuota }>("/recommendations/advice", {
       method: "POST",
       body: JSON.stringify({
+        recommendation_id: recommendation.template_id,
         scene: recommendation.scene,
         audience: recommendation.audience,
         items: recommendation.items,
         constraints: recommendation.constraints,
       }),
     }).then((value) => {
-      if (active) { setAiAdvice(value.replication_guide); setAiAnalysis(value.outfit_analysis); }
-    }).catch(() => {
-      if (active) { setAiAdvice(null); setAiAnalysis(null); }
+      if (active) {
+        setAiAdvice(value.replication_guide);
+        setAiAnalysis(value.outfit_analysis);
+        setAdviceQuota(value.ai_quota);
+        try {
+          localStorage.setItem("wearcue_active_outfit_v1", JSON.stringify({
+            ...recommendation,
+            replication_guide: value.replication_guide,
+            outfit_analysis: value.outfit_analysis,
+          }));
+        } catch { /* 后端已持久化，浏览器缓存失败不影响本次结果 */ }
+      }
+    }).catch((error) => {
+      if (active) {
+        setAiAdvice(null);
+        setAiAnalysis(null);
+        setAdviceError(error instanceof Error ? error.message : "AI 穿搭建议生成失败");
+      }
     }).finally(() => {
       if (active) setAdviceDone(true);
     });
@@ -67,12 +91,19 @@ export function OutfitDetailApp({ id }: { id: string }) {
 
   const adviceLoading = Boolean(recommendation && recommendation.source === "ai" && !recommendation.replication_guide && !recommendation.outfit_analysis && !adviceDone);
 
+  useEffect(() => {
+    if (!adviceLoading) return;
+    const timer = window.setInterval(() => setAdviceStatusStep((step) => step + 1), 3000);
+    return () => window.clearInterval(timer);
+  }, [adviceLoading]);
+
   if (!recommendation && loading) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>正在加载穿搭</h2></section></main>;
   if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href="/closet">返回穿搭灵感</Link></section></main>;
 
   const items = [...(recommendation?.items ?? savedOutfit?.components ?? [])].sort((a, b) => itemSortKey(a) - itemSortKey(b));
   const audience = recommendation?.audience ?? savedOutfit?.audience ?? "mens";
   const label = recommendation?.label ?? savedOutfit?.label ?? "今日穿搭";
+  const displayLabel = recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
   const analysis = recommendation?.outfit_analysis ?? aiAnalysis ?? savedOutfit?.outfit_analysis ?? null;
   const imageUrl = savedOutfit?.inspiration_id ? apiAsset(`/inspirations/${savedOutfit.inspiration_id}/image?size=medium`) : "";
   const guide = recommendation?.replication_guide ?? aiAdvice ?? savedOutfit?.replication_guide ?? {
@@ -82,24 +113,35 @@ export function OutfitDetailApp({ id }: { id: string }) {
   };
   return <main className="paper-page outfit-detail-page">
     <Link className="outfit-detail-back" href={savedOutfit ? "/closet" : "/"}>← 返回{savedOutfit ? "穿搭灵感" : "今日推荐"}</Link>
-    <header className="outfit-detail-head"><h1>{label}</h1><strong>{guide.formula}</strong></header>
+    <header className="outfit-detail-head"><h1>{displayLabel}</h1><strong>{guide.formula}</strong></header>
     <div className={`outfit-detail-layout${imageUrl ? "" : " single"}`}>
       {imageUrl && <section className="outfit-detail-photo-card"><div className="card-caption">穿搭照片</div><figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} /></figure></section>}
       <section className="review-card outfit-detail-result-card">
         <div className="outfit-detail-bear" aria-hidden="true"><img src="/illustrations/inspiration-bear.png" alt="" /></div>
         <section className="outfit-detail-items"><div className="outfit-detail-grid">{items.map((item, index) => <article key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={audience} colorize /><strong>{item.variant_type}</strong><span>{thicknessLabel(item.thickness)}</span></article>)}</div></section>
-        <section className="replication-card">
-          <div className="card-caption">怎么穿</div>
-          {adviceLoading && <p className="inline-message">正在生成穿搭建议…</p>}
-          {analysis && <section className="outfit-advice detail-outfit-advice" aria-label="穿搭建议">
-            <div className="outfit-advice-heading"><strong>{analysis.summary}</strong></div>
-            {analysis.structure_points.length > 0 && <ul>{analysis.structure_points.map((point) => <li key={point}>{point}</li>)}</ul>}
-            {analysis.completion_advice.length > 0 && <div className="outfit-advice-completion"><span>补全这套</span><div className="outfit-advice-completion-list">{analysis.completion_advice.map((advice) => <p key={advice}>{advice}</p>)}</div></div>}
-          </section>}
-          <ol>{guide.steps.map((step) => <li key={step}>{step}</li>)}</ol>
-          {guide.styling_points.length > 0 && <div className="replication-note"><span>版型与层次</span><p>{guide.styling_points.join("；")}</p></div>}
-          <div className="replication-note accent"><span>今天怎么调整</span><p>{guide.weather_note}</p></div>
-          <div className="replication-note"><span>没有同款</span><p>{guide.substitute}</p></div>
+        <section className={`replication-card${adviceLoading ? " is-loading" : ""}`} aria-busy={adviceLoading}>
+          {adviceLoading ? <div className="review-empty is-loading detail-advice-loading" role="status" aria-live="polite">
+            <b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b>
+            <h3>正在生成穿搭建议</h3>
+            <p>{detailAdviceStatus(adviceStatusStep)}</p>
+          </div> : <>
+            <div className="card-caption">怎么穿</div>
+            {adviceError && <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{adviceError}</span></p>}
+            {adviceQuota && <p className="privacy-copy">AI 穿搭建议今日剩余 {adviceQuota.remaining}/{adviceQuota.limit} 次</p>}
+            {analysis && <section className="outfit-advice detail-outfit-advice" aria-label="穿搭建议">
+              <div className="outfit-advice-heading"><strong>{displayLabel}</strong></div>
+              <div className="outfit-analysis-module">
+                <span>穿搭分析</span>
+                <p>{analysis.summary}</p>
+                {analysis.structure_points.length > 0 && <ul>{analysis.structure_points.map((point) => <li key={point}>{point}</li>)}</ul>}
+              </div>
+              {analysis.completion_advice.length > 0 && <div className="outfit-advice-completion"><span>补全这套</span><div className="outfit-advice-completion-list">{analysis.completion_advice.map((advice) => <p key={advice}>{advice}</p>)}</div></div>}
+            </section>}
+            <div className="replication-steps"><span>穿搭步骤</span><ol>{guide.steps.map((step) => <li key={step}>{step}</li>)}</ol></div>
+            {guide.styling_points.length > 0 && <div className="replication-note"><span>版型与层次</span><p>{guide.styling_points.join("；")}</p></div>}
+            <div className="replication-note accent"><span>今天怎么调整</span><p>{guide.weather_note}</p></div>
+            <div className="replication-note"><span>没有同款</span><p>{guide.substitute}</p></div>
+          </>}
         </section>
       </section>
     </div>

@@ -10,10 +10,10 @@ self.addEventListener("push", (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-  } catch (error) {
+  } catch {
     data = {};
   }
-  const title = data.title || "穿搭信号";
+  const title = data.title || "WearCue";
   const options = {
     body: data.body || "",
     icon: "/brand/wearcue-bear.png",

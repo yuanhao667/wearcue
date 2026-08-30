@@ -19,8 +19,13 @@ from app.schemas import (
     SkipRequest,
 )
 from app.services.image_service import ImageService
+from app.services.outfit_ai_service import (
+    OutfitAIService,
+    OutfitAIServiceError,
+    name_follows_style_scene,
+)
 from app.services.push_service import PushService, SubscriptionGoneError
-from app.services.store import store
+from app.services.store import store, user_local_date
 from app.services.vision_service import VisionService, VisionServiceError
 
 
@@ -36,50 +41,6 @@ def _image_type(content: bytes) -> Optional[tuple[str, str]]:
     if content[:4] == b"RIFF" and content[8:12] == b"WEBP":
         return "image/webp", ".webp"
     return None
-
-
-def _mock_result(audience: str) -> dict:
-    top_variant = "短袖 T 恤" if audience == "mens" else "短袖上衣"
-    return {
-        "model_version": "mock-vision-v2",
-        "garment_audience": audience,
-        "requires_user_confirmation": True,
-        "suggested_scenes": ["commute"],
-        "suggested_temperature": {"min": 16, "max": 26},
-        "suggested_season": "spring-autumn",
-        "outfit_analysis": {
-            "summary": "基础上衣配直筒下装，整体比例简洁。",
-            "structure_points": ["上身自然垂落", "裤脚避免堆叠"],
-            "completion_advice": [],
-        },
-        "replication_guide": {
-            "formula": "基础上衣配直筒长裤和低帮鞋",
-            "steps": ["先穿基础上衣", "搭配直筒长裤", "最后穿低帮鞋"],
-            "styling_points": ["上衣保持自然垂落", "裤脚避免堆叠"],
-            "weather_note": "早晚偏凉时增加一件薄款外套。",
-            "substitute": "同厚度、相近版型的基础款都可以替换。"
-        },
-        "components": [
-            {
-                "slot": "top", "functional_icon_key": "short_sleeve",
-                "variant_type": top_variant, "color_name": "基础色", "thickness": "thin",
-                "confidence": 0.55, "approximate": True, "suggested": False,
-                "asset_key": "top_tshirt_short",
-            },
-            {
-                "slot": "bottom", "functional_icon_key": "long_bottom",
-                "variant_type": "常规长裤", "color_name": "基础色", "thickness": "regular",
-                "confidence": 0.55, "approximate": True, "suggested": False,
-                "asset_key": "bottom_casual_pants",
-            },
-            {
-                "slot": "shoes", "functional_icon_key": "daily_shoes",
-                "variant_type": "低帮鞋", "color_name": "基础色", "thickness": "regular",
-                "confidence": 0.55, "approximate": True, "suggested": False,
-                "asset_key": "shoe_sneaker",
-            },
-        ],
-    }
 
 
 @router.get("/settings", tags=["settings"])
@@ -98,10 +59,10 @@ async def save_user_settings(payload: SettingsUpdate, user: CurrentUser) -> dict
 @router.get("/outfits", tags=["outfits"])
 async def list_outfits(
     user: CurrentUser,
-    favorite: Optional[bool] = Query(default=None), in_pool: Optional[bool] = Query(default=None)
+    in_pool: Optional[bool] = Query(default=None)
 ) -> list:
     audience = store.get_settings(user["id"])["audience"]
-    return [outfit for outfit in store.list_outfits(favorite=favorite, in_pool=in_pool, user_id=user["id"]) if outfit["source"] != "system" or outfit["audience"] == audience]
+    return [outfit for outfit in store.list_outfits(in_pool=in_pool, user_id=user["id"]) if outfit["source"] != "system" or outfit["audience"] == audience]
 
 
 @router.post("/outfits", tags=["outfits"])
@@ -172,6 +133,12 @@ async def upload_inspiration(
     return result | {"deduplicated": False}
 
 
+@router.get("/inspirations/analysis-quota", tags=["inspirations"])
+async def analysis_quota(user: CurrentUser) -> dict:
+    local_date = user_local_date(store.get_settings(user["id"]).get("timezone"))
+    return store.get_ai_quota(user["id"], local_date, "vision")
+
+
 @router.get("/inspirations/{inspiration_id}", tags=["inspirations"])
 async def get_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
     result = store.get_inspiration(inspiration_id, user["id"])
@@ -194,22 +161,47 @@ async def inspiration_image(
 
 
 @router.post("/inspirations/{inspiration_id}/analyze", tags=["inspirations"])
-async def analyze_inspiration(inspiration_id: str, user: CurrentUser, allow_external: bool = False) -> dict:
+async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
     if not store.get_inspiration(inspiration_id, user["id"]):
         raise HTTPException(404, "识别任务不存在")
-    if allow_external:
-        path = store.inspiration_path(inspiration_id, user["id"])
-        medium_path = ImageService.sized_path(path, "medium") if path else None
-        if medium_path and medium_path.is_file():
-            path = medium_path
-        try:
-            result = await VisionService().analyze(path)
-        except VisionServiceError as exc:
-            raise HTTPException(503, str(exc)) from exc
-        return store.set_analysis(inspiration_id, result, "external", user["id"])
-    # ponytail: 本地默认 Mock，只有 allow_external=true 才会把图片发送给已配置的 Provider。
-    result = _mock_result(store.get_settings(user["id"])["audience"])
-    return store.set_analysis(inspiration_id, result, "mock", user["id"])
+    local_date = user_local_date(store.get_settings(user["id"]).get("timezone"))
+    reservation_id = store.reserve_ai_usage(user["id"], local_date, "vision")
+    if not reservation_id:
+        raise HTTPException(429, "今日识别次数已用完，请明天再试")
+    path = store.inspiration_path(inspiration_id, user["id"])
+    medium_path = ImageService.sized_path(path, "medium") if path else None
+    if medium_path and medium_path.is_file():
+        path = medium_path
+    try:
+        result = await VisionService().analyze(path)
+    except VisionServiceError as exc:
+        store.release_ai_usage(reservation_id)
+        raise HTTPException(503, str(exc)) from exc
+    except Exception:
+        store.release_ai_usage(reservation_id)
+        raise
+    remaining = store.get_ai_quota(user["id"], local_date, "vision")["remaining"]
+    result = store.set_analysis(inspiration_id, result, "external", user["id"])
+    return result | {"remaining_analyses": remaining}
+
+
+@router.post("/inspirations/{inspiration_id}/generate-name", tags=["inspirations"])
+async def generate_inspiration_name(inspiration_id: str, user: CurrentUser) -> dict:
+    inspiration = store.get_owned_inspiration(inspiration_id, user["id"])
+    if not inspiration:
+        raise HTTPException(404, "识别任务不存在")
+    if inspiration["status"] not in {"needs_review", "ready"} or not inspiration["result"].get("components"):
+        raise HTTPException(409, "请先完成图片识别")
+    cached_name = str(inspiration["result"].get("ai_generated_name") or "").strip()
+    if cached_name and name_follows_style_scene(cached_name, inspiration["result"]):
+        return {"name": cached_name[:30], "cached": True}
+    try:
+        name = await OutfitAIService().generate_name(inspiration["result"])
+    except OutfitAIServiceError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    if not store.set_inspiration_generated_name(inspiration_id, name, user["id"]):
+        raise HTTPException(404, "识别任务不存在")
+    return {"name": name, "cached": False}
 
 
 @router.post("/inspirations/{inspiration_id}/confirm", tags=["inspirations"])
@@ -224,7 +216,6 @@ async def confirm_inspiration(inspiration_id: str, payload: InspirationConfirmRe
         existing = None
     values = payload.model_dump() | {"source": "inspiration", "inspiration_id": inspiration_id}
     if existing:
-        values["favorite"] = existing["favorite"] or values["favorite"]
         values["in_pool"] = existing["in_pool"] or values["in_pool"]
     outfit = store.save_outfit(
         values, existing["id"] if existing else None, user["id"]
@@ -288,7 +279,11 @@ async def runtime_status() -> dict:
         "authentication": {"ready": True, "provider": "invite-code-session", "data_isolation": "per-user"},
         "persistence": {"ready": True, "provider": "sqlite", "path": "data/outfit-signal.sqlite3"},
         "uploads": {"ready": True, "provider": "local-volume", "max_bytes": MAX_UPLOAD_BYTES},
-        "vision": {"workflow_ready": True, "provider": "aihubmix" if vision_configured else "mock", "production_configured": vision_configured},
+        "vision": {
+            "workflow_ready": True,
+            "provider": "external" if vision_configured else "unconfigured",
+            "production_configured": vision_configured,
+        },
         "web_push": {"workflow_ready": True, "production_configured": bool(os.getenv("VAPID_PRIVATE_KEY") and os.getenv("VAPID_PUBLIC_KEY") and os.getenv("VAPID_SUBJECT"))},
         "cloud": {
             "domain_ready": False,

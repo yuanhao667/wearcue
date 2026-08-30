@@ -51,7 +51,7 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
         headers=_headers(token_a),
         json={
             "label": "A 的私人穿搭", "audience": "mens", "components": [_component()],
-            "scene_ids": ["commute"], "favorite": True, "in_pool": True,
+            "scene_ids": ["commute"], "in_pool": True,
         },
     ).json()
     assert client.get(f"/api/v1/outfits/{outfit['id']}", headers=_headers(token_a)).status_code == 200
@@ -66,14 +66,14 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     )
     client.post(
         f"/api/v1/outfits/{mens_system['id']}/status",
-        headers=_headers(token_a), json={"favorite": False},
+        headers=_headers(token_a), json={"in_pool": False},
     )
     assert client.get(
         f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_a)
-    ).json()["favorite"] is False
+    ).json()["in_pool"] is False
     assert client.get(
         f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_b)
-    ).json()["favorite"] is True
+    ).json()["in_pool"] is True
 
     image = Image.new("RGB", (32, 48), "white")
     buffer = BytesIO()
@@ -95,4 +95,3 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
         json={"nickname": "错误昵称", "audience": "womens", "invite_code": "INVITE-A"},
     ).json()
     assert relogin_a["user"] == login_a.json()["user"]
-

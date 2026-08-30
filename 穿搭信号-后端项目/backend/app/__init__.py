@@ -1,2 +1,1 @@
-"""Outfit Signal backend."""
-
+"""WearCue backend."""

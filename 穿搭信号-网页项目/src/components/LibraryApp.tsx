@@ -32,9 +32,9 @@ export function LibraryApp() {
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [deleteTarget, deleting]);
-  async function toggle(outfit: Outfit, field: "favorite" | "in_pool") {
+  async function togglePersonalRecommendation(outfit: Outfit) {
     try {
-      const updated = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify({ [field]: !outfit[field] }) });
+      const updated = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify({ in_pool: !outfit.in_pool }) });
       setOutfits((current) => current.map((item) => item.id === updated.id ? updated : item));
     } catch (error) { setMessage(error instanceof Error ? error.message : "状态更新失败"); }
   }
@@ -50,7 +50,6 @@ export function LibraryApp() {
   }
 
   const poolOutfits = outfits.filter((outfit) => outfit.in_pool);
-  const favoriteOutfits = outfits.filter((outfit) => outfit.favorite);
 
   function outfitCard(outfit: Outfit) {
     const crossAudienceLabels = crossAudienceGarmentLabels(outfit.components, outfit.audience);
@@ -68,9 +67,8 @@ export function LibraryApp() {
       <div className="library-icons">{outfit.components.map((item, index) => <div className="library-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={outfit.audience} /><div><strong>{item.variant_type}</strong><em>{thicknessLabel(item.thickness)}</em></div></div>)}</div>
       <div className="library-meta"><span>{outfit.scene_ids.map(sceneLabel).join(" · ")}</span><span className={crossAudienceLabels.length ? "is-cross-audience" : undefined}>{crossAudienceLabels.length ? (outfit.audience === "mens" ? "女装" : "男装") : outfit.audience === "mens" ? "男装" : "女装"}</span></div>
       <div className="library-actions">
-        <button type="button" aria-pressed={outfit.in_pool} className={`library-toggle-button${outfit.in_pool ? " is-active" : ""}`} onClick={() => void toggle(outfit, "in_pool")}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 8.5 10 3.5c.7 0 1.3.6 1.3 1.4v3h3.3c1.1 0 1.8 1 1.5 2l-1.2 5c-.2.7-.8 1.2-1.5 1.2H7.5V8.5ZM4 8.5h3.5v7.6H4V8.5Z" /></svg><span>{outfit.in_pool ? "首页推荐" : "推荐"}</span></button>
-        <button type="button" aria-pressed={outfit.favorite} className={`library-toggle-button${outfit.favorite ? " is-active" : ""}`} onClick={() => void toggle(outfit, "favorite")}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5h10v13l-5-3-5 3v-13Z" /></svg><span>{outfit.favorite ? "已收藏" : "收藏"}</span></button>
-        <div className="library-card-primary-actions"><button className="library-delete-button" onClick={() => setDeleteTarget(outfit)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 3.5h4M6 6l.7 10h6.6L14 6M8.5 9v4.5M11.5 9v4.5" /></svg><span>删除卡片</span></button><Link className="library-detail-button" href={`/outfit/${outfit.id}`}><span>查看详情</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12M11 5.5l4.5 4.5-4.5 4.5" /></svg></Link></div>
+        <button type="button" aria-pressed={outfit.in_pool} className={`library-toggle-button${outfit.in_pool ? " is-active" : ""}`} onClick={() => void togglePersonalRecommendation(outfit)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 8.5 10 3.5c.7 0 1.3.6 1.3 1.4v3h3.3c1.1 0 1.8 1 1.5 2l-1.2 5c-.2.7-.8 1.2-1.5 1.2H7.5V8.5ZM4 8.5h3.5v7.6H4V8.5Z" /></svg><span>{outfit.in_pool ? "移出个人首页推荐" : "设为个人首页推荐"}</span></button>
+        <div className="library-card-primary-actions"><button className="library-delete-button" onClick={() => setDeleteTarget(outfit)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 3.5h4M6 6l.7 10h6.6L14 6M8.5 9v4.5M11.5 9v4.5" /></svg><span>删除穿搭</span></button><Link className="library-detail-button" href={`/outfit/${outfit.id}`}><span>查看详情</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12M11 5.5l4.5 4.5-4.5 4.5" /></svg></Link></div>
       </div>
     </article>;
   }
@@ -81,12 +79,12 @@ export function LibraryApp() {
     {status === "error" && <section className="paper-state"><h2>穿搭灵感暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section>}
     {status === "success" && <>
       <section className="library-section">
-        <div className="library-section-head"><div><h1>推荐池 <span>{poolOutfits.length} 套</span></h1><p><span className="library-highlight-copy">符合当天的天气和场景时，会出现在个人首页推荐里。</span></p></div></div>
+        <div className="library-section-head"><div><h1>个人首页推荐 <span>{poolOutfits.length} 套</span></h1><p><span className="library-highlight-copy">符合当天的天气和场景时，会出现在首页推荐里。</span></p></div></div>
         <div className="library-grid">{poolOutfits.length ? poolOutfits.map(outfitCard) : <Link className="library-empty" href="/inspiration"><div><b aria-hidden="true">＋</b><strong>上传穿搭参考</strong></div></Link>}</div>
       </section>
       <section className="library-section">
-        <div className="library-section-head"><div><h1>收藏池 <span>{favoriteOutfits.length} 套</span></h1><p><span className="library-highlight-copy">收藏只负责保存你喜欢的穿搭，不会参与每日匹配。</span></p></div></div>
-        <div className="library-grid">{favoriteOutfits.length ? favoriteOutfits.map(outfitCard) : <Link className="library-empty" href="/inspiration"><div><b aria-hidden="true">＋</b><strong>上传穿搭参考</strong></div></Link>}</div>
+        <div className="library-section-head"><div><h1>全部穿搭 <span>{outfits.length} 套</span></h1><p><span className="library-highlight-copy">账号下的所有穿搭都在这里，设为个人首页推荐后仍会保留。</span></p></div></div>
+        <div className="library-grid">{outfits.length ? outfits.map(outfitCard) : <Link className="library-empty" href="/inspiration"><div><b aria-hidden="true">＋</b><strong>上传穿搭参考</strong></div></Link>}</div>
       </section>
     </>}
     {message && status === "success" && <p className="inline-message">{message}</p>}
@@ -106,8 +104,8 @@ export function LibraryApp() {
         <button className="library-delete-close" type="button" aria-label="关闭删除确认" disabled={deleting} onClick={() => setDeleteTarget(null)}>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
         </button>
-        <h2 id="library-delete-title">确认删除这张卡片？</h2>
-        <p id="library-delete-description">“{deleteTarget.label}”将从推荐池和收藏池中移除，删除后无法恢复。</p>
+        <h2 id="library-delete-title">确认删除这套穿搭？</h2>
+        <p id="library-delete-description">删除“{deleteTarget.label}”后，它会同时从“个人首页推荐”和“全部穿搭”中消失，且无法恢复。</p>
         <div className="library-delete-actions">
           <button type="button" className="library-delete-cancel" disabled={deleting} autoFocus onClick={() => setDeleteTarget(null)}>取消</button>
           <button type="button" className="library-delete-confirm" disabled={deleting} onClick={() => void remove(deleteTarget)}>{deleting ? "正在删除…" : "确认删除"}</button>

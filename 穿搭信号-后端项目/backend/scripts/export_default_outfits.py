@@ -79,7 +79,6 @@ def main() -> None:
                 "scene_ids": parse_json(outfit, "scene_ids_json"),
                 "suitable_min": outfit["suitable_min"],
                 "suitable_max": outfit["suitable_max"],
-                "favorite": bool(outfit["favorite"]),
                 "in_pool": bool(outfit["in_pool"]),
                 "replication_guide": parse_json(outfit, "replication_json"),
                 "outfit_analysis": parse_json(outfit, "analysis_json"),

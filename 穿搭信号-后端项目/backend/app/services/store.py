@@ -8,6 +8,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
+from zoneinfo import ZoneInfo
+
+
+AI_USAGE_LIMITS = {"vision": 30, "swap": 4, "advice": 4}
 
 
 def _now() -> str:
@@ -20,6 +24,14 @@ def _id(prefix: str) -> str:
 
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def user_local_date(tz_name: Optional[str]) -> str:
+    try:
+        tz = ZoneInfo(tz_name or "UTC")
+    except Exception:
+        tz = ZoneInfo("UTC")
+    return datetime.now(tz).strftime("%Y-%m-%d")
 
 
 class Store:
@@ -36,6 +48,7 @@ class Store:
         connection = sqlite3.connect(self.db_path, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA journal_mode=WAL")
         return connection
 
     @staticmethod
@@ -119,6 +132,16 @@ class Store:
                     user_id TEXT NOT NULL, outfit_id TEXT NOT NULL, local_date TEXT NOT NULL,
                     created_at TEXT NOT NULL, PRIMARY KEY(user_id, outfit_id, local_date)
                 );
+                CREATE TABLE IF NOT EXISTS analysis_events (
+                    id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+                    local_date TEXT NOT NULL, usage_type TEXT NOT NULL DEFAULT 'vision',
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS ai_advice_cache (
+                    user_id TEXT NOT NULL, recommendation_id TEXT NOT NULL,
+                    result_json TEXT NOT NULL, created_at TEXT NOT NULL,
+                    PRIMARY KEY (user_id, recommendation_id)
+                );
                 """
             )
             self._add_column(db, "outfits", "replication_json TEXT NOT NULL DEFAULT '{}'")
@@ -127,12 +150,16 @@ class Store:
             self._add_column(db, "inspirations", "owner_user_id TEXT")
             for table in ("push_subscriptions", "notification_deliveries", "feedback"):
                 self._add_column(db, table, "user_id TEXT")
+            self._add_column(db, "analysis_events", "usage_type TEXT NOT NULL DEFAULT 'vision'")
             db.executescript(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
                 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
                 CREATE INDEX IF NOT EXISTS idx_outfits_owner ON outfits(owner_user_id);
                 CREATE INDEX IF NOT EXISTS idx_inspirations_owner ON inspirations(owner_user_id);
+                CREATE INDEX IF NOT EXISTS idx_analysis_events_user_date ON analysis_events(user_id, local_date);
+                CREATE INDEX IF NOT EXISTS idx_analysis_events_quota
+                ON analysis_events(user_id, local_date, usage_type);
                 """
             )
             db.execute(
@@ -366,7 +393,7 @@ class Store:
         result.pop("owner_user_id", None)
         result["components"] = json.loads(result.pop("components_json"))
         result["scene_ids"] = json.loads(result.pop("scene_ids_json"))
-        result["favorite"] = bool(result["favorite"])
+        result.pop("favorite", None)
         result["in_pool"] = bool(result["in_pool"])
         result["replication_guide"] = json.loads(result.pop("replication_json", "{}"))
         result["outfit_analysis"] = json.loads(result.pop("analysis_json", "{}"))
@@ -385,8 +412,6 @@ class Store:
             return outfit
         if state["hidden"]:
             return None
-        if state["favorite"] is not None:
-            outfit["favorite"] = bool(state["favorite"])
         if state["in_pool"] is not None:
             outfit["in_pool"] = bool(state["in_pool"])
         if state["scene_ids_json"] is not None:
@@ -395,7 +420,7 @@ class Store:
         return outfit
 
     def list_outfits(
-        self, favorite: Optional[bool] = None, in_pool: Optional[bool] = None,
+        self, in_pool: Optional[bool] = None,
         user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         query = "SELECT * FROM outfits"
@@ -409,8 +434,6 @@ class Store:
             for row in db.execute(query, values):
                 outfit = self._apply_state(db, self._outfit(row), user_id)
                 if not outfit:
-                    continue
-                if favorite is not None and outfit["favorite"] != favorite:
                     continue
                 if in_pool is not None and outfit["in_pool"] != in_pool:
                     continue
@@ -499,7 +522,8 @@ class Store:
             ),
             "suitable_min": payload.get("suitable_min", existing["suitable_min"] if existing else 15),
             "suitable_max": payload.get("suitable_max", existing["suitable_max"] if existing else 28),
-            "favorite": int(payload.get("favorite", existing["favorite"] if existing else False)),
+            # Keep the retired database column at zero for backward-compatible SQLite files.
+            "favorite": 0,
             "in_pool": int(payload.get("in_pool", existing["in_pool"] if existing else False)),
             "inspiration_id": payload.get("inspiration_id", existing["inspiration_id"] if existing else None),
             "skip_count": existing["skip_count"] if existing else 0,
@@ -537,8 +561,6 @@ class Store:
         if outfit["source"] != "system":
             return self.save_outfit(payload, outfit_id, user_id)
         changes: Dict[str, Any] = {}
-        if "favorite" in payload:
-            changes["favorite"] = int(payload["favorite"])
         if "in_pool" in payload:
             changes["in_pool"] = int(payload["in_pool"])
         if "scene_ids" in payload:
@@ -575,6 +597,31 @@ class Store:
         key = f"{user_id}:{upload_key}" if user_id else upload_key
         with self.connect() as db:
             row = db.execute("SELECT * FROM inspirations WHERE upload_key=?", (key,)).fetchone()
+        return self._inspiration(row) if row else None
+
+    def set_inspiration_generated_name(
+        self, inspiration_id: str, name: str, user_id: str
+    ) -> Optional[Dict[str, Any]]:
+        inspiration = self.get_owned_inspiration(inspiration_id, user_id)
+        if not inspiration:
+            return None
+        result = inspiration["result"] | {"ai_generated_name": name[:30]}
+        with self.connect() as db:
+            db.execute(
+                """UPDATE inspirations SET result_json=?,updated_at=?
+                WHERE id=? AND owner_user_id=?""",
+                (json.dumps(result, ensure_ascii=False), _now(), inspiration_id, user_id),
+            )
+        return self.get_owned_inspiration(inspiration_id, user_id)
+
+    def get_owned_inspiration(
+        self, inspiration_id: str, user_id: str
+    ) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT * FROM inspirations WHERE id=? AND owner_user_id=?",
+                (inspiration_id, user_id),
+            ).fetchone()
         return self._inspiration(row) if row else None
 
     def get_inspiration_by_hash(
@@ -754,6 +801,58 @@ class Store:
             "outfit_id": outfit_id, "skip_count": count, "prompt_remove": count >= 3,
             "counted_today": bool(inserted),
         }
+
+    def get_ai_quota(self, user_id: str, local_date: str, usage_type: str) -> Dict[str, int]:
+        limit = AI_USAGE_LIMITS[usage_type]
+        with self.connect() as db:
+            row = db.execute(
+                """SELECT COUNT(*) AS count FROM analysis_events
+                WHERE user_id=? AND local_date=? AND usage_type=?""",
+                (user_id, local_date, usage_type),
+            ).fetchone()
+        used = int(row["count"]) if row else 0
+        return {"limit": limit, "used": used, "remaining": max(0, limit - used)}
+
+    def reserve_ai_usage(self, user_id: str, local_date: str, usage_type: str) -> Optional[str]:
+        limit = AI_USAGE_LIMITS[usage_type]
+        event_id = _id("ai")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                """SELECT COUNT(*) AS count FROM analysis_events
+                WHERE user_id=? AND local_date=? AND usage_type=?""",
+                (user_id, local_date, usage_type),
+            ).fetchone()
+            if row and int(row["count"]) >= limit:
+                return None
+            db.execute(
+                """INSERT INTO analysis_events
+                (id, user_id, local_date, usage_type, created_at) VALUES (?,?,?,?,?)""",
+                (event_id, user_id, local_date, usage_type, _now()),
+            )
+        return event_id
+
+    def release_ai_usage(self, event_id: str) -> None:
+        with self.connect() as db:
+            db.execute("DELETE FROM analysis_events WHERE id=?", (event_id,))
+
+    def get_ai_advice(self, user_id: str, recommendation_id: str) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT result_json FROM ai_advice_cache WHERE user_id=? AND recommendation_id=?",
+                (user_id, recommendation_id),
+            ).fetchone()
+        return json.loads(row["result_json"]) if row else None
+
+    def set_ai_advice(
+        self, user_id: str, recommendation_id: str, result: Dict[str, Any]
+    ) -> None:
+        with self.connect() as db:
+            db.execute(
+                """INSERT OR REPLACE INTO ai_advice_cache
+                (user_id, recommendation_id, result_json, created_at) VALUES (?,?,?,?)""",
+                (user_id, recommendation_id, json.dumps(result, ensure_ascii=False), _now()),
+            )
 
     def record_feedback(self, week_key: str, choice: str, user_id: str) -> Dict[str, Any]:
         current = self.get_settings(user_id)

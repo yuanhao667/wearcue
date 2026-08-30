@@ -199,6 +199,7 @@ async def recommend_ai_outfit(
     audience: str,
     city_id: str = "unknown",
     local_date: str = "today",
+    weather_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, object]:
     """生成一套 AI 推荐穿搭（个人推荐池无命中时的首选兑底）。"""
     constraints = evaluate_weather_rules(weather)
@@ -207,9 +208,17 @@ async def recommend_ai_outfit(
         "audience": audience,
         "city_id": city_id,
         "local_date": local_date,
+        "apparent_min": weather.apparent_min,
+        "apparent_max": weather.apparent_max,
+        "max_precipitation_probability": weather.max_precipitation_probability,
+        "total_precipitation": weather.total_precipitation,
+        "total_snowfall": weather.total_snowfall,
+        "max_wind_speed": weather.max_wind_speed,
+        "max_wind_gust": weather.max_wind_gust,
+        "uv_index_max": weather.uv_index_max,
+        "cold_offset": weather.cold_offset,
         "thermal_band": constraints.thermal_band.value,
         "calibrated_apparent_min": constraints.calibrated_apparent_min,
-        "apparent_max": weather.apparent_max,
         "apparent_delta": constraints.apparent_delta,
         "needs_waterproof": constraints.needs_waterproof,
         "needs_heavy_rain_protection": constraints.needs_heavy_rain_protection,
@@ -220,16 +229,36 @@ async def recommend_ai_outfit(
         "avoid_umbrella": constraints.avoid_umbrella,
         "equipment": constraints.equipment,
         "warnings": constraints.warnings,
+        "required_top": constraints.top.functional_icon_key,
+        "required_bottom": constraints.bottom.functional_icon_key,
+        "required_outerwear": (
+            constraints.outerwear.functional_icon_key if constraints.outerwear else None
+        ),
+        "required_shoes": constraints.shoes.functional_icon_key,
     }
+    context.update({
+        key: value for key, value in (weather_context or {}).items() if value is not None
+    })
     result = await OutfitAIService().generate_items(context)
+    items = _protect_dict_items(result["items"], constraints)
     return {
         "source": "ai",
         "template_id": "ai-%s" % uuid4().hex[:8],
         "label": result["label"],
         "scene": scene,
         "audience": audience,
-        "constraints": constraints.to_dict(),
-        "items": result["items"],
+        "constraints": constraints.to_dict() | {
+            key: context[key]
+            for key in (
+                "city_id", "city_name", "latitude", "longitude", "timezone", "local_date",
+                "current_temperature", "current_apparent_temperature", "temperature_min",
+                "temperature_max", "apparent_min", "apparent_max",
+                "max_precipitation_probability", "total_precipitation", "total_snowfall",
+                "max_wind_speed", "max_wind_gust", "uv_index_max", "weather_code", "cold_offset",
+            )
+            if key in context
+        },
+        "items": items,
         "outfit_analysis": None,
         "replication_guide": None,
     }
@@ -251,8 +280,34 @@ def system_ai_templates() -> List[Dict[str, Any]]:
 def _protect_dict_items(
     items: List[Dict[str, Any]], constraints: WeatherConstraints
 ) -> List[Dict[str, Any]]:
-    """在预生成的系统推荐基础上，按当前天气确定性补齐防护单品。"""
-    result: List[Dict[str, Any]] = [dict(item) for item in items]
+    """按当前天气确定性校正 AI 或预生成推荐中的必要单品。"""
+    result: List[Dict[str, Any]] = [
+        dict(item)
+        for item in items
+        if not (
+            constraints.avoid_umbrella
+            and item.get("functional_icon_key") == "acc_umbrella"
+        )
+    ]
+    slots = {item.get("slot") for item in result}
+    keys = {item.get("functional_icon_key") for item in result}
+
+    required_basics = (
+        ("top", constraints.top, "天气适配上装"),
+        ("bottom", constraints.bottom, "天气适配下装"),
+    )
+    for slot, required, label in required_basics:
+        if required.functional_icon_key not in keys:
+            result = [item for item in result if item.get("slot") != slot]
+            result.append({
+                "slot": slot,
+                "functional_icon_key": required.functional_icon_key,
+                "asset_key": FUNCTIONAL_TO_ASSET.get(required.functional_icon_key),
+                "variant_type": label,
+                "color_name": "基础色",
+                "color_value": None,
+                "thickness": required.thickness or "regular",
+            })
     slots = {item.get("slot") for item in result}
     keys = {item.get("functional_icon_key") for item in result}
 
@@ -325,6 +380,7 @@ def recommend_system_ai_outfit(
         for template in system_ai_templates()
         if template.get("thermal_band") == constraints.thermal_band.value
         and template.get("audience") == audience
+        and template.get("scene", "commute") == scene
         and template.get("id") not in excluded
     ]
     if not candidates:
