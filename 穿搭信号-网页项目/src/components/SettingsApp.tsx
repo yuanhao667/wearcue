@@ -99,11 +99,11 @@ export function SettingsApp() {
     router.replace("/login");
   }
 
-  function saveProfile(patch: Partial<UserProfile>) {
+  function saveProfile(patch: Partial<UserProfile>, finishNicknameEdit = true) {
     const next = { ...profile, ...patch };
     localStorage.setItem("wearcue_profile_v1", JSON.stringify(next));
     window.dispatchEvent(new Event("wearcue-profile"));
-    setNicknameDraft(null);
+    if (finishNicknameEdit) setNicknameDraft(null);
   }
 
   async function changeAvatar(file?: File) {
@@ -131,7 +131,7 @@ export function SettingsApp() {
 
   async function saveNickname() {
     const name = displayNickname.trim().slice(0, 5);
-    if (!name || name === profile.nickname) { setNicknameDraft(null); return; }
+    if (!name) { setNicknameDraft(null); return; }
     saveProfile({ nickname: name });
     try {
       await apiJson("/auth/profile", { method: "POST", body: JSON.stringify({ nickname: name }) });
@@ -188,10 +188,10 @@ export function SettingsApp() {
         </button>
         <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
         <div className="settings-profile-copy">
-          <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => setNicknameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
+          <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => { const name = event.target.value; setNicknameDraft(name); if (name.trim()) saveProfile({ nickname: name }, false); }} onBlur={() => void saveNickname()} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
           {userId && <span className="settings-user-id">ID：{userId}</span>}
         </div>
-        {displayNickname.trim() && displayNickname.trim() !== nickname ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
+        {nicknameDraft !== null && displayNickname.trim() ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
       </div>
     </header>
     {status === "loading" && <section className="paper-loading"><div /><div /><div /></section>}

@@ -277,7 +277,7 @@ export function InspirationApp() {
         </div> : <>
           {crossAudienceNotice}
           <div className="outfit-name-row">
-            <label className="paper-field"><span>这套穿搭叫什么</span><span className="outfit-name-input"><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /><small>最多30字</small></span></label>
+            <label className="paper-field"><span>这套穿搭叫什么？（最多30字）</span><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /></label>
             <button className="ai-name-button" type="button" disabled={generatingName} onClick={() => void generateName()}>{generatingName ? "生成中…" : "AI生成"}</button>
           </div>
           <p className="outfit-name-hint">建议按“风格＋场景”命名，例如：{garmentAudience === "mens" ? "利落通勤、帅气约会、活力出行" : "简约通勤、精致约会、轻旅出行"}。</p>

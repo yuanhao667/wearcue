@@ -1692,13 +1692,11 @@ body:has(.upload-paper)::before { display: none; }
 .upload-paper .save-action-option .privacy-copy strong { color: #111315; font-weight: 850; text-decoration: underline; text-decoration-color: #c8ff32; text-decoration-thickness: .28em; text-underline-offset: -.08em; }
 .upload-paper .save-toast { z-index: 140; background: var(--deep-green); color: #fff; box-shadow: 0 10px 30px rgba(17,19,21,.16); }
 .upload-paper .paper-field { margin-top: 24px; }
-.upload-paper .outfit-name-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin-top: 24px; }
+.upload-paper .outfit-name-row { position: relative; display: block; margin-top: 24px; }
 .upload-paper .outfit-name-row .paper-field { margin-top: 0; }
-.upload-paper .outfit-name-input { position: relative; display: block; }
-.upload-paper .outfit-name-input input { padding-right: 76px; }
-.upload-paper .outfit-name-input small { position: absolute; top: 50%; right: 14px; color: #a1a6aa; font-size: 10px; font-weight: 500; line-height: 1; pointer-events: none; transform: translateY(-50%); }
+.upload-paper .outfit-name-row .paper-field input { padding-right: 124px; }
 .upload-paper .outfit-name-hint { margin: 7px 0 0; color: #8b9196; font-size: 11px; line-height: 1.5; }
-.upload-paper .ai-name-button { min-width: 108px; height: 42px; border: 1px solid #b8ed2d; border-radius: 8px; background: var(--sunshine); color: #111315; font-size: 12px; font-weight: 850; cursor: pointer; }
+.upload-paper .ai-name-button { position: absolute; right: 0; bottom: 0; min-width: 108px; height: 42px; border: 1px solid #b8ed2d; border-radius: 8px; background: var(--sunshine); color: #111315; font-size: 12px; font-weight: 850; cursor: pointer; }
 .upload-paper .ai-name-button:hover { filter: brightness(1.08); }
 .upload-paper .ai-name-button:disabled { opacity: .58; cursor: wait; }
 .upload-paper .component-list { flex: 0 0 auto; min-height: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: start; gap: 12px; margin-top: 26px; overflow: visible; }
@@ -1750,8 +1748,6 @@ body:has(.upload-paper)::before { display: none; }
   .upload-paper .upload-preview img { min-height: 320px; height: 320px; }
   .upload-paper .review-empty { min-height: 360px; }
   .upload-paper .review-suggestions { grid-template-columns: 1fr; align-items: stretch; }
-  .upload-paper .outfit-name-row { grid-template-columns: 1fr; }
-  .upload-paper .ai-name-button { width: 100%; }
   .upload-paper .component-list { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
   .upload-paper .component-fields { grid-template-columns: 1fr; }
   .upload-paper .save-actions { position: static; margin: 14px 0 0; border-top: 0; padding: 0; }
