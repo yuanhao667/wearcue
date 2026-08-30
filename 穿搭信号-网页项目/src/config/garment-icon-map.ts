@@ -105,12 +105,7 @@ export const GARMENT_ICON_MAP: readonly GarmentIconDefinition[] = BASE_GARMENT_I
   }));
 });
 
-export const GARMENT_ICON_BY_KEY = new Map(GARMENT_ICON_MAP.map((item) => [item.iconKey, item]));
-
-export function getGarmentIconPath(iconKey: string) {
-  const definition = GARMENT_ICON_BY_KEY.get(iconKey);
-  return definition?.svgFile;
-}
+const GARMENT_ICON_BY_KEY = new Map(GARMENT_ICON_MAP.map((item) => [item.iconKey, item]));
 
 const slotCategory: Record<OutfitSlot, GarmentIconCategory> = {
   top: "top", bottom: "bottom", outerwear: "outerwear", onepiece: "onepiece", shoes: "shoes", equipment: "accessory",
@@ -146,9 +141,3 @@ export function crossAudienceGarmentLabels(items: OutfitComponent[], audience: A
     return definition && definition.collection !== "accessory" && definition.collection !== audience ? [item.variant_type] : [];
   }))];
 }
-
-export const GARMENT_ICON_FALLBACKS: Record<GarmentCollection, Partial<Record<GarmentIconCategory, string>>> = {
-  mens: { top: "mens_top_tshirt_long", outerwear: "mens_outer_light_jacket", bottom: "mens_bottom_casual_pants", shoes: "mens_shoe_sneaker" },
-  womens: { top: "womens_top_tshirt_long", outerwear: "womens_outer_light_jacket", bottom: "womens_bottom_casual_pants", onepiece: "womens_onepiece_dress", shoes: "womens_shoe_sneaker" },
-  accessory: { accessory: "acc_baseball_cap" },
-};

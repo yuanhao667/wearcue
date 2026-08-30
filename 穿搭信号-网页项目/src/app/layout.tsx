@@ -3,9 +3,9 @@ import "./globals.css";
 import { AppNav } from "@/components/AppNav";
 
 export const metadata: Metadata = {
-  title: "穿搭信号｜每天少想一件事：穿什么。",
+  title: "WearCue｜每天少想一件事：穿什么。",
   description: "每天少想一件事：穿什么。根据今天的天气，给你一套轻松可执行的穿搭建议。",
-  applicationName: "穿搭信号",
+  applicationName: "WearCue",
 };
 
 export const viewport: Viewport = {

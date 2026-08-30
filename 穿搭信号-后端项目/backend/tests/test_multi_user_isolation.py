@@ -42,6 +42,13 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert login_a.json()["user"]["id"] != login_b.json()["user"]["id"]
 
     assert client.get("/api/v1/outfits").status_code == 401
+    outfits_a = client.get("/api/v1/outfits", headers=_headers(token_a)).json()
+    outfits_b = client.get("/api/v1/outfits", headers=_headers(token_b)).json()
+    assert len(outfits_a) == len(outfits_b) == 1
+    assert outfits_a[0]["source"] == outfits_b[0]["source"] == "system"
+    assert outfits_a[0]["audience"] == "mens"
+    assert outfits_b[0]["audience"] == "womens"
+    assert outfits_a[0]["id"] != outfits_b[0]["id"]
     client.post("/api/v1/settings", json={"cold_offset": -4}, headers=_headers(token_a))
     assert client.get("/api/v1/settings", headers=_headers(token_a)).json()["cold_offset"] == -4
     assert client.get("/api/v1/settings", headers=_headers(token_b)).json()["cold_offset"] == 0
@@ -51,7 +58,7 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
         headers=_headers(token_a),
         json={
             "label": "A 的私人穿搭", "audience": "mens", "components": [_component()],
-            "scene_ids": ["commute"], "favorite": True, "in_pool": True,
+            "scene_ids": ["commute"], "in_pool": True,
         },
     ).json()
     assert client.get(f"/api/v1/outfits/{outfit['id']}", headers=_headers(token_a)).status_code == 200
@@ -59,21 +66,6 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert outfit["id"] not in {
         item["id"] for item in client.get("/api/v1/outfits", headers=_headers(token_b)).json()
     }
-
-    mens_system = next(
-        item for item in client.get("/api/v1/outfits", headers=_headers(token_a)).json()
-        if item["source"] == "system"
-    )
-    client.post(
-        f"/api/v1/outfits/{mens_system['id']}/status",
-        headers=_headers(token_a), json={"favorite": False},
-    )
-    assert client.get(
-        f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_a)
-    ).json()["favorite"] is False
-    assert client.get(
-        f"/api/v1/outfits/{mens_system['id']}", headers=_headers(token_b)
-    ).json()["favorite"] is True
 
     image = Image.new("RGB", (32, 48), "white")
     buffer = BytesIO()
@@ -95,4 +87,11 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
         json={"nickname": "错误昵称", "audience": "womens", "invite_code": "INVITE-A"},
     ).json()
     assert relogin_a["user"] == login_a.json()["user"]
-
+    original_user_id = login_a.json()["user"]["id"]
+    updated_user = client.post(
+        "/api/v1/auth/profile",
+        headers=_headers(token_a),
+        json={"nickname": "新昵称"},
+    ).json()["user"]
+    assert updated_user["id"] == original_user_id
+    assert client.get("/api/v1/auth/me", headers=_headers(token_a)).json()["user"]["id"] == original_user_id

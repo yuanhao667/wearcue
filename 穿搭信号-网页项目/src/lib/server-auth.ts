@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 export const SESSION_COOKIE = "wearcue_session";
 export const BACKEND_URL = (process.env.BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
-export async function sessionToken() {
+async function sessionToken() {
   return (await cookies()).get(SESSION_COOKIE)?.value;
 }
 

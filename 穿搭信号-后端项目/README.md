@@ -1,4 +1,4 @@
-# 穿搭信号后端项目
+# WearCue 后端项目
 
 当前交付是邀请码登录、按账号隔离数据的多用户版本，仅保留通勤/约会/出行，提供：
 
@@ -10,7 +10,7 @@
 - 按账号隔离设置、个人穿搭、图片、收藏、推荐池、提醒和反馈；
 - SQLite 本地数据持久化，并自动把升级前数据归入首个登录账号；
 - 图片上传、EXIF 纠正、三档缩略图、幂等去重；
-- Mock/生产视觉 Provider、人工确认、收藏与“我的穿搭”；
+- 生产视觉 Provider、人工确认、收藏与“我的穿搭”；
 - 个人穿搭优先、官方模板兜底；
 - Web Push 订阅、VAPID Provider、每日发送幂等；
 - 连续跳过和每周冷热反馈；
@@ -30,7 +30,7 @@ uvicorn --env-file .env app.main:app --app-dir backend --reload --port 8000
 
 打开：
 
-- 后端集成验收页：<http://localhost:8000/>
+- 后端根地址：<http://localhost:8000/>（自动跳转前端，避免未携带会话访问个人接口）
 - 最终素材验收页：<http://localhost:8000/assets-review>
 - API 文档：<http://localhost:8000/docs>
 - 健康检查：<http://localhost:8000/api/v1/health>
@@ -56,9 +56,11 @@ PYTHONPATH=. python -m unittest discover -s tests -v
 
 ## 当前产品范围
 
-微信登录和自定义场景已按产品决策移除。每个邀请码对应一个独立账号，同一邀请码可以在其他设备登录同一账号；邀请码只以摘要形式存储。视觉模型未配置时，识别接口使用低置信度 Mock 结果并强制人工确认；只有调用分析接口时显式传入 `allow_external=true`，图片才会发送给已配置的第三方视觉 Provider。
+微信登录和自定义场景已按产品决策移除。每个邀请码对应一个独立账号，同一邀请码可以在其他设备登录同一账号；邀请码只以摘要形式存储。视觉模型未配置时，识别接口明确返回不可用；配置后，只有用户主动点击识别时，图片才会发送给第三方视觉 Provider。
 
-业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`garment-assets` 和 `runtime-status`。除健康检查、天气规则与公开素材外，个人数据接口都要求 Bearer 会话。
+AI 模型按任务分流：视觉识别使用 `VISION_MODEL`；首页换一套、AI 命名与详情建议使用 `AI_FAST_MODEL`，系统推荐预生成使用 `AI_QUALITY_MODEL`。当前生产只依赖 qwen3.8-flash 与 qwen-turbo：视觉识别不配置其他备用模型，实时文本任务失败时可在两者之间切换一次。所有结构化调用均关闭思考模式。AIHubMix 主域名在本地网络不可达时，使用其官方同能力备用接口 `https://api.inferera.com/v1`。
+
+业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`weather` 和 `garment-assets`。除健康检查与公开 SVG 素材目录外，业务 API 都要求 Bearer 会话；旧的运行状态、能力声明、独立规则评估和单素材详情路由已移除。
 
 ## veFaaS 部署准备
 
@@ -72,8 +74,8 @@ vefaas gateway list --first -o json
 
 首次发布前必须先登录，并确认账号下存在可用的 API Gateway。确认目标后再执行创建应用的部署命令；不要在未确认账号和网关时直接发布。
 
-域名可以绑定到 veFaaS/APIG 的 HTTP 入口，但域名本身不保存数据。当前 SQLite 与本地图片卷用于本地完整验收；正式云端上线前还要提供云数据库和对象存储，由部署环境注入连接信息。`GET /api/v1/capabilities` 会把生产 AI、Push、云数据库和对象存储分别显示为“已跑通”或“待配置”。
+域名可以绑定到 veFaaS/APIG 的 HTTP 入口，但域名本身不保存数据。当前 SQLite 与本地图片卷用于本地完整验收；正式云端上线前还要提供云数据库和对象存储，由部署环境注入连接信息。生产配置通过部署环境和平台健康检查确认，不再对外暴露内部配置状态。
 
 ## 参考项目复用
 
-服务分层、`/api/v1` 路由、Open-Meteo Provider、统一错误处理、能力声明和素材静态服务延续 Wardrowbe 的成熟结构。Wardrowbe 仓库本身没有可直接交付的服装图片素材，只有品牌/PWA 资源；其 README、界面截图和公开资源保存在 `reference-assets/wardrowbe/`。实际服装 SVG 库保存在 `backend/app/static/garments/`。
+服务分层、`/api/v1` 路由、Open-Meteo Provider、统一错误处理和素材静态服务参考了 Wardrowbe 的工程结构。交付目录不保留未参与运行的参考截图、README、Logo 或 PWA 素材；需要保留的归属与许可信息见 `THIRD_PARTY_NOTICES.md` 和 `third-party-licenses/`。实际服装 SVG 库保存在 `backend/app/static/garments/`。

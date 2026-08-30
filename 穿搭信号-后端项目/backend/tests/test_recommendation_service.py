@@ -1,7 +1,18 @@
+import asyncio
+import json
 import unittest
+from unittest.mock import patch
 
+from app.domain.official_templates import official_templates
 from app.domain.weather_rules import WeatherInput
-from app.services.recommendation_service import NoRecommendationError, recommend_official_outfit
+from app.services.outfit_ai_service import OutfitAIService
+from app.services.recommendation_service import (
+    NoRecommendationError,
+    recommend_ai_outfit,
+    recommend_official_outfit,
+    recommend_system_ai_outfit,
+    system_ai_templates,
+)
 
 
 class RecommendationTests(unittest.TestCase):
@@ -56,6 +67,121 @@ class RecommendationTests(unittest.TestCase):
         )
         equipment = [item for item in result["items"] if item["slot"] == "equipment"]
         self.assertEqual(equipment[0]["functional_icon_key"], "acc_baseball_cap")
+
+    def test_system_ai_recommendations_never_cross_scenes(self):
+        templates = [
+            {
+                "id": "commute-hot",
+                "scene": "commute",
+                "thermal_band": "hot",
+                "audience": "mens",
+                "label": "清爽通勤风",
+                "items": [],
+            },
+            {
+                "id": "date-hot",
+                "scene": "date",
+                "thermal_band": "hot",
+                "audience": "mens",
+                "label": "夏日约会感",
+                "items": [],
+            },
+        ]
+        weather = WeatherInput(apparent_min=30, apparent_max=34)
+        with patch("app.services.recommendation_service.system_ai_templates", return_value=templates):
+            result = recommend_system_ai_outfit(weather, "date", "mens")
+            self.assertEqual(result["template_id"], "date-hot")
+            self.assertEqual(result["label"], "夏日约会感")
+            with self.assertRaises(NoRecommendationError):
+                recommend_system_ai_outfit(weather, "travel", "mens")
+
+    def test_system_commute_examples_have_no_business_clothing(self):
+        forbidden = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
+        commute = [item for item in system_ai_templates() if item.get("scene") == "commute"]
+        self.assertEqual(len(commute), 14)
+        for outfit in commute:
+            text = json.dumps(outfit, ensure_ascii=False)
+            self.assertFalse(any(term in text for term in forbidden), outfit["id"])
+
+    def test_official_templates_have_no_business_clothing(self):
+        forbidden = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")
+        for template in official_templates():
+            text = str((template.label, template.items))
+            self.assertFalse(any(term in text for term in forbidden), template.id)
+
+    def test_system_examples_use_gender_appropriate_style_words(self):
+        forbidden = {
+            "mens": ("温柔", "柔美", "甜美", "娇俏", "妩媚", "少女", "淑女"),
+            "womens": ("硬汉", "硬朗", "粗犷", "阳刚", "猛男", "绅士"),
+        }
+        templates = system_ai_templates()
+        self.assertEqual(len(templates), 42)
+        for outfit in templates:
+            text = json.dumps(outfit, ensure_ascii=False)
+            self.assertFalse(
+                any(term in text for term in forbidden[outfit["audience"]]), outfit["id"]
+            )
+
+    def test_system_example_names_are_distinct_between_genders(self):
+        templates = system_ai_templates()
+        labels = {
+            (outfit["scene"], outfit["thermal_band"], outfit["audience"]): outfit["label"]
+            for outfit in templates
+        }
+        for scene in ("commute", "date", "travel"):
+            for band in ("hot", "warm", "mild", "cool", "cold", "freezing", "severe"):
+                self.assertNotEqual(
+                    labels[(scene, band, "mens")], labels[(scene, band, "womens")]
+                )
+
+    def test_official_fallback_labels_are_gender_neutral(self):
+        forbidden = ("温柔", "柔美", "甜美", "娇俏", "硬汉", "硬朗", "粗犷", "阳刚")
+        for template in official_templates():
+            self.assertFalse(any(term in template.label for term in forbidden), template.id)
+
+    def test_live_ai_result_is_deterministically_corrected_for_snow_and_wind(self):
+        captured = {}
+
+        async def fake_generate_items(_service, context):
+            captured.update(context)
+            return {
+                "label": "模型原始结果",
+                "items": [
+                    {"slot": "top", "functional_icon_key": "short_sleeve"},
+                    {"slot": "bottom", "functional_icon_key": "short_bottom"},
+                    {"slot": "shoes", "functional_icon_key": "daily_shoes"},
+                    {"slot": "equipment", "functional_icon_key": "acc_umbrella"},
+                ],
+            }
+
+        weather = WeatherInput(
+            apparent_min=-12,
+            apparent_max=-8,
+            total_snowfall=6,
+            max_wind_speed=35,
+            max_wind_gust=55,
+        )
+        with patch.object(OutfitAIService, "generate_items", fake_generate_items):
+            result = asyncio.run(recommend_ai_outfit(weather, "travel", "mens"))
+
+        keys = {item["functional_icon_key"] for item in result["items"]}
+        self.assertEqual(captured["required_top"], "warm_top")
+        self.assertEqual(captured["required_bottom"], "warm_bottom")
+        self.assertEqual(captured["required_outerwear"], "protective_outerwear")
+        self.assertEqual(captured["required_shoes"], "protective_shoes")
+        self.assertEqual(captured["apparent_min"], -12)
+        self.assertEqual(captured["apparent_max"], -8)
+        self.assertEqual(captured["total_snowfall"], 6)
+        self.assertEqual(captured["max_wind_speed"], 35)
+        self.assertEqual(captured["max_wind_gust"], 55)
+        self.assertIn("max_precipitation_probability", captured)
+        self.assertIn("total_precipitation", captured)
+        self.assertIn("uv_index_max", captured)
+        self.assertTrue(
+            {"warm_top", "warm_bottom", "protective_outerwear", "protective_shoes", "acc_gloves"}
+            <= keys
+        )
+        self.assertNotIn("acc_umbrella", keys)
 
 
 if __name__ == "__main__":

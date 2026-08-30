@@ -38,10 +38,10 @@ export function LoginApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname: cleanNickname, gender, inviteCode }),
       });
-      const payload = await result.json() as { ok?: boolean; error?: string; user?: { nickname: string; gender: Gender } };
+      const payload = await result.json() as { ok?: boolean; error?: string; user?: { id: string; nickname: string; gender: Gender } };
       if (!result.ok || !payload.ok) throw new Error(payload.error || "登录失败，请稍后重试");
       const user = payload.user || { nickname: cleanNickname.slice(0, 5), gender };
-      localStorage.setItem("wearcue_profile_v1", JSON.stringify({ nickname: user.nickname, avatar: "", gender: user.gender, invited: true }));
+      localStorage.setItem("wearcue_profile_v1", JSON.stringify({ id: "id" in user ? user.id : undefined, nickname: user.nickname, avatar: "", gender: user.gender, invited: true }));
       window.dispatchEvent(new Event("wearcue-profile"));
       router.replace("/");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "登录失败，请稍后重试"); }

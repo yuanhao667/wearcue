@@ -1,0 +1,3138 @@
+{
+  "version": 5,
+  "outfits": [
+    {
+      "id": "system-ai-hot-mens-01",
+      "thermal_band": "hot",
+      "audience": "mens",
+      "label": "夏日通勤清爽",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "浅蓝",
+          "color_value": "#A8D8EA",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "九分休闲裤",
+          "color_name": "深灰",
+          "color_value": "#3B3B3B",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "透气运动鞋",
+          "color_name": "黑色",
+          "color_value": "#1C1C1C",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿宽松短袖 T 恤，下摆自然塞入裤腰",
+          "搭配九分休闲裤，裤脚刚好露出脚踝",
+          "最后穿上透气运动鞋"
+        ],
+        "styling_points": [
+          "休闲上衣袖口可微微卷起增加利落感",
+          "搭配一条细款深色皮带提升日常利落感"
+        ],
+        "weather_note": "体感30-34℃闷热，选择透气轻薄面料保持清爽",
+        "substitute": "宽松短袖 T 恤可替换为POLO衫，休闲裤可替换为轻薄休闲裤"
+      },
+      "outfit_analysis": {
+        "summary": "针对炎热通勤场景，以轻薄透气为主，保持日常休闲的得体感",
+        "structure_points": [
+          "上薄下稳，浅蓝休闲上衣提亮整体",
+          "九分裤露踝设计增加透气感",
+          "低帮运动鞋兼顾轻便与舒适"
+        ],
+        "completion_advice": [
+          "可佩戴简约腕表提升质感",
+          "随身携带轻薄纸巾应对出汗"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-hot-womens-01",
+      "thermal_band": "hot",
+      "audience": "womens",
+      "label": "清凉通勤穿搭",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "浅蓝色",
+          "color_value": "#b3d4e5",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "高腰A字短裙",
+          "color_name": "米白色",
+          "color_value": "#f5f1e6",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "轻便低帮鞋",
+          "color_name": "裸粉色",
+          "color_value": "#e8c8b8",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "宽松短袖 T 恤＋A字短裙＋轻便低帮鞋",
+        "steps": [
+          "先穿上宽松短袖 T 恤并整理领口",
+          "搭配高腰A字短裙，塞好衣角",
+          "最后穿上轻便低帮鞋"
+        ],
+        "styling_points": [
+          "休闲上衣下摆可塞入裙腰提升比例",
+          "选择轻薄透气面料保持清爽"
+        ],
+        "weather_note": "今日体感炎热（30-34°C），需选择透气轻薄单品",
+        "substitute": "宽松短袖 T 恤可替换为短袖针织衫或雪纺上衣"
+      },
+      "outfit_analysis": {
+        "summary": "清爽利落的通勤搭配，适合炎热天气下的上班或上学",
+        "structure_points": [
+          "上短下短展现轻盈感",
+          "高腰设计优化身材比例",
+          "低跟鞋兼顾舒适与轻松感"
+        ],
+        "completion_advice": [
+          "可搭配简约金属耳饰提升精致度",
+          "携带小型手提包或托特包收纳通勤物品"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-warm-mens-01",
+      "thermal_band": "warm",
+      "audience": "mens",
+      "label": "清爽通勤",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "浅蓝色",
+          "color_value": "#A8D8EA",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "修身休闲裤",
+          "color_name": "深灰色",
+          "color_value": "#4A4A4A",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "低帮运动鞋",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿宽松短袖 T 恤",
+          "搭配修身休闲裤",
+          "最后穿低帮运动鞋"
+        ],
+        "styling_points": [
+          "休闲上衣下摆可束入裤腰",
+          "袖口可卷至手肘处"
+        ],
+        "weather_note": "体感温暖偏热，保持透气清爽",
+        "substitute": "同厚度、相近版型的基础款即可替换。"
+      },
+      "outfit_analysis": {
+        "summary": "以轻薄宽松短袖 T 恤搭配修身休闲裤，兼顾通勤轻松感与夏日舒适度",
+        "structure_points": [
+          "上薄下稳",
+          "色彩冷暖对比"
+        ],
+        "completion_advice": [
+          "可搭配简约皮带",
+          "佩戴手表提升质感"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-warm-womens-01",
+      "thermal_band": "warm",
+      "audience": "womens",
+      "label": "通勤清爽穿搭",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "米白色",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰直筒休闲裤",
+          "color_name": "浅灰色",
+          "color_value": "#c8c8c8",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "低帮运动鞋",
+          "color_name": "裸色",
+          "color_value": "#d9b99b",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿宽松短袖 T 恤",
+          "搭配高腰休闲裤",
+          "最后穿低帮运动鞋"
+        ],
+        "styling_points": [
+          "休闲上衣下摆可扎入裤腰提升比例",
+          "选择垂感面料更显利落"
+        ],
+        "weather_note": "气温26-30°C，体感温暖偏热，轻薄透气为主",
+        "substitute": "短袖T恤或短袖针织衫可替换上装"
+      },
+      "outfit_analysis": {
+        "summary": "清爽利落的通勤造型，适合温暖天气下的日常上班或上学",
+        "structure_points": [
+          "上薄下长平衡温度与轻松感",
+          "浅色系视觉降温"
+        ],
+        "completion_advice": [
+          "可搭配简约手提包",
+          "佩戴小巧耳饰提升精致度"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-mild-mens-01",
+      "thermal_band": "mild",
+      "audience": "mens",
+      "label": "轻简通勤风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "浅蓝色",
+          "color_value": "#a8d8ea",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "直筒休闲裤",
+          "color_name": "深灰色",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "休闲运动鞋",
+          "color_name": "棕色",
+          "color_value": "#6b4226",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "穿上浅蓝色宽松短袖 T 恤，扣至倒数第二颗扣子",
+          "搭配深灰色直筒休闲裤，裤长刚好盖住鞋面",
+          "穿上棕色休闲运动鞋，系好鞋带"
+        ],
+        "styling_points": [
+          "休闲上衣下摆可自然垂落或半塞入裤腰",
+          "裤脚可轻微卷边增加层次感"
+        ],
+        "weather_note": "气温22-26℃，体感舒适微暖，适合轻薄透气面料",
+        "substitute": "宽松短袖 T 恤可替换为短袖Polo衫，休闲裤可替换为卡其裤"
+      },
+      "outfit_analysis": {
+        "summary": "清爽利落的轻松日常通勤搭配，适合温和气候下的日常上班或上学场景",
+        "structure_points": [
+          "浅蓝与深灰形成经典冷暖对比",
+          "轻薄休闲上衣保证透气性",
+          "直筒裤型修饰腿型"
+        ],
+        "completion_advice": [
+          "可搭配一条简约皮带",
+          "手表或手环可提升细节质感",
+          "若空调较冷可备一件薄针织开衫"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-mild-womens-01",
+      "thermal_band": "mild",
+      "audience": "womens",
+      "label": "轻通勤温柔风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松短袖 T 恤",
+          "color_name": "米白色",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰阔腿裤",
+          "color_name": "浅卡其色",
+          "color_value": "#d9c9a8",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "平底运动鞋",
+          "color_name": "棕色",
+          "color_value": "#8b5e3c",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "轻薄针织开衫",
+          "color_name": "燕麦色",
+          "color_value": "#e8dcc8",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "宽松短袖 T 恤＋高腰阔腿裤＋平底运动鞋＋轻薄针织开衫",
+        "steps": [
+          "先穿宽松短袖 T 恤，下摆塞入裤腰",
+          "搭配高腰阔腿裤，拉长腿部线条",
+          "披上轻薄针织开衫，早晚温差时保暖",
+          "最后穿平底运动鞋，舒适通勤"
+        ],
+        "styling_points": [
+          "休闲上衣下摆全塞或半塞，突出腰线",
+          "开衫可披肩式穿搭，增加层次感"
+        ],
+        "weather_note": "今日体感22-26°C，温和宜人，早晚微凉可搭开衫",
+        "substitute": "宽松短袖 T 恤可换为短袖针织衫，阔腿裤可换为直筒裤"
+      },
+      "outfit_analysis": {
+        "summary": "以米白休闲上衣搭配浅卡其阔腿裤，整体色调温柔知性，适合日常通勤场景，轻薄开衫应对早晚温差。",
+        "structure_points": [
+          "上短下长比例，高腰裤拉长身材",
+          "轻薄开衫增加层次但不厚重",
+          "平底运动鞋兼顾舒适与轻松感"
+        ],
+        "completion_advice": [
+          "可搭配简约金属项链提升精致度",
+          "手提通勤托特包增加实用感",
+          "可佩戴丝巾点缀颈部"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-cool-mens-01",
+      "thermal_band": "cool",
+      "audience": "mens",
+      "label": "清爽通勤风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "长袖 T 恤",
+          "color_name": "浅蓝色",
+          "color_value": "#a9c8e6",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "修身休闲裤",
+          "color_name": "深灰色",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "低帮运动鞋",
+          "color_name": "棕色",
+          "color_value": "#6b4423",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "轻薄休闲夹克",
+          "color_name": "藏青色",
+          "color_value": "#2c3e50",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋＋外套",
+        "steps": [
+          "先穿长袖 T 恤",
+          "搭配修身休闲裤",
+          "穿上低帮运动鞋",
+          "披上轻薄休闲夹克"
+        ],
+        "styling_points": [
+          "休闲上衣下摆可自然垂落或半扎",
+          "休闲夹克保持自然垂落"
+        ],
+        "weather_note": "17-21°C微凉，早晚偏凉需外套，午间舒适",
+        "substitute": "休闲上衣可换为薄款针织衫，休闲裤可换为卡其裤"
+      },
+      "outfit_analysis": {
+        "summary": "以轻薄层次应对微凉通勤，兼顾利落与舒适",
+        "structure_points": [
+          "内薄外薄的层次搭配",
+          "深灰下装稳定视觉重心",
+          "低帮运动鞋提升通勤质感"
+        ],
+        "completion_advice": [
+          "可搭配简约腕表",
+          "可携带轻薄围巾备用"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-cool-womens-01",
+      "thermal_band": "cool",
+      "audience": "womens",
+      "label": "初秋通勤微凉",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "长袖针织衫",
+          "color_name": "米色",
+          "color_value": "#f5f1e6",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "直筒休闲裤",
+          "color_name": "深灰",
+          "color_value": "#3d3d3d",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "轻便低帮鞋",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "薄款风衣",
+          "color_name": "卡其",
+          "color_value": "#c8b9a2",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "长袖针织衫＋直筒休闲裤＋薄风衣＋轻便低帮鞋",
+        "steps": [
+          "内搭长袖针织衫",
+          "搭配直筒休闲裤并整理裤线",
+          "外搭薄款风衣，系带或敞开",
+          "穿上轻便低帮鞋"
+        ],
+        "styling_points": [
+          "风衣敞开穿更显利落",
+          "针织衫下摆可半塞进裤腰拉长比例"
+        ],
+        "weather_note": "体感微凉，早晚需薄外套，午间可脱下风衣",
+        "substitute": "薄款风衣可替换为轻薄休闲夹克，针织衫可替换为薄款休闲上衣"
+      },
+      "outfit_analysis": {
+        "summary": "以米色针织衫与卡其风衣打造柔和通勤基调，深灰休闲裤提升利落感，整体微凉适宜、利落优雅。",
+        "structure_points": [
+          "上薄下稳，色彩由浅入深过渡",
+          "直筒裤型修饰腿型且方便通勤"
+        ],
+        "completion_advice": [
+          "可搭配小巧耳饰提升精致度",
+          "携带托特包兼顾通勤实用与风格"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-cold-womens-01",
+      "thermal_band": "cold",
+      "audience": "womens",
+      "label": "通勤微冷优雅",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "长袖针织衫",
+          "color_name": "米色",
+          "color_value": "#e8dcc4",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰直筒裤",
+          "color_name": "深灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "薄款风衣",
+          "color_name": "卡其",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "低帮运动鞋",
+          "color_name": "黑色",
+          "color_value": "#2b2b2b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋外套＋下装＋鞋",
+        "steps": [
+          "先穿长袖针织衫",
+          "套上薄款风衣",
+          "搭配高腰直筒裤",
+          "最后穿低帮运动鞋"
+        ],
+        "styling_points": [
+          "风衣敞开穿露出腰线",
+          "针织衫下摆塞入裤腰显比例"
+        ],
+        "weather_note": "体感12–16°C偏凉，薄风衣挡风刚好，早晚稍冷可扣起风衣",
+        "substitute": "针织衫可换为薄款卫衣；风衣可换为轻薄休闲夹克"
+      },
+      "outfit_analysis": {
+        "summary": "以米色针织+卡其风衣+深灰裤打造温柔通勤感，层次分明且保暖适中",
+        "structure_points": [
+          "上浅下深稳定视觉重心",
+          "风衣增加纵向线条显高",
+          "低帮运动鞋兼顾舒适与轻松感"
+        ],
+        "completion_advice": [
+          "可加一条细丝巾点缀颈部",
+          "搭配小号托特包提升通勤实用性"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-freezing-mens-01",
+      "thermal_band": "freezing",
+      "audience": "mens",
+      "label": "冷调通勤叠穿",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "高领针织衫",
+          "color_name": "深灰",
+          "color_value": "#333333",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加厚直筒休闲裤",
+          "color_name": "藏青",
+          "color_value": "#1c2541",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "羊毛大衣",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "切尔西皮靴",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "acc_gloves",
+          "asset_key": "acc_gloves",
+          "variant_type": "皮质触屏手套",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖上装＋保暖下装＋保暖外套＋皮靴＋手套",
+        "steps": [
+          "内搭高领针织衫",
+          "穿上加厚直筒休闲裤",
+          "套上羊毛大衣",
+          "穿切尔西皮靴",
+          "戴上皮质触屏手套"
+        ],
+        "styling_points": [
+          "大衣保持敞开或单扣，露出内搭层次",
+          "裤脚与靴筒自然衔接，避免堆叠"
+        ],
+        "weather_note": "体感6–10°C，偏冷，早晚寒意明显，需注重保暖层次",
+        "substitute": "高领针织衫可换为同类厚度的圆领毛衣＋休闲上衣叠穿"
+      },
+      "outfit_analysis": {
+        "summary": "以深灰与黑色为主调，利用厚针织与羊毛大衣构建保暖层次，兼顾通勤的利落与温度。",
+        "structure_points": [
+          "内紧外松的廓形对比",
+          "深色同色系营造高级感",
+          "皮靴提升整体利落度"
+        ],
+        "completion_advice": [
+          "可搭配一条深灰色羊绒围巾增加颈部保暖",
+          "若进入室内暖气环境，大衣可收纳于臂弯"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-freezing-womens-01",
+      "thermal_band": "freezing",
+      "audience": "womens",
+      "label": "冬日通勤温暖装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "高领毛衣",
+          "color_name": "米白色",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加厚直筒裤",
+          "color_name": "深灰色",
+          "color_value": "#3b3b3b",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "中长款羽绒服",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "加绒短靴",
+          "color_name": "棕色",
+          "color_value": "#6b4226",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "acc_gloves",
+          "asset_key": "acc_gloves",
+          "variant_type": "针织触屏手套",
+          "color_name": "驼色",
+          "color_value": "#c19a6b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖上装＋保暖下装＋保暖外套＋加绒短靴＋手套",
+        "steps": [
+          "先穿高领毛衣作为保暖内搭",
+          "搭配加厚直筒裤保持腿部温暖",
+          "外穿中长款羽绒服防风御寒",
+          "穿上加绒短靴护住脚踝",
+          "最后戴上针织手套保暖双手"
+        ],
+        "styling_points": [
+          "中长款羽绒服长度过膝更显修长",
+          "高领毛衣与羽绒服领口形成层次感",
+          "驼色手套作为点缀提升整体质感"
+        ],
+        "weather_note": "体感温度6-10°C，天气寒冷，需注重全身保暖",
+        "substitute": "高领毛衣可换为厚款卫衣，直筒裤可换为加厚阔腿裤"
+      },
+      "outfit_analysis": {
+        "summary": "针对寒冷通勤场景的保暖穿搭，以羽绒服为核心外套，搭配厚款内搭与加绒短靴，兼顾温度与通勤实用性",
+        "structure_points": [
+          "三层穿搭结构：保暖内搭＋厚实下装＋防风外套",
+          "中长款羽绒服覆盖臀部与大腿，减少热量流失",
+          "加绒短靴保护脚踝不受寒风侵袭"
+        ],
+        "completion_advice": [
+          "可搭配围巾增强颈部保暖",
+          "建议内搭选择吸湿排汗材质避免闷热",
+          "深色系下装耐脏适合通勤环境"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-cold-mens-01",
+      "thermal_band": "cold",
+      "audience": "mens",
+      "label": "冷调通勤穿搭",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "长袖 T 恤",
+          "color_name": "浅灰",
+          "color_value": "#d3d3d3",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "直筒休闲裤",
+          "color_name": "藏青",
+          "color_value": "#1b2a4e",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "轻薄风衣",
+          "color_name": "卡其",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "低帮运动鞋",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋外套＋鞋",
+        "steps": [
+          "先穿浅灰长袖 T 恤",
+          "搭配藏青直筒休闲裤",
+          "披上卡其轻薄风衣",
+          "最后穿黑色低帮运动鞋"
+        ],
+        "styling_points": [
+          "休闲上衣下摆塞入裤腰，保持利落线条",
+          "风衣敞开穿，露出休闲上衣与裤腰比例"
+        ],
+        "weather_note": "体感偏冷（12-16℃），轻薄风衣提供基础保暖与通勤质感",
+        "substitute": "休闲上衣可换为纯色针织衫，风衣可换为轻薄休闲夹克"
+      },
+      "outfit_analysis": {
+        "summary": "冷调通勤场景下的轻松日常搭配，兼顾保暖与利落气质",
+        "structure_points": [
+          "上浅下深配色，视觉重心稳定",
+          "风衣增加层次，同时应对早晚温差"
+        ],
+        "completion_advice": [
+          "可搭配一条深灰针织围巾增强保暖",
+          "若进入室内暖气环境，风衣可脱下搭于臂弯"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-severe-mens-01",
+      "thermal_band": "severe",
+      "audience": "mens",
+      "label": "利落严寒通勤",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "高领羊毛衫",
+          "color_name": "深灰",
+          "color_value": "#3b3b3b",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加绒休闲裤",
+          "color_name": "黑色",
+          "color_value": "#1c1c1c",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "长款羽绒服",
+          "color_name": "藏青",
+          "color_value": "#1f2a48",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "加绒运动鞋",
+          "color_name": "黑色",
+          "color_value": "#111111",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "acc_gloves",
+          "asset_key": "acc_gloves",
+          "variant_type": "皮质触屏手套",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖上装＋加绒下装＋长款羽绒服＋加绒鞋＋手套",
+        "steps": [
+          "先穿高领羊毛衫打底",
+          "搭配加绒休闲裤",
+          "外穿长款羽绒服",
+          "穿上加绒运动鞋",
+          "最后戴上触屏手套"
+        ],
+        "styling_points": [
+          "羽绒服敞开时露出高领形成层次",
+          "深灰与藏青保持冷色统一"
+        ],
+        "weather_note": "体感低至-2°C，需重点防风保暖",
+        "substitute": "高领羊毛衫可换为厚款卫衣；长款羽绒服可换为厚呢大衣"
+      },
+      "outfit_analysis": {
+        "summary": "针对-2°C至3°C严寒通勤场景，以厚款羽绒服与加绒单品为核心，兼顾保暖与通勤利落感",
+        "structure_points": [
+          "长款羽绒服覆盖大腿，最大化防风面积",
+          "高领羊毛衫替代围巾减少臃肿",
+          "触屏手套兼顾保暖与手机操作"
+        ],
+        "completion_advice": [
+          "若风大可加戴毛线帽",
+          "可内搭发热内衣进一步御寒"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-severe-womens-01",
+      "thermal_band": "severe",
+      "audience": "womens",
+      "label": "简约严寒通勤",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "高领羊毛衫",
+          "color_name": "米色",
+          "color_value": "#E8DCC4",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加绒直筒裤",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "中长款羽绒服",
+          "color_name": "藏青",
+          "color_value": "#2C3E50",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "加绒短靴",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "acc_gloves",
+          "asset_key": "acc_gloves",
+          "variant_type": "触屏羊毛手套",
+          "color_name": "灰色",
+          "color_value": "#808080",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖上装＋加绒下装＋保暖外套＋加绒鞋＋手套",
+        "steps": [
+          "内搭高领羊毛衫贴身保暖",
+          "穿加绒直筒裤锁住腿部温度",
+          "外披中长款羽绒服防风御寒",
+          "穿加绒短靴保护足部",
+          "戴上触屏羊毛手套方便通勤"
+        ],
+        "styling_points": [
+          "羽绒服选中长款覆盖臀部",
+          "高领毛衣与外套形成层次感",
+          "手套选触屏款方便使用手机"
+        ],
+        "weather_note": "体感温度约-2°C至3°C，严寒通勤需重点保暖",
+        "substitute": "羊毛衫可换为加厚针织衫，羽绒服可换为毛呢大衣"
+      },
+      "outfit_analysis": {
+        "summary": "针对-2°C至3°C严寒天气的通勤保暖方案，以高领羊毛衫打底，搭配中长款羽绒服与加绒裤，整体注重防风与锁温。",
+        "structure_points": [
+          "内层贴身保暖，外层防风御寒",
+          "上下装均采用加厚材质",
+          "加绒短靴保护足部不受寒"
+        ],
+        "completion_advice": [
+          "可搭配围巾加强颈部保暖",
+          "帽子可选针织帽提升整体温暖度",
+          "暖宝宝可贴于后背或腹部"
+        ]
+      },
+      "scene": "commute",
+      "prompt_version": 5
+    },
+    {
+      "id": "system-ai-date-hot-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "hot",
+      "audience": "mens",
+      "label": "帅气层次约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "亚麻质感短袖衬衫",
+          "color_name": "米白色",
+          "color_value": "#F5F5DC",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "垂感休闲长裤",
+          "color_name": "浅卡其色",
+          "color_value": "#C3B091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "极简小白鞋",
+          "color_name": "纯白色",
+          "color_value": "#FFFFFF",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上米白色亚麻衬衫，袖口可随意卷起至小臂中部",
+          "搭配浅卡其色垂感长裤，保持裤线自然流畅",
+          "最后穿上极简小白鞋，确保整体色调和谐统一"
+        ],
+        "styling_points": [
+          "衬衫下摆前半部分塞入裤腰，营造松弛有度的层次感",
+          "选择面料透气且不易皱的材质，维持约会时的精致形象",
+          "配饰建议简约金属质感手表或细链项链，增加细节亮点"
+        ],
+        "weather_note": "体感炎热（30-34℃），无降水大风，需注重透气性与清爽感",
+        "substitute": "若不喜欢长裤，可替换为同色系百慕大短裤；衬衫可替换为高品质纯色T恤"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭以低饱和度的大地色系为主，通过亚麻与棉质的天然纹理展现自然质感。米白与浅卡的组合既符合高温天气的视觉降温需求，又避免了纯运动装的随意感，营造出帅气、松弛且不失精致的约会氛围。",
+        "structure_points": [
+          "色彩呼应：上衣与鞋履的白色系相互衬托，下装的卡其色作为过渡，整体色调柔和协调",
+          "材质对比：亚麻的自然褶皱感与裤装的垂坠感形成微妙的质地对比，提升高级感",
+          "比例优化：半塞衣角的方式拉高腰线，视觉上优化身材比例，显得干练而不失亲和力"
+        ],
+        "completion_advice": [
+          "建议携带一款简约的手持包或斜挎小包，解放双手的同时增加时尚度",
+          "发型保持整洁蓬松，可适当使用定型产品增加光泽感",
+          "香水选择木质调或柑橘调等清新淡雅的风格，避免过于浓烈"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-hot-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "hot",
+      "audience": "womens",
+      "label": "法式慵懒约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "方领泡泡袖上衣",
+          "color_name": "奶油杏",
+          "color_value": "#F5E6D3",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "高腰A字短裙",
+          "color_name": "浅灰蓝",
+          "color_value": "#B0C4DE",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "细带凉鞋",
+          "color_name": "裸粉色",
+          "color_value": "#E8C4C4",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "方领上衣＋A字短裙＋细带凉鞋",
+        "steps": [
+          "穿上奶油杏色方领泡泡袖上衣，整理领口使其平整露出锁骨",
+          "搭配浅灰蓝高腰A字短裙，将上衣前摆轻轻塞入裙腰以强调腰线",
+          "脚踩裸粉色细带凉鞋，保持整体色调柔和统一"
+        ],
+        "styling_points": [
+          "方领设计增加复古精致感，泡泡袖修饰手臂线条",
+          "上下装采用低饱和度莫兰迪色系，营造温柔浪漫氛围",
+          "避免过多配饰，依靠服装剪裁和颜色协调展现质感"
+        ],
+        "weather_note": "高温闷热（30-34℃），选择轻薄透气面料，短袖与短裙组合保证凉爽舒适",
+        "substitute": "若不喜欢短裙，可替换为同色系真丝吊带长裙；上衣可换为白色蕾丝边短T"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭专为约会场景打造，通过方领、泡泡袖等细节元素提升女性柔美气质，奶油杏与浅灰蓝的配色组合既清新又不失高级感，完美契合高温天气下的浪漫需求。",
+        "structure_points": [
+          "上短下短比例优化身材，显高显瘦",
+          "色彩由暖到冷过渡，视觉和谐不突兀",
+          "露肤度适中（颈部、手臂、腿部），平衡清凉与得体"
+        ],
+        "completion_advice": [
+          "建议搭配小巧的珍珠耳钉或金色细项链点缀",
+          "发型可选择微卷披肩发或低马尾，增加慵懒松弛感",
+          "携带一个迷你斜挎包，方便解放双手且增添精致度"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-warm-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "warm",
+      "audience": "mens",
+      "label": "松弛质感约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_or_long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "亚麻混纺衬衫",
+          "color_name": "浅米色",
+          "color_value": "#e8dcc4",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "九分直筒休闲裤",
+          "color_name": "灰褐色",
+          "color_value": "#7a6f65",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "乐福鞋",
+          "color_name": "深棕色",
+          "color_value": "#5d4037",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "将亚麻衬衫袖口随意卷起至小臂中部，营造松弛感",
+          "搭配九分裤露出脚踝，保持视觉轻盈",
+          "穿好乐福鞋，确保整体色调由浅入深过渡自然"
+        ],
+        "styling_points": [
+          "衬衫第一颗扣子解开，增加颈部呼吸感",
+          "选择无Logo的简约皮带与鞋子颜色呼应"
+        ],
+        "weather_note": "26-30℃体感温暖舒适，亚麻材质透气不闷热，适合晚间约会微风拂面。",
+        "substitute": "若觉得衬衫过于正式，可替换为高克重纯白T恤，保留休闲精致感。"
+      },
+      "outfit_analysis": {
+        "summary": "以大地色系构建松弛氛围，通过亚麻与棉质的纹理对比提升质感，避免沉闷通勤风。",
+        "structure_points": [
+          "浅米色上衣提亮肤色，灰褐色下装稳重压阵，形成柔和的色彩层次",
+          "九分裤长优化身材比例，配合乐福鞋展现绅士细节"
+        ],
+        "completion_advice": [
+          "建议佩戴一块简约金属表带手表，增添精致度",
+          "发型保持干净利落，可适当使用发泥制造蓬松纹理"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-warm-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "warm",
+      "audience": "womens",
+      "label": "温柔法式浪漫",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "方领泡泡袖上衣",
+          "color_name": "奶油白",
+          "color_value": "#fffdd0",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "高腰A字半身裙",
+          "color_name": "干枯玫瑰粉",
+          "color_value": "#e8b4b8",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "细带低跟凉鞋",
+          "color_name": "香槟金",
+          "color_value": "#f7e7ce",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上装，整理好领口和袖型",
+          "搭配下装，确保腰线清晰",
+          "最后穿鞋，调整裙摆长度"
+        ],
+        "styling_points": [
+          "上衣塞进裙子以突出腰线",
+          "配饰选择简约金属质感耳环或项链",
+          "发型保持自然微卷，增加柔美感"
+        ],
+        "weather_note": "当前体感温暖舒适（26-30℃），适合轻薄透气的短袖与短裙组合，无需外套。",
+        "substitute": "若无方领上衣，可选V领针织短袖；若不便穿裙，可换同色系阔腿裤。"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭通过奶油白与干枯玫瑰粉的柔和配色，营造出优雅浪漫的约会氛围，方领与泡泡袖设计增添复古精致感，整体轻盈而不失层次。",
+        "structure_points": [
+          "高腰设计优化身材比例",
+          "短款上衣配合A字裙摆平衡视觉重心",
+          "细带凉鞋延伸腿部线条，提升精致度"
+        ],
+        "completion_advice": [
+          "建议携带小巧手包，颜色可与鞋子呼应",
+          "妆容侧重清透底妆与自然腮红，强化温柔气质"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-mild-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "mild",
+      "audience": "mens",
+      "label": "帅气层次约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_or_long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "米白色针织Polo衫",
+          "color_name": "米白",
+          "color_value": "#F5F5DC",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "浅卡其色直筒休闲裤",
+          "color_name": "浅卡其",
+          "color_value": "#C3B091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色乐福鞋",
+          "color_name": "深棕",
+          "color_value": "#8B4513",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "穿着合身但不紧绷的米白色针织Polo，领口自然敞开一颗扣子",
+          "搭配剪裁利落的浅卡其色长裤，裤脚微收或刚好盖住鞋面",
+          "穿上棕色乐福鞋，无需系带，保持整体线条流畅"
+        ],
+        "styling_points": [
+          "利用同色系（大地色/暖调）营造视觉上的和谐与高级感",
+          "针织材质比纯棉T恤更具纹理细节，适合近距离接触时展现质感",
+          "避免大面积Logo，通过面料和剪裁体现精致度"
+        ],
+        "weather_note": "22-26℃体感舒适偏暖，无降水大风，适合轻薄透气且有层次的穿搭。",
+        "substitute": "若无针织Polo，可用浅蓝色牛津纺衬衫代替；若无乐福鞋，可用干净的小白鞋或德训鞋代替。"
+      },
+      "outfit_analysis": {
+        "summary": "这套搭配以协调的暖色调为主，通过针织与棉质的混搭，在保持22-26℃舒适度的同时，营造出一种松弛而不失精致的约会氛围。",
+        "structure_points": [
+          "色彩协调：米白+浅卡其+深棕，属于经典的同色系渐变，视觉上非常柔和。",
+          "风格定位：Smart Casual（精致休闲），既没有西装的严肃，也没有运动装的随意，非常适合晚餐或散步等约会场景。"
+        ],
+        "completion_advice": [
+          "可佩戴一块简约的手表或细链项链作为点缀，增加男性魅力细节。",
+          "发型保持清爽整洁，若有胡须请修剪整齐，与服装的精致感相呼应。"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-mild-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "mild",
+      "audience": "womens",
+      "label": "温柔法式浪漫",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "方领泡泡袖上衣",
+          "color_name": "奶油白",
+          "color_value": "#fffdd0",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰A字半身裙",
+          "color_name": "淡藕粉",
+          "color_value": "#e6c2c2",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "细带低跟凉鞋",
+          "color_name": "香槟金",
+          "color_value": "#d4af37",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上装，整理好领口和袖型",
+          "搭配下装，确保腰线位置自然且显腿长",
+          "最后穿鞋，检查整体线条流畅度"
+        ],
+        "styling_points": [
+          "上衣塞入裙腰以强调比例",
+          "配饰选择珍珠或金属细链增加精致感",
+          "妆容保持清透自然，突出气色"
+        ],
+        "weather_note": "气温22-26度舒适宜人，适合轻薄透气材质",
+        "substitute": "若无同款上衣，可用真丝吊带加开衫替代；裙子可换为浅色系连衣裙"
+      },
+      "outfit_analysis": {
+        "summary": "通过柔和的奶油白与淡藕粉配色，结合方领泡泡袖和高腰A字裙的剪裁，营造出优雅、浪漫且具有法式风情的约会氛围。",
+        "structure_points": [
+          "色彩上采用邻近色搭配，视觉和谐温柔",
+          "版型上‘上紧下松’或‘短上衣+高腰裙’优化身材比例",
+          "材质上选择有垂坠感的面料提升质感"
+        ],
+        "completion_advice": [
+          "建议携带一个小巧的手拿包，颜色可与鞋子呼应",
+          "若有微风或进入空调房，可备一件同色系薄针织披肩作为外搭（虽未列入主推荐项，但可作为备选）",
+          "发型建议微卷长发或低盘发，增添女人味"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-cool-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "cool",
+      "audience": "mens",
+      "label": "帅气层次约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "米白色针织衫",
+          "color_name": "米白",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "深灰色休闲西裤",
+          "color_name": "深灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "卡其色轻薄风衣",
+          "color_name": "卡其",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色乐福鞋",
+          "color_name": "棕",
+          "color_value": "#8b4513",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿米白色针织衫作为内搭，保持领口平整",
+          "搭配深灰色西裤，确保裤长自然垂落至鞋面",
+          "穿上卡其色风衣，敞开穿着以展示层次感",
+          "最后穿棕色乐福鞋，露出脚踝或搭配隐形袜"
+        ],
+        "styling_points": [
+          "利用卡其色与米白色的暖色调营造亲和氛围",
+          "深灰色裤子压住整体色调，避免过于轻飘",
+          "乐福鞋增加精致感，符合约会场景的优雅要求"
+        ],
+        "weather_note": "气温17-21度微凉，薄风衣提供适度保暖且防风，适合晚间约会温差",
+        "substitute": "若无风衣可换为藏青色西装外套；若嫌单调可将针织衫换为浅蓝色衬衫"
+      },
+      "outfit_analysis": {
+        "summary": "这套搭配通过大地色系与中性色的柔和过渡，营造出轻松而不失精致的约会氛围。米白针织衫带来视觉上的柔软感，卡其风衣增添绅士质感，深灰西裤平衡了整体的明度，棕色乐福鞋则点睛提升细节品味。",
+        "structure_points": [
+          "上浅下深的经典配色逻辑，显高且稳重",
+          "外长内短的层次结构，丰富视觉焦点",
+          "材质混搭（针织+棉质/羊毛混纺+皮革），体现对质感的追求"
+        ],
+        "completion_advice": [
+          "建议佩戴一块简约皮带手表或细链项链，增加精致度",
+          "发型保持整洁清爽，若有胡茬需修剪整齐",
+          "喷洒木质调或淡花香香水，强化浪漫氛围"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-cool-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "cool",
+      "audience": "womens",
+      "label": "温柔法式约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "米白色针织开衫",
+          "color_name": "奶油白",
+          "color_value": "#FDFBF7",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰A字半身裙",
+          "color_name": "雾霾蓝",
+          "color_value": "#B0C4DE",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "浅口玛丽珍鞋",
+          "color_name": "裸粉色",
+          "color_value": "#E8D5CD",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "薄款风衣",
+          "color_name": "卡其色",
+          "color_value": "#C3B091",
+          "color_type": "solid",
+          "thickness": "thin"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿上修身打底或吊带（此处以开衫为视觉重点，可内搭同色系吊带）",
+          "搭配高腰半身裙，强调腰线",
+          "外披薄款风衣，营造层次感与优雅氛围",
+          "最后穿玛丽珍鞋，露出脚踝增加轻盈感"
+        ],
+        "styling_points": [
+          "开衫扣子只扣中间一颗，制造慵懒松弛感",
+          "裙摆自然垂落，避免过度褶皱",
+          "风衣敞开穿着，不系腰带，保持整体线条流畅"
+        ],
+        "weather_note": "体感微凉(17-21℃)，需长袖及轻薄外套保暖，无降水大风困扰",
+        "substitute": "若无风衣，可用质感好的西装外套替代；若无玛丽珍，可换细带凉鞋（若温度允许）或浅色短靴"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭专为约会场景设计，利用奶油白、雾霾蓝与裸粉色的低饱和度配色，营造出温柔浪漫的视觉氛围。长款针织开衫作为上装既满足凉爽天气的保暖需求，又比传统衬衫更具女性柔美特质。高腰A字裙修饰身形，搭配薄款风衣提升精致度与层次感，完全规避了通勤装的严肃感。",
+        "structure_points": [
+          "色彩协调：采用莫兰迪色系混搭，视觉上柔和且高级",
+          "层次丰富：内长外短（相对比例）与敞开式外套形成纵向延伸",
+          "材质对比：针织的柔软与风衣的挺括形成质感互补"
+        ],
+        "completion_advice": [
+          "建议佩戴细金链项链或珍珠耳饰，点缀颈部空白",
+          "包袋选择小巧的手提包或斜挎链条包，颜色可与鞋子呼应",
+          "妆容建议清透底妆搭配豆沙色口红，强化温柔气质"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-cold-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "cold",
+      "audience": "mens",
+      "label": "质感层次约会",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "米白色高领针织衫",
+          "color_name": "米白",
+          "color_value": "#f5f1e6",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "深灰色羊毛直筒裤",
+          "color_name": "炭灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "驼色短款大衣",
+          "color_name": "驼色",
+          "color_value": "#c19a6b",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色切尔西靴",
+          "color_name": "焦糖棕",
+          "color_value": "#8b5a2b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿好贴身的米白色高领针织衫，确保领口平整",
+          "搭配深灰色羊毛直筒裤，裤长刚好盖住鞋面或微堆叠",
+          "穿上驼色短款大衣，敞开穿着以展示内搭层次",
+          "最后换上棕色切尔西靴，整理衣领和袖口"
+        ],
+        "styling_points": [
+          "利用米白与驼色的暖色调营造亲和氛围",
+          "高领设计修饰颈部线条，增加精致感",
+          "短款大衣优化身材比例，避免臃肿"
+        ],
+        "weather_note": "气温较低（12-16℃），需注重保暖但不宜过于厚重，选择有质感的羊毛/针织材质",
+        "substitute": "若无大衣，可替换为深色西装外套；若怕冷，可在针织衫内加一件薄打底"
+      },
+      "outfit_analysis": {
+        "summary": "一套兼顾温度与风度的约会穿搭，通过同色系暖调搭配展现男士的从容与质感。",
+        "structure_points": [
+          "上浅下深再外暖：米白内搭提亮肤色，深灰裤子稳重，驼色外套增加浪漫氛围",
+          "材质对比：柔软的针织与挺括的大衣形成视觉层次",
+          "利落轮廓：短款大衣配合直筒裤，显得身形修长挺拔"
+        ],
+        "completion_advice": [
+          "建议佩戴一块简约的金属腕表或细链项链作为点缀",
+          "发型保持清爽整洁，可使用少量发蜡定型",
+          "喷洒木质调或淡花香型香水，增强约会吸引力"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-cold-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "cold",
+      "audience": "womens",
+      "label": "温柔知性约会",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "米白色针织衫",
+          "color_name": "米白",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "浅驼色直筒长裙",
+          "color_name": "浅驼",
+          "color_value": "#d2b48c",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "燕麦色薄呢大衣",
+          "color_name": "燕麦",
+          "color_value": "#eaddcf",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色乐福鞋",
+          "color_name": "深棕",
+          "color_value": "#8b5a2b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿好米白色长袖针织衫作为内搭",
+          "搭配浅驼色直筒长裙，注意裙长盖住脚踝上方",
+          "披上燕麦色薄呢大衣，保持领口自然敞开或系带松散",
+          "最后穿上棕色乐福鞋，整体色调从浅到深过渡"
+        ],
+        "styling_points": [
+          "利用同色系（大地色/暖调）营造高级感与温柔氛围",
+          "针织材质增加亲和力，避免硬挺面料带来的距离感",
+          "大衣长度建议在膝盖附近，优化身材比例"
+        ],
+        "weather_note": "当前体感温度12-16℃偏冷，需注重保暖层次，但无风雨威胁，可自由选择美观度高的单品。",
+        "substitute": "若没有长裙，可替换为同色系阔腿西装裤；若无大衣，可替换为质感良好的风衣或羊毛开衫。"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭以暖调大地色系为主，通过米白、浅驼、燕麦和深棕的层次叠加，营造出温柔、优雅且富有质感的约会氛围。既满足了低温天气的保暖需求，又避免了厚重冬装的臃肿感，显得精致而松弛。",
+        "structure_points": [
+          "色彩和谐：全身采用低饱和度的暖色系，视觉统一且舒适。",
+          "材质对比：柔软的针织与挺括的呢料形成质感互补，增加穿搭细节。",
+          "适度露肤：通过V领或圆领展示颈部线条，平衡上半身的包裹感。"
+        ],
+        "completion_advice": [
+          "建议搭配小巧精致的金色耳饰或细项链，提升亮点。",
+          "包包选择柔软皮革材质的单肩包或手提包，颜色可与鞋子呼应。",
+          "妆容可偏向暖色调口红与腮红，与服装色系完美融合。"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-freezing-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "freezing",
+      "audience": "mens",
+      "label": "暖调层次约会",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "米色高领针织衫",
+          "color_name": "燕麦米",
+          "color_value": "#e6dcc3",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "深灰羊毛西裤",
+          "color_name": "炭灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "驼色双排扣大衣",
+          "color_name": "经典驼",
+          "color_value": "#b89b72",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色切尔西靴",
+          "color_name": "焦糖棕",
+          "color_value": "#8b5a2b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿好高领针织衫，整理领口使其贴合颈部以保暖且显脸小",
+          "搭配修身直筒的羊毛西裤，确保裤脚自然堆叠在靴口上方或刚好盖住鞋面",
+          "穿上切尔西靴，系紧后跟提环以便穿脱",
+          "最后披上驼色大衣，敞开穿着以展示内搭的层次感，若风大则扣上第一颗扣子"
+        ],
+        "styling_points": [
+          "利用同色系深浅过渡（米白-驼色-棕色）营造高级感",
+          "高领与大衣翻领之间保留适度空间，避免臃肿",
+          "裤长控制在九分至全长之间，露出靴筒增加利落感"
+        ],
+        "weather_note": "气温较低（6-10℃），需重点保护颈部和躯干温暖，材质选择羊毛或厚针织以兼顾温度与风度。",
+        "substitute": "若无高领衫，可用圆领毛衣加一条轻薄羊绒围巾替代；若无切尔西靴，深色乐福鞋配厚袜亦可。"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭专为寒冷天气下的约会场景设计，摒弃了厚重的机能感，转而通过高品质面料和柔和的大地色系展现男性的从容与精致。",
+        "structure_points": [
+          "层次分明：贴身针织+挺括大衣，形成外松内紧的视觉平衡",
+          "色彩和谐：燕麦、驼色与焦糖棕构成温暖的邻近色组合，极具亲和力",
+          "质感统一：羊毛、针织与皮革的材质对比提升了整体造型的丰富度"
+        ],
+        "completion_advice": [
+          "建议搭配一块简约的金属腕表，增添细节处的精致感",
+          "发型保持整洁微卷或侧分，与松弛气质相呼应",
+          "若室内暖气充足，可脱去大衣仅着针织衫，依然保持得体优雅"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-freezing-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "freezing",
+      "audience": "womens",
+      "label": "温柔暖调约会",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "米白色高领羊毛针织衫",
+          "color_name": "米白",
+          "color_value": "#F5F0E6",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "焦糖色灯芯绒半身长裙",
+          "color_name": "焦糖",
+          "color_value": "#C87A3B",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "驼色双面呢大衣",
+          "color_name": "驼色",
+          "color_value": "#D2B48C",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色切尔西短靴",
+          "color_name": "深棕",
+          "color_value": "#5D4037",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿上米白色高领羊毛针织衫，整理好领口和袖口",
+          "搭配焦糖色灯芯绒半身长裙，确保裙摆自然垂坠",
+          "外披驼色双面呢大衣，敞开或系扣均可，保持整体线条流畅",
+          "最后穿上棕色切尔西短靴，将裤脚/裙摆稍微塞入靴筒以显腿长"
+        ],
+        "styling_points": [
+          "利用同色系（米白-驼色-焦糖-深棕）打造高级温柔的层次感",
+          "高领设计既保暖又修饰颈部线条，增加精致度",
+          "灯芯绒材质带来复古质感，避免纯通勤的单调感"
+        ],
+        "weather_note": "体感温度较低（6-10℃），需注重保暖但不过度臃肿，选择柔软有质感的厚重面料",
+        "substitute": "若无灯芯绒裙，可换为厚款针织直筒裙；若无切尔西靴，可换为乐福鞋加厚袜"
+      },
+      "outfit_analysis": {
+        "summary": "一套兼顾低温保暖与约会氛围的温柔大地色系穿搭，通过材质对比和色彩渐变展现精致感。",
+        "structure_points": [
+          "上紧下松：修身高领针织搭配A字或直筒长裙，优化身材比例",
+          "色彩呼应：外套与内搭、鞋子形成深浅过度的和谐统一",
+          "层次丰富：针织、灯芯绒、毛呢三种不同质感叠加，提升视觉厚度而不显笨重"
+        ],
+        "completion_advice": [
+          "可佩戴金色细项链点缀高领处，增加亮点",
+          "搭配一个柔软的手拿包或小号斜挎包，强化约会氛围",
+          "妆容建议配合暖色调口红，与整体穿搭风格一致"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-severe-mens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "severe",
+      "audience": "mens",
+      "label": "暖调绅士约会",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "米白色高领羊毛衫",
+          "color_name": "米白",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "深灰色修身法兰绒西裤",
+          "color_name": "深灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "驼色双面呢大衣",
+          "color_name": "驼色",
+          "color_value": "#c19a6b",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "棕色切尔西靴",
+          "color_name": "棕褐",
+          "color_value": "#8b5a2b",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿米白色高领羊毛衫作为视觉中心，保持颈部线条干净",
+          "搭配深灰色修身西裤，确保裤脚不堆积，露出脚踝上方或塞入靴筒",
+          "披上驼色大衣，敞开穿着以展示内搭层次，扣子可系最上面一颗增加精致感",
+          "穿上棕色切尔西靴，整体色调在大地色系中形成呼应"
+        ],
+        "styling_points": [
+          "利用米白与驼色的邻近色营造亲和氛围",
+          "深灰裤子压住上半身亮色，避免轻浮",
+          "大衣长度建议过膝，提升气场同时保暖"
+        ],
+        "weather_note": "体感极冷（-2℃~3℃），虽无风雨但需重点防风保暖，羊毛与呢料组合提供足够热值",
+        "substitute": "若无高领衫可用圆领毛衣+围巾替代；若无切尔西靴可用深色德比鞋+厚袜"
+      },
+      "outfit_analysis": {
+        "summary": "这套搭配摒弃了传统黑色冬装的沉闷，通过米白、驼色与深灰的大地色系组合，营造出温暖、优雅且具有亲和力的约会氛围。材质上选用羊毛与法兰绒，兼顾了严寒天气下的保暖需求与高级质感。",
+        "structure_points": [
+          "H型轮廓：大衣直筒剪裁配合修身长裤，拉长身形比例",
+          "色彩分层：外浅（驼）内亮（米白）下深（灰），视觉重心稳定且柔和",
+          "材质对比：毛呢的哑光质感与皮靴的光泽形成微妙反差"
+        ],
+        "completion_advice": [
+          "建议佩戴一块简约皮带腕表，增加细节精致度",
+          "若发型允许，保持蓬松自然的纹理感，避免过于僵硬",
+          "可携带一款深色皮质手拿包或斜挎小包，强化绅士风格"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-date-severe-womens-01",
+      "scene": "date",
+      "prompt_version": 5,
+      "thermal_band": "severe",
+      "audience": "womens",
+      "label": "温柔优雅约会装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "高领羊毛针织衫",
+          "color_name": "米白色",
+          "color_value": "#f5f0e6",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "垂感阔腿西装裤",
+          "color_name": "浅驼色",
+          "color_value": "#d2b48c",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "双面呢大衣",
+          "color_name": "焦糖色",
+          "color_value": "#a0522d",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "尖头短靴",
+          "color_name": "深棕色",
+          "color_value": "#5d4037",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿好米白色高领羊毛针织衫，整理领口使其贴合颈部",
+          "搭配浅驼色阔腿西装裤，注意裤长自然垂落至鞋面",
+          "披上焦糖色双面呢大衣，敞开穿着以展示内搭层次",
+          "最后穿上深棕色尖头短靴，确保整体线条流畅"
+        ],
+        "styling_points": [
+          "利用同色系（米白、浅驼、焦糖）营造温柔高级感",
+          "大衣敞开穿，露出高腰线和针织衫质感，避免臃肿",
+          "配饰可选简约金属耳饰或细项链，增加精致度"
+        ],
+        "weather_note": "体感寒冷（-2℃~3℃），需重点保暖头部和颈部，建议携带围巾备用",
+        "substitute": "若无阔腿裤，可替换为加绒直筒牛仔裤；若无双面呢大衣，可用加厚羽绒服替代但需注意蓬松度控制"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭在严寒天气下兼顾了保暖性与约会所需的精致氛围。通过米白、浅驼、焦糖的暖色调渐变，营造出温柔且富有质感的视觉效果，避免了厚重冬装的沉闷感。",
+        "structure_points": [
+          "上紧下松：贴身的高领针织衫平衡了阔腿裤的宽松感，优化身材比例",
+          "色彩呼应：外套的焦糖色与鞋子的深棕色形成深浅对比，增强层次感",
+          "材质混搭：羊毛针织的柔软与西装裤的挺括、呢子大衣的质感形成丰富触觉体验"
+        ],
+        "completion_advice": [
+          "鉴于低温，若怕冷可在针织衫内加一件轻薄发热内衣",
+          "约会室内可能较热，大衣便于穿脱是最佳选择",
+          "妆容建议搭配暖调口红，与整体服装色调和谐统一"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-hot-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "hot",
+      "audience": "mens",
+      "label": "轻旅机能风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "速干圆领T恤",
+          "color_name": "浅灰",
+          "color_value": "#d3d3d3",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "多口袋工装短裤",
+          "color_name": "卡其",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "透气网面运动鞋",
+          "color_name": "白色",
+          "color_value": "#ffffff",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上速干T恤，确保贴合但不紧绷",
+          "搭配工装短裤，利用侧边口袋放置随身小物",
+          "最后穿好透气运动鞋，系紧鞋带以保障行走稳定"
+        ],
+        "styling_points": [
+          "T恤下摆自然垂落或半塞入裤腰",
+          "短裤长度在膝盖上方5-10cm为佳",
+          "整体色调保持低饱和度，耐脏且视觉舒适"
+        ],
+        "weather_note": "体感炎热（30-34℃），重点在于散热与防汗黏腻，无需外套。",
+        "substitute": "若无速干材质，可选纯棉宽松T恤；若无工装短裤，可选普通休闲短裤。"
+      },
+      "outfit_analysis": {
+        "summary": "针对高温出行场景设计的轻便机能套装，兼顾活动自由度与长时间步行的舒适性。",
+        "structure_points": [
+          "上装选用轻薄速干面料，快速排汗保持干爽",
+          "下装采用宽松剪裁与功能性口袋，减少束缚并增加便利性",
+          "鞋履选择高透气网面结构，缓解足部闷热"
+        ],
+        "completion_advice": [
+          "建议携带一条吸汗毛巾备用",
+          "若紫外线增强，可临时加戴棒球帽（当前天气未强制要求，故未列入基础方案）"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-hot-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "hot",
+      "audience": "womens",
+      "label": "松弛轻旅装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "宽松落肩短袖T恤",
+          "color_name": "浅灰蓝",
+          "color_value": "#b0c4de",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "高腰阔腿短裤",
+          "color_name": "米白色",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底运动凉鞋",
+          "color_name": "黑色",
+          "color_value": "#2c2c2c",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "宽松上装＋高腰下装＋舒适鞋履",
+        "steps": [
+          "先穿上浅灰蓝宽松T恤，保持自然垂坠感",
+          "搭配米白色高腰阔腿短裤，优化比例并增加透气性",
+          "最后穿上黑色厚底运动凉鞋，确保长时间行走的舒适度"
+        ],
+        "styling_points": [
+          "T恤可选择稍微大一号以营造松弛感",
+          "短裤材质选择挺括不易皱的面料（如棉麻混纺或速干面料）",
+          "鞋子需具备一定支撑性，避免平底薄底导致足部疲劳"
+        ],
+        "weather_note": "今日体感炎热（30-34℃），无降水及大风风险，重点在于透气散热与活动自由",
+        "substitute": "若不喜欢露腿，可替换为轻薄透气的直筒长裤；上衣也可换成同色系吊带加防晒衬衫"
+      },
+      "outfit_analysis": {
+        "summary": "这套穿搭专为高温下的休闲出行设计，强调‘松弛’与‘机能’的结合。浅色系的搭配在视觉上降温，宽松剪裁保证了身体的自由活动空间，避免了紧身衣物带来的束缚感和闷热感。",
+        "structure_points": [
+          "上下装均采用宽松版型，空气流通性好，适合高温环境",
+          "高腰设计配合短款或塞衣角穿法，拉长腿部线条，提升整体活力感",
+          "厚底凉鞋既符合时尚趋势，又提供了必要的缓震保护，适合长时间在外活动"
+        ],
+        "completion_advice": [
+          "建议携带一个轻便的斜挎包或腰包，解放双手，方便拍照和拿取物品",
+          "虽然UV未达强防护级别，但户外时间长，仍建议涂抹防晒霜或佩戴墨镜作为点缀",
+          "若进入空调较冷的室内场所，可随身带一件极薄的开衫备用"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-warm-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "warm",
+      "audience": "mens",
+      "label": "轻旅机能松弛装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "速干短袖T恤",
+          "color_name": "浅灰蓝",
+          "color_value": "#a3b8c2",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "束脚工装裤",
+          "color_name": "卡其色",
+          "color_value": "#d2b48c",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "缓震运动鞋",
+          "color_name": "白色",
+          "color_value": "#ffffff",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿速干短袖，保持透气不闷汗",
+          "搭配宽松束脚工装裤，确保活动自由且耐脏",
+          "最后穿上缓震运动鞋，支撑长时间行走"
+        ],
+        "styling_points": [
+          "T恤下摆自然垂落或半塞入裤腰，营造松弛感",
+          "裤脚束口设计避免拖沓，适配户外场景",
+          "整体色调低饱和，便于打理且视觉舒适"
+        ],
+        "weather_note": "体感温暖（26-30℃），无需外套，重点在于透气与轻便",
+        "substitute": "可用亚麻衬衫替代T恤，用休闲慢跑裤替代工装裤"
+      },
+      "outfit_analysis": {
+        "summary": "专为男性出行设计的轻量机能风格，平衡了舒适度与实用性。",
+        "structure_points": [
+          "上短下长结构：短袖配合长裤，适应温差变化（早晚微凉可卷袖）",
+          "材质功能化：速干面料应对出汗，耐磨工装布应对复杂路况",
+          "色彩和谐：浅灰蓝与卡其色形成冷暖对比，既活力又稳重"
+        ],
+        "completion_advice": [
+          "建议搭配斜挎小包解放双手",
+          "若阳光强烈可额外佩戴棒球帽（虽非硬性要求但利于旅行防晒）"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-warm-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "warm",
+      "audience": "womens",
+      "label": "轻旅活力",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "短袖T恤",
+          "color_name": "浅蓝",
+          "color_value": "#a6d1f5",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "asset_key": "bottom_shorts",
+          "variant_type": "高腰牛仔短裤",
+          "color_name": "深蓝",
+          "color_value": "#0b243c",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "运动休闲鞋",
+          "color_name": "灰白",
+          "color_value": "#d3d3d3",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上装",
+          "搭配下装",
+          "最后穿鞋"
+        ],
+        "styling_points": [
+          "上装保持自然垂落，避免褶皱"
+        ],
+        "weather_note": "当天体感舒适，适合轻便穿搭。",
+        "substitute": "同类基础款可替换"
+      },
+      "outfit_analysis": {
+        "summary": "这套出行穿搭以轻便、舒适和活动性为核心，适合长时间在外的旅行场景。",
+        "structure_points": [
+          "短袖T恤提供透气性与自由度",
+          "高腰牛仔短裤提升整体造型的休闲感",
+          "运动休闲鞋便于行走，适合长时间外出"
+        ],
+        "completion_advice": [
+          "可添加轻便背包提升实用性",
+          "选择透气材质的衣物增强舒适感"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-mild-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "mild",
+      "audience": "mens",
+      "label": "轻旅机能松弛装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "速干圆领T恤",
+          "color_name": "浅灰蓝",
+          "color_value": "#a8b2c1",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "束脚工装裤",
+          "color_name": "卡其色",
+          "color_value": "#d4c4a8",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "轻量徒步鞋",
+          "color_name": "深灰色",
+          "color_value": "#5a5a5a",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿上透气速干T恤，保持身体干爽",
+          "搭配多口袋束脚工装裤，方便收纳随身小物且活动自如",
+          "最后穿上支撑性好的轻量徒步鞋，确保长时间行走舒适"
+        ],
+        "styling_points": [
+          "T恤下摆自然垂落或轻微塞入裤腰，营造松弛感",
+          "利用工装裤侧袋增加视觉层次，避免单调"
+        ],
+        "weather_note": "当前气温22-26℃，体感温和舒适，无降水大风威胁，适合轻便着装。",
+        "substitute": "若不喜欢工装风，可替换为弹力休闲长裤；鞋子可换成复古慢跑鞋。"
+      },
+      "outfit_analysis": {
+        "summary": "这套方案专为男性出行设计，强调‘耐走’与‘易打理’。速干面料应对旅途中的微小温差和出汗，束脚工装裤提供极大的活动自由度和储物便利，整体色调低饱和、耐脏且具机能美感，完美契合轻松旅行的氛围。",
+        "structure_points": [
+          "上简下繁：简洁T恤平衡工装裤的复杂结构",
+          "色彩和谐：冷调上衣与暖调裤子形成柔和对比，不刺眼",
+          "功能导向：所有单品均服务于长时间户外活动的舒适性"
+        ],
+        "completion_advice": [
+          "建议搭配一个斜挎小包或腰包，解放双手",
+          "若进入空调房或傍晚微凉，可备一件轻薄衬衫系于腰间或穿在外套层（虽未列入主项，但符合travel场景的灵活性）"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-mild-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "mild",
+      "audience": "womens",
+      "label": "轻旅松弛机能风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "asset_key": "top_tshirt_short",
+          "variant_type": "速干短袖T恤",
+          "color_name": "鼠尾草绿",
+          "color_value": "#9caf88",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "高腰工装阔腿裤",
+          "color_name": "卡其色",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底复古运动鞋",
+          "color_name": "米白色",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "上装＋下装＋鞋",
+        "steps": [
+          "先穿好速干T恤，保持领口平整",
+          "搭配高腰工装裤，利用腰带或抽绳调整松紧以方便活动",
+          "最后穿上厚底运动鞋，确保长时间行走舒适"
+        ],
+        "styling_points": [
+          "上装可半塞入下装以拉长腿部线条",
+          "选择多口袋设计的裤子增加实用性与机能感",
+          "整体色调采用大地色系与低饱和绿色，营造轻松氛围"
+        ],
+        "weather_note": "22-26度体感温和，适合单层短袖搭配长裤，透气且防晒",
+        "substitute": "若不喜欢工装裤，可替换为垂坠感好的休闲西装短裤（需配长袜）或轻薄牛仔裤"
+      },
+      "outfit_analysis": {
+        "summary": "这套方案专为女性出行设计，强调舒适、耐走与易打理。鼠尾草绿速干T恤提供清爽视觉与排汗功能，卡其色工装阔腿裤兼顾时尚与活动自由度，厚底运动鞋则有效缓解久站疲劳，整体呈现松弛的轻旅风格。",
+        "structure_points": [
+          "上短下长的比例优化身形",
+          "宽松廓形避免束缚感，适应各种动作",
+          "色彩和谐统一，易于搭配随身包袋"
+        ],
+        "completion_advice": [
+          "建议携带一个斜挎小包解放双手",
+          "可备一件薄开衫应对室内空调温差",
+          "佩戴简约金属饰品提升精致度"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-cool-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "cool",
+      "audience": "mens",
+      "label": "轻旅机能漫步",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "速干长袖T恤",
+          "color_name": "浅灰",
+          "color_value": "#d3d3d3",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "束脚工装裤",
+          "color_name": "卡其",
+          "color_value": "#c19a6b",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "连帽薄风衣",
+          "color_name": "藏青",
+          "color_value": "#000080",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "缓震健步鞋",
+          "color_name": "黑白拼色",
+          "color_value": "#ffffff",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋外套＋下装＋鞋",
+        "steps": [
+          "先穿速干长袖T恤打底，保持透气",
+          "穿上束脚工装裤，方便活动且耐脏",
+          "外罩连帽薄风衣，应对早晚温差",
+          "最后穿缓震健步鞋，确保长时间行走舒适"
+        ],
+        "styling_points": [
+          "风衣敞开穿着，营造松弛感",
+          "袖口和下摆收紧，利落干练",
+          "色彩采用中性色系，百搭易打理"
+        ],
+        "weather_note": "气温17-21度，体感微凉但无风雨威胁，适合轻便多层穿搭。",
+        "substitute": "若无风衣，可用轻薄针织开衫替代；若嫌长裤闷热，可换为宽松短裤配长袜。"
+      },
+      "outfit_analysis": {
+        "summary": "针对出行场景设计的舒适机能风，强调耐走与便携，通过分层搭配适应凉爽天气。",
+        "structure_points": [
+          "上紧下松：修身长袖搭配宽松束脚裤，优化身形比例。",
+          "功能优先：选择速干面料和缓震鞋底，满足长时间在外需求。",
+          "层次灵活：薄风衣可随时穿脱，应对17-21度的温差变化。"
+        ],
+        "completion_advice": [
+          "建议携带一个斜挎小包，解放双手。",
+          "帽子可选择渔夫帽或棒球帽，增加造型层次感（虽非强制防晒/防风，但符合出行休闲调性）。"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-cool-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "cool",
+      "audience": "womens",
+      "label": "松弛轻旅机能风",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "华夫格长袖T恤",
+          "color_name": "燕麦色",
+          "color_value": "#e8dcc4",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "速干束脚工装裤",
+          "color_name": "卡其绿",
+          "color_value": "#7d8c69",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "轻薄连帽风衣",
+          "color_name": "米白色",
+          "color_value": "#f5f2eb",
+          "color_type": "solid",
+          "thickness": "thin"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "复古厚底运动鞋",
+          "color_name": "灰白拼色",
+          "color_value": "#d1d1d1",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "穿上华夫格长袖T恤作为打底，保持透气舒适",
+          "搭配速干束脚工装裤，确保活动自如且耐脏",
+          "外罩轻薄连帽风衣，应对早晚温差及突发微风",
+          "最后穿好厚底运动鞋，提供长时间行走的缓冲支撑"
+        ],
+        "styling_points": [
+          "风衣敞开穿着，营造随性层次感",
+          "工装裤束脚设计利落，避免拖沓",
+          "整体色调低饱和，符合户外轻松氛围"
+        ],
+        "weather_note": "气温17-21度偏凉，早晚需外套保暖，中午可脱卸；无雨无大风，无需防水防风装备。",
+        "substitute": "若无风衣可用针织开衫替代；若无工装裤可用直筒牛仔裤替代。"
+      },
+      "outfit_analysis": {
+        "summary": "针对出行场景打造的舒适机能穿搭，兼顾美观与实用性，适合长时间在外活动。",
+        "structure_points": [
+          "上长下长结构，通过束脚裤优化比例，显高显瘦",
+          "多层叠穿（T恤+风衣），灵活应对17-21度的温差变化",
+          "材质选择速干、耐磨面料，易于打理，符合旅行需求"
+        ],
+        "completion_advice": [
+          "建议搭配斜挎小包解放双手",
+          "若担心日晒可额外准备棒球帽（虽当前UV不高，但出行常遇户外强光）",
+          "袜子选择中筒棉袜，增加舒适度并修饰脚踝线条"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-cold-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "cold",
+      "audience": "mens",
+      "label": "轻旅机能暖行",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "高领打底衫",
+          "color_name": "炭灰色",
+          "color_value": "#4a4a4d",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "束脚工装裤",
+          "color_name": "卡其色",
+          "color_value": "#c3b091",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "摇粒绒夹克",
+          "color_name": "深海军蓝",
+          "color_value": "#2c3e50",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "复古慢跑鞋",
+          "color_name": "米白色",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "高领打底＋摇粒绒外套＋工装裤＋慢跑鞋",
+        "steps": [
+          "先穿炭灰高领打底，确保颈部保暖",
+          "穿上卡其色束脚工装裤，调整腰围舒适",
+          "套上深海军蓝摇粒绒夹克，拉好拉链防风",
+          "最后穿上米白慢跑鞋，系紧鞋带便于行走"
+        ],
+        "styling_points": [
+          "利用深浅对比（灰/蓝 vs 卡其/米白）增加层次感",
+          "束脚设计避免裤脚拖沓，适合长时间步行",
+          "摇粒绒材质轻便且保暖，方便随时穿脱应对温差"
+        ],
+        "weather_note": "体感偏冷（12-16℃），无风雨，重点在于静态保暖与动态舒适的平衡",
+        "substitute": "若无摇粒绒，可用轻薄羽绒马甲替代；若无工装裤，可用宽松直筒牛仔裤替代"
+      },
+      "outfit_analysis": {
+        "summary": "一套专为男性出行设计的机能风穿搭，兼顾低温保暖与活动自由度，风格松弛且耐脏易打理。",
+        "structure_points": [
+          "三层穿衣法简化版：贴身层锁温、中间层蓬松保暖、外层防泼水（可选）或纯保暖",
+          "色彩采用大地色系与中性色搭配，视觉柔和不突兀，适合户外环境",
+          "版型整体宽松适度，预留内搭空间，避免束缚感"
+        ],
+        "completion_advice": [
+          "建议搭配一双中筒棉袜，防止脚踝受凉",
+          "若担心口袋不足，可额外携带一个斜挎小包存放证件手机",
+          "无需佩戴帽子，因无强风强阳，保持头部散热灵活"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-cold-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "cold",
+      "audience": "womens",
+      "label": "松弛感轻旅装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "asset_key": "top_tshirt_long",
+          "variant_type": "宽松针织衫",
+          "color_name": "燕麦色",
+          "color_value": "#e8dcc4",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "束脚工装裤",
+          "color_name": "卡其绿",
+          "color_value": "#7a7d63",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "light_outerwear",
+          "asset_key": "outer_light_jacket",
+          "variant_type": "轻薄羽绒马甲",
+          "color_name": "米白色",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底运动鞋",
+          "color_name": "灰白拼色",
+          "color_value": "#d3d3d3",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内搭＋下装＋外套＋鞋",
+        "steps": [
+          "先穿宽松针织衫作为内搭，保持舒适透气",
+          "搭配束脚工装裤，确保活动自如且耐脏",
+          "外罩轻薄羽绒马甲，应对早晚温差",
+          "最后穿上厚底运动鞋，提供长时间行走的支撑"
+        ],
+        "styling_points": [
+          "针织衫下摆自然垂落或半塞入裤腰",
+          "马甲敞开穿着以增加层次感",
+          "裤脚收口露出袜子细节，增加活力感"
+        ],
+        "weather_note": "体感偏冷（12-16℃），需注重保暖与层叠穿搭，无风雨干扰。",
+        "substitute": "可用卫衣代替针织衫，用休闲长裤代替工装裤"
+      },
+      "outfit_analysis": {
+        "summary": "这套搭配专为出行设计，强调舒适性与机能感的平衡。通过针织与羽绒马甲的层叠解决温差问题，工装裤与运动鞋保证长时间活动的便利性，整体色调柔和自然，符合女性出行的松弛氛围。",
+        "structure_points": [
+          "上松下紧/直筒：宽松上衣配合束脚裤型，视觉利落不拖沓",
+          "核心保暖区覆盖：马甲重点保护躯干热量，四肢灵活不受限",
+          "色彩和谐：大地色系组合（燕麦、卡其、米白）耐看且易打理"
+        ],
+        "completion_advice": [
+          "建议搭配斜挎小包解放双手",
+          "可佩戴简约金属耳环提升精致度",
+          "若室内暖气足，可随时脱去马甲调节体温"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-freezing-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "freezing",
+      "audience": "mens",
+      "label": "活力极寒出行",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "加厚抓绒卫衣",
+          "color_name": "深灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "束脚工装裤",
+          "color_name": "军绿",
+          "color_value": "#556b2f",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "连帽羽绒夹克",
+          "color_name": "藏青",
+          "color_value": "#1c2833",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底休闲运动鞋",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "内层保暖＋中层防护＋外层锁温＋下装＋鞋",
+        "steps": [
+          "先穿加厚抓绒卫衣作为基础保暖层，确保颈部和手腕舒适",
+          "搭配束脚工装裤，便于行走且口袋多方便存放随身小物",
+          "穿上连帽羽绒夹克，拉上拉链并戴好帽子以应对低温",
+          "最后换上厚底运动鞋，保证长时间步行的足部支撑与保暖"
+        ],
+        "styling_points": [
+          "利用藏青、军绿、深灰的大地色系组合，耐脏且符合户外氛围",
+          "束脚裤型避免裤脚拖沓，配合厚底鞋提升整体利落感",
+          "羽绒服选择哑光面料，减少反光，更显低调机能风"
+        ],
+        "weather_note": "当前体感温度极低（6-10℃），虽无降水大风，但寒冷是主要挑战，需重点防风保暖。",
+        "substitute": "若怕冷可加穿一件轻薄羊毛衫在卫衣内；鞋子可替换为高帮徒步靴增强脚踝保护。"
+      },
+      "outfit_analysis": {
+        "summary": "这套方案专为极寒天气下的长途出行设计，强调“温暖”与“活动自由”。通过分层穿搭锁定体温，同时选用耐磨、易打理的工装风格单品，满足旅行中对舒适度和实用性的双重需求。",
+        "structure_points": [
+          "上身采用‘抓绒+羽绒’双层结构，既轻便又高效保温，适合温差变化。",
+          "下身工装裤具备多口袋功能，解放双手，无需额外背包即可携带护照、手机等小件。",
+          "鞋履选择厚底运动款，提供必要的缓震和隔热，适应机场或景区长时间站立行走。"
+        ],
+        "completion_advice": [
+          "建议佩戴一顶针织冷帽或围巾，进一步防止头部热量流失（虽未列入强制装备，但对极寒出行至关重要）。",
+          "若室内暖气充足，可脱去外层羽绒服，仅穿卫衣+工装裤，保持造型完整且不闷热。"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-freezing-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "freezing",
+      "audience": "womens",
+      "label": "轻盈极寒出行",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "加绒高领打底衫",
+          "color_name": "燕麦色",
+          "color_value": "#e8dcc6",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "asset_key": "bottom_casual_pants",
+          "variant_type": "防风束脚工装裤",
+          "color_name": "深灰色",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "regular"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "中长款连帽羽绒服",
+          "color_name": "雾霾蓝",
+          "color_value": "#7b9eb5",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底雪地靴",
+          "color_name": "栗棕色",
+          "color_value": "#8d6e63",
+          "color_type": "solid",
+          "thickness": "thick"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖内搭＋宽松下装＋御寒外套＋舒适鞋履",
+        "steps": [
+          "先穿加绒高领打底，锁住核心体温",
+          "搭配束脚工装裤，方便行走且防风灌入",
+          "穿上中长款羽绒服，提供整体包裹感",
+          "最后换上厚底雪地靴，确保足部温暖防滑"
+        ],
+        "styling_points": [
+          "利用燕麦色与雾霾蓝的低饱和度配色，营造松弛旅行氛围",
+          "束脚设计避免裤腿拖沓，适合长时间步行",
+          "高领打底可保护颈部，减少围巾依赖，提升活动便利性"
+        ],
+        "weather_note": "体感温度极低（6-10度），需重点防御风寒效应，同时保持行动灵活",
+        "substitute": "若无羽绒服，可用加厚羊毛大衣替代；若无雪地靴，可选用加绒马丁靴"
+      },
+      "outfit_analysis": {
+        "summary": "针对低温出行场景设计的机能风穿搭，平衡了极致保暖与长途活动的舒适性。",
+        "structure_points": [
+          "采用‘内紧外松’层次：贴身高领打底+宽松羽绒+束脚裤，既保暖又不臃肿",
+          "色彩上以中性大地色系为主，耐脏且易于打理，符合旅行实际需求",
+          "材质选择注重防风与保温性能，应对寒冷天气下的户外环境"
+        ],
+        "completion_advice": [
+          "建议佩戴同色系针织冷帽以增强头部保暖，虽非强制装备但能提升舒适度",
+          "若室内暖气充足，可敞开羽绒服拉链调节体温，保持透气性"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-severe-mens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "severe",
+      "audience": "mens",
+      "label": "极寒轻旅机能装",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "抓绒卫衣",
+          "color_name": "深灰",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加绒工装裤",
+          "color_name": "黑色",
+          "color_value": "#1a1a1a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "protective_outerwear",
+          "asset_key": "outer_shell",
+          "variant_type": "防风羽绒马甲",
+          "color_name": "军绿",
+          "color_value": "#556b2f",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "protective_shoes",
+          "asset_key": "shoe_canvas",
+          "variant_type": "防滑徒步鞋",
+          "color_name": "炭灰",
+          "color_value": "#36454f",
+          "color_type": "solid",
+          "thickness": "regular"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖内搭＋防护外套＋舒适下装＋功能鞋",
+        "steps": [
+          "先穿上厚款抓绒卫衣作为核心保暖层，确保活动自如",
+          "搭配加绒工装裤，兼顾腿部保暖与口袋收纳便利性",
+          "外穿防风羽绒马甲，保护躯干热量同时保留手臂灵活性",
+          "最后穿上防滑徒步鞋，应对长时间行走及潜在湿滑路面"
+        ],
+        "styling_points": [
+          "利用马甲的层次感打破沉闷，军绿色增添户外活力感",
+          "工装裤束脚或直筒皆可，保持利落以方便行动",
+          "深色内搭耐脏易打理，适合旅行途中减少清洗频率"
+        ],
+        "weather_note": "体感温度极低（-2°C至3°C），需重点保障躯干和四肢末梢保暖，虽无降水大风硬指标，但低温出行建议采用分层穿衣法以便根据室内外温差调节。",
+        "substitute": "若无羽绒马甲，可替换为轻薄款羽绒服；若无加绒工装裤，可用厚款运动卫裤代替。"
+      },
+      "outfit_analysis": {
+        "summary": "这套方案专为严寒天气下的男性出行设计，强调“机能”与“舒适”。通过分层穿搭实现高效保暖，避免臃肿束缚，满足长时间在外活动的轻便与耐用需求。",
+        "structure_points": [
+          "上身采用‘厚卫衣+羽绒马甲’组合，既保证核心体温，又比全套厚外套更利于手臂活动",
+          "下身选用加绒工装裤，耐磨且具备一定防风性，符合出行对服装易打理的要求",
+          "鞋履选择防滑徒步鞋，提供必要的足部支撑与保暖，适应复杂路况"
+        ],
+        "completion_advice": [
+          "建议佩戴针织帽或连帽卫衣自带帽子，防止头部散热过多",
+          "若手冷，可额外携带一副触屏手套放入马甲口袋，随用随取",
+          "背包选择轻便双肩包，解放双手，提升出行松弛感"
+        ]
+      }
+    },
+    {
+      "id": "system-ai-travel-severe-womens-01",
+      "scene": "travel",
+      "prompt_version": 5,
+      "thermal_band": "severe",
+      "audience": "womens",
+      "label": "极寒松弛轻旅",
+      "items": [
+        {
+          "slot": "top",
+          "functional_icon_key": "warm_top",
+          "asset_key": "top_knit",
+          "variant_type": "加厚抓绒卫衣",
+          "color_name": "燕麦色",
+          "color_value": "#d4c5b9",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "warm_bottom",
+          "asset_key": "bottom_sweatpants",
+          "variant_type": "加绒束脚运动裤",
+          "color_name": "深灰色",
+          "color_value": "#4a4a4a",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "warm_outerwear",
+          "asset_key": "outer_down_short",
+          "variant_type": "中长款羽绒大衣",
+          "color_name": "米白色",
+          "color_value": "#f5f5dc",
+          "color_type": "solid",
+          "thickness": "thick"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "daily_shoes",
+          "asset_key": "shoe_sneaker",
+          "variant_type": "厚底雪地靴",
+          "color_name": "浅棕色",
+          "color_value": "#8b7355",
+          "color_type": "solid",
+          "thickness": "thick"
+        }
+      ],
+      "replication_guide": {
+        "formula": "保暖内搭＋宽松下装＋厚重外套＋舒适鞋履",
+        "steps": [
+          "先穿上加厚抓绒卫衣作为核心保暖层，确保活动自如",
+          "搭配加绒束脚运动裤，既保暖又方便行走且耐脏易打理",
+          "外穿中长款羽绒大衣，提供极寒天气下的整体防护",
+          "最后穿上厚底雪地靴，保证长时间步行的舒适度与足部温暖"
+        ],
+        "styling_points": [
+          "利用燕麦色与米白色的同色系过渡，营造高级松弛感",
+          "束脚设计避免裤腿拖沓，适合出行场景",
+          "整体版型保持宽松，不束缚身体，符合‘方便活动’的要求"
+        ],
+        "weather_note": "体感温度极低（-2℃至3℃），需重点应对寒冷，无降水大风，故侧重静态保暖与动态舒适平衡",
+        "substitute": "若无抓绒卫衣，可用高领羊毛衫替代；若无雪地靴，可换为内部加绒的轻便运动鞋"
+      },
+      "outfit_analysis": {
+        "summary": "针对严重低温环境设计的出行方案，摒弃正式束缚，采用机能休闲风格，强调在极寒中的舒适性与行动便利度。",
+        "structure_points": [
+          "三层穿衣法：贴身保暖（抓绒）+ 中间层/外层（羽绒）+ 下肢独立保暖（加绒裤）",
+          "色彩结构：大地色系为主，视觉温暖且耐脏",
+          "廓形结构：上宽下收（束脚）或整体宽松，预留空气层以增强保温效果"
+        ],
+        "completion_advice": [
+          "建议携带一个斜挎小包解放双手，符合出行便捷需求",
+          "若进入室内暖气充足场所，大衣敞开穿着即可快速调节体温",
+          "虽未强制要求配饰，但鉴于气温极低，建议自行佩戴围巾保护颈部"
+        ]
+      }
+    }
+  ]
+}

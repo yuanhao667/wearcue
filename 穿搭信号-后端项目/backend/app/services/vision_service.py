@@ -69,6 +69,11 @@ SLOT_ASSET_KEYS = {
     "shoes": "shoe_sneaker", "equipment": "acc_baseball_cap",
 }
 
+AUDIENCE_STYLE_REPLACEMENTS = {
+    "mens": {"温柔": "协调", "柔美": "柔和", "甜美": "清新", "娇俏": "灵动", "妩媚": "有魅力", "少女": "青春", "淑女": "得体"},
+    "womens": {"硬汉": "利落", "硬朗": "利落", "粗犷": "有层次", "阳刚": "有力量", "猛男": "活力", "绅士": "精致"},
+}
+
 
 def canonical_asset_key(component: dict) -> str:
     """Convert provider vocabulary into the stable icon vocabulary used by the UI."""
@@ -84,6 +89,17 @@ def canonical_asset_key(component: dict) -> str:
     return VARIANT_ASSET_KEYS.get(variant) or FUNCTIONAL_ASSET_KEYS.get(
         str(component.get("functional_icon_key") or "").strip().lower()
     ) or SLOT_ASSET_KEYS.get(str(component.get("slot") or "").strip().lower(), "top_tshirt_long")
+
+
+def _normalize_audience_style_text(value, audience: str):
+    if isinstance(value, dict):
+        return {key: _normalize_audience_style_text(item, audience) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_normalize_audience_style_text(item, audience) for item in value]
+    if isinstance(value, str):
+        for source, target in AUDIENCE_STYLE_REPLACEMENTS.get(audience, {}).items():
+            value = value.replace(source, target)
+    return value
 
 
 def normalize_vision_result(result: dict) -> dict:
@@ -119,6 +135,9 @@ def normalize_vision_result(result: dict) -> dict:
             advice for advice in analysis.get("completion_advice", [])
             if not any(word in advice for word in ("鞋", "靴"))
         ]
+    audience = str(result.get("garment_audience") or "")
+    for key in ("outfit_analysis", "replication_guide"):
+        result[key] = _normalize_audience_style_text(result.get(key, {}), audience)
     return result
 
 
@@ -131,6 +150,7 @@ class VisionService:
         self.url = os.getenv("VISION_API_URL", "").rstrip("/")
         self.key = os.getenv("VISION_API_KEY", "")
         self.model = os.getenv("VISION_MODEL", "")
+        self.fallback_model = os.getenv("VISION_FALLBACK_MODEL", "")
         self.prompt = (Path(__file__).resolve().parents[1] / "prompts" / "vision_outfit.txt").read_text()
 
     @property
@@ -141,38 +161,53 @@ class VisionService:
         if not self.configured:
             raise VisionServiceError("生产视觉模型尚未配置")
         encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
-        payload = {
-            "model": self.model,
-            "enable_thinking": False,
-            "temperature": 0,
-            "max_tokens": 1000,
-            "response_format": {"type": "json_object"},
-            "messages": [
-                {"role": "system", "content": self.prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "识别并分析这张穿搭照片，只返回系统要求的 JSON。"},
-                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + encoded}},
+        models = list(dict.fromkeys(filter(None, [self.model, self.fallback_model])))
+        async with httpx.AsyncClient(timeout=45) as client:
+            for index, selected_model in enumerate(models):
+                payload = {
+                    "model": selected_model,
+                    "enable_thinking": False,
+                    "temperature": 0,
+                    "max_tokens": 1000,
+                    "response_format": {"type": "json_object"},
+                    "messages": [
+                        {"role": "system", "content": self.prompt},
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "识别并分析这张穿搭照片，只返回系统要求的 JSON。",
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": "data:image/jpeg;base64," + encoded},
+                                },
+                            ],
+                        },
                     ],
                 }
-            ],
-        }
-        try:
-            async with httpx.AsyncClient(timeout=45) as client:
-                response = await client.post(
-                    self.url + "/chat/completions",
-                    headers={"Authorization": "Bearer " + self.key},
-                    json=payload,
-                )
-                response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            if isinstance(content, list):
-                content = "".join(part.get("text", "") for part in content)
-            raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
-            result = VisionResult.model_validate(json.loads(raw))
-            return normalize_vision_result(result.model_dump())
-        except httpx.TimeoutException as exc:
-            raise VisionServiceError("视觉模型响应超时，请重新识别") from exc
-        except (httpx.HTTPError, KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
-            raise VisionServiceError("视觉模型返回失败，请重试或手动确认") from exc
+                try:
+                    response = await client.post(
+                        self.url + "/chat/completions",
+                        headers={"Authorization": "Bearer " + self.key},
+                        json=payload,
+                    )
+                    response.raise_for_status()
+                    content = response.json()["choices"][0]["message"]["content"]
+                    if isinstance(content, list):
+                        content = "".join(part.get("text", "") for part in content)
+                    raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
+                    result = VisionResult.model_validate(json.loads(raw))
+                    return normalize_vision_result(result.model_dump())
+                except httpx.HTTPStatusError as caught:
+                    error = caught
+                    retryable = caught.response.status_code == 429 or caught.response.status_code >= 500
+                except (httpx.RequestError, KeyError, TypeError, ValueError) as caught:
+                    error = caught
+                    retryable = True
+                if not retryable or index == len(models) - 1:
+                    if isinstance(error, httpx.TimeoutException):
+                        raise VisionServiceError("视觉模型响应超时，请重新识别") from error
+                    raise VisionServiceError("视觉模型返回失败，请重试或手动确认") from error
+        raise VisionServiceError("视觉模型返回失败，请重试或手动确认")
