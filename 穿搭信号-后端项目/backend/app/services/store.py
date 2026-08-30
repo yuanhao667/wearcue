@@ -2,10 +2,13 @@ import hashlib
 import json
 import os
 import secrets
+import shutil
 import sqlite3
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -43,20 +46,63 @@ class Store:
             if configured_data_dir
             else Path(__file__).resolve().parents[3] / "data"
         )
-        self.upload_dir = self.data_dir / "uploads"
-        self.generated_dir = self.data_dir / "generated"
+        configured_persistent_dir = os.getenv("PERSISTENT_DATA_DIR", "").strip()
+        self.persistent_dir = Path(configured_persistent_dir) if configured_persistent_dir else None
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        if self.persistent_dir:
+            self.persistent_dir.mkdir(parents=True, exist_ok=True)
+        asset_root = self.persistent_dir or self.data_dir
+        self.upload_dir = asset_root / "uploads"
+        self.generated_dir = asset_root / "generated"
         self.upload_dir.mkdir(parents=True, exist_ok=True)
         self.generated_dir.mkdir(parents=True, exist_ok=True)
         self.db_path = self.data_dir / "outfit-signal.sqlite3"
+        self.db_backup_path = (
+            self.persistent_dir / "database" / "outfit-signal.sqlite3"
+            if self.persistent_dir
+            else None
+        )
+        self._backup_lock = threading.Lock()
+        self._restore_database()
         self._init()
         self._seed_existing_user_examples()
 
-    def connect(self) -> sqlite3.Connection:
+    def _restore_database(self) -> None:
+        if self.db_path.exists() or not self.db_backup_path or not self.db_backup_path.is_file():
+            return
+        self.db_backup_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(self.db_backup_path, self.db_path)
+
+    def _backup_database(self) -> None:
+        if not self.db_backup_path:
+            return
+        with self._backup_lock:
+            self.db_backup_path.parent.mkdir(parents=True, exist_ok=True)
+            local_snapshot = self.db_path.with_suffix(".snapshot.sqlite3")
+            remote_snapshot = self.db_backup_path.with_suffix(".snapshot.sqlite3")
+            try:
+                with sqlite3.connect(self.db_path) as source, sqlite3.connect(local_snapshot) as target:
+                    source.backup(target)
+                shutil.copyfile(local_snapshot, remote_snapshot)
+                os.replace(remote_snapshot, self.db_backup_path)
+            finally:
+                local_snapshot.unlink(missing_ok=True)
+                remote_snapshot.unlink(missing_ok=True)
+
+    @contextmanager
+    def connect(self) -> Iterator[sqlite3.Connection]:
         connection = sqlite3.connect(self.db_path, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA journal_mode=WAL")
-        return connection
+        try:
+            with connection:
+                yield connection
+            changed = connection.total_changes > 0
+        finally:
+            connection.close()
+        if changed:
+            self._backup_database()
 
     @staticmethod
     def _add_column(db: sqlite3.Connection, table: str, definition: str) -> None:

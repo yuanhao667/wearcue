@@ -1,0 +1,17 @@
+.git/
+.github/
+.vefaas/
+.venv/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.env.*
+docs/
+data/
+backend/data/
+backend/tests/
+scripts/
