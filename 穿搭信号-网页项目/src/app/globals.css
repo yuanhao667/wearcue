@@ -1361,7 +1361,7 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .settings-nickname-input:focus { border-bottom-color: var(--ink); }
 .settings-nickname-save { border: 1px solid var(--deep-green); border-radius: 999px; background: var(--deep-green); color: #fff; padding: 10px 20px; font-size: 14px; font-weight: 750; cursor: pointer; white-space: nowrap; }
 .settings-nickname-save:disabled { opacity: .45; cursor: default; }
-.settings-logout-button { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #f17147; border-radius: 999px; background: #f17147; color: #fff; padding: 0 20px; min-height: 40px; font-size: 14px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.settings-logout-button { display: flex; width: fit-content; min-width: 200px; min-height: 50px; margin: 32px 0 0; align-items: center; justify-content: center; border: 1px solid #f17147; border-radius: 999px; background: #f17147; color: #fff; padding: 0 48px; font-size: 16px; font-weight: 750; cursor: pointer; white-space: nowrap; }
 .settings-logout-button:hover { border-color: #df623d; background: #df623d; }
 .time-picker { position: relative; }
 .time-picker-trigger { width: 100%; display: flex; align-items: center; gap: 12px; border: var(--paper-line); border-radius: 12px; background: var(--paper); padding: 12px 16px; color: var(--ink); font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }

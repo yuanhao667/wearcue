@@ -177,7 +177,6 @@ export function SettingsApp() {
         <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => setNicknameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
         {displayNickname.trim() && displayNickname.trim() !== nickname ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
       </div>
-      <button className="settings-logout-button" onClick={() => void logout()}>退出登录</button>
     </header>
     {status === "loading" && <section className="paper-loading"><div /><div /><div /></section>}
     {status === "error" && <section className="paper-state"><h2>设置暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section>}
@@ -189,6 +188,7 @@ export function SettingsApp() {
       <section className="settings-paper-card"><div className="card-caption">体感偏好</div><h2>冷热偏好</h2><p>怕冷就向右微调，怕热就向左微调。</p><input className="paper-range" type="range" min="-6" max="6" step="2" value={settings.cold_offset} style={{ "--range-progress": `${((settings.cold_offset + 6) / 12) * 100}%` } as CSSProperties} onChange={(event) => void update({ cold_offset: Number(event.target.value) })} /><div className="range-labels"><span>更怕热</span><b>{settings.cold_offset === 0 ? "标准体感" : `${settings.cold_offset > 0 ? "+" : ""}${settings.cold_offset}°`}</b><span>更怕冷</span></div></section>
       <section className="settings-paper-card"><div className="card-caption">穿搭偏好</div><h2>性别与服饰</h2><p>选择一次，上传识别和每日推荐都会默认沿用；配件继续共用。</p><div className="choice-grid">{(["mens", "womens"] as Audience[]).map((audience) => <button key={audience} className={settings.audience === audience ? "selected-choice" : ""} onClick={() => void update({ audience })}><b>{audience === "mens" ? "男装" : "女装"}</b><span>{audience === "mens" ? "男士相关穿搭" : "女士相关穿搭"}</span></button>)}</div></section>
     </div>}
+    <button className="settings-logout-button" onClick={() => void logout()}>退出登录</button>
     {message && status === "success" && <div className={`save-notice ${saving ? "" : "ready"}`} aria-live="polite">{saving ? "正在保存…" : message}</div>}
     {cityOpen && settings && <CityPicker current={asCity(settings)} onSelect={chooseCity} onLocate={locate} onClose={() => setCityOpen(false)} />}
   </main>;
