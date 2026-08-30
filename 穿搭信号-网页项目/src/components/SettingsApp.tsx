@@ -12,6 +12,7 @@ import { locateCurrentDistrict, simplifyLocationName } from "@/lib/browser-locat
 import type { Audience, BackendSettings } from "@/domain/backend";
 
 type UserProfile = { nickname: string; avatar: string; gender?: "mens" | "womens"; invited?: boolean };
+type CurrentUser = { id: string };
 type BodyProfile = Pick<BackendSettings, "height_group" | "weight_group">;
 const heightGroups: BodyProfile["height_group"][] = ["偏矮", "中等", "偏高"];
 const weightGroups: BodyProfile["weight_group"][] = ["偏轻", "中等", "偏重"];
@@ -35,6 +36,7 @@ export function SettingsApp() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [nicknameDraft, setNicknameDraft] = useState<string | null>(null);
   const displayNickname = nicknameDraft ?? nickname;
+  const [userId, setUserId] = useState("");
   const [settings, setSettings] = useState<BackendSettings | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -45,7 +47,15 @@ export function SettingsApp() {
 
   const load = useCallback(async () => {
     setStatus("loading");
-    try { setSettings(await apiJson<BackendSettings>("/settings")); setStatus("success"); }
+    try {
+      const [nextSettings, session] = await Promise.all([
+        apiJson<BackendSettings>("/settings"),
+        apiJson<{ user: CurrentUser }>("/auth/me"),
+      ]);
+      setSettings(nextSettings);
+      setUserId(session.user.id);
+      setStatus("success");
+    }
     catch (error) { setMessage(error instanceof Error ? error.message : "设置加载失败"); setStatus("error"); }
   }, []);
   useEffect(() => {
@@ -174,7 +184,10 @@ export function SettingsApp() {
           {profile.avatar ? <span className="settings-avatar-photo" style={{ backgroundImage: `url(${profile.avatar})` }} /> : <span className="settings-avatar-letter">{avatarLetter}</span>}
         </button>
         <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => void changeAvatar(event.target.files?.[0])} />
-        <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => setNicknameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
+        <div className="settings-profile-copy">
+          <input className="settings-nickname-input" value={displayNickname} maxLength={5} aria-label="昵称" onChange={(event) => setNicknameDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveNickname(); }} />
+          {userId && <span className="settings-user-id">用户 ID：{userId}</span>}
+        </div>
         {displayNickname.trim() && displayNickname.trim() !== nickname ? <button type="button" className="settings-nickname-save" onClick={() => void saveNickname()}>保存</button> : null}
       </div>
     </header>

@@ -87,3 +87,11 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
         json={"nickname": "错误昵称", "audience": "womens", "invite_code": "INVITE-A"},
     ).json()
     assert relogin_a["user"] == login_a.json()["user"]
+    original_user_id = login_a.json()["user"]["id"]
+    updated_user = client.post(
+        "/api/v1/auth/profile",
+        headers=_headers(token_a),
+        json={"nickname": "新昵称"},
+    ).json()["user"]
+    assert updated_user["id"] == original_user_id
+    assert client.get("/api/v1/auth/me", headers=_headers(token_a)).json()["user"]["id"] == original_user_id
