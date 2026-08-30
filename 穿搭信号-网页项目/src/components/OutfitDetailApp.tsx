@@ -91,7 +91,6 @@ export function OutfitDetailApp({ id }: { id: string }) {
         recommendation_id: id,
         label: recommendation?.label ?? savedOutfit?.label ?? "今日穿搭",
         scene: recommendation?.scene ?? savedOutfit?.scene_ids[0] ?? "commute",
-        audience: recommendation?.audience ?? savedOutfit?.audience ?? "mens",
         items: targetItems,
         constraints: recommendation?.constraints ?? {},
         generate_advice: needsAdvice,

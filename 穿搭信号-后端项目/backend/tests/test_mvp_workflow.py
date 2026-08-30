@@ -778,6 +778,45 @@ def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path,
     assert captured_advice_profile == captured_profile
 
 
+def test_detail_ai_reads_current_account_gender_scene_and_profile(tmp_path, monkeypatch) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch, audience="womens")
+    client.post(
+        "/api/v1/settings",
+        json={"height_group": "偏矮", "weight_group": "偏轻"},
+    )
+    captured = {}
+
+    async def capture_advice(self, items, weather_summary, scene, audience, person_profile):
+        captured["advice"] = (scene, audience, person_profile)
+        return await _fake_ai_advice(
+            self, items, weather_summary, scene, audience, person_profile
+        )
+
+    async def capture_image(self, label, audience, scene, items, constraints, person_profile):
+        captured["image"] = (scene, audience, person_profile)
+        return await _fake_outfit_image(
+            self, label, audience, scene, items, constraints, person_profile
+        )
+
+    monkeypatch.setattr(OutfitAIService, "generate_advice", capture_advice)
+    monkeypatch.setattr(OutfitImageService, "generate", capture_image)
+    response = client.post(
+        "/api/v1/recommendations/advice",
+        json={
+            "recommendation_id": "current-settings-detail",
+            "scene": "date",
+            "audience": "mens",
+            "items": [_component()],
+            "constraints": {"calibrated_apparent_min": 20},
+        },
+    )
+
+    assert response.status_code == 200
+    expected = ("date", "womens", {"height_group": "偏矮", "weight_group": "偏轻"})
+    assert captured == {"advice": expected, "image": expected}
+
+
 def test_failed_live_ai_swap_releases_quota(tmp_path, monkeypatch) -> None:
     test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)

@@ -170,7 +170,6 @@ class RecommendationAdviceRequest(BaseModel):
     recommendation_id: str = Field(min_length=1, max_length=80)
     label: str = Field(default="今日穿搭", min_length=1, max_length=30)
     scene: str = Field(pattern="^(commute|date|travel)$")
-    audience: str = Field(pattern="^(mens|womens)$")
     items: List[OutfitComponent]
     constraints: dict = Field(default_factory=dict)
     generate_advice: bool = True
