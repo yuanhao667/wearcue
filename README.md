@@ -1,6 +1,6 @@
 <div align="center">
 
-# WearCue
+<img src="穿搭信号-网页项目/public/brand/wearcue-logo-20260828.png" width="360" alt="WearCue 文字 Logo">
 
 **每天少想一件事：穿什么。**
 
