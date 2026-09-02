@@ -1,27 +1,30 @@
 <div align="center">
 
-<img src="穿搭信号-网页项目/public/brand/wearcue-logo-20260828.png" width="360" alt="WearCue 标志">
-
 # WearCue
 
 **每天少想一件事：穿什么。**
 
 把实时天气、出行场景和个人穿搭灵感，变成今天可以直接照着穿的一套建议。
 
+[![线上状态：可访问](https://img.shields.io/badge/%E7%BA%BF%E7%8A%B6%E6%80%81-%E5%8F%AF%E8%AE%BF%E9%97%AE-22C55E?style=flat-square&labelColor=111827)](https://ss2fri90im8h5gjbjf5c8.apigateway-cn-beijing.volceapi.com/)
 ![Web: Next.js 16](https://img.shields.io/badge/Web-Next.js_16-22C55E?style=flat-square&labelColor=111827&logo=nextdotjs&logoColor=white)
 ![API: FastAPI](https://img.shields.io/badge/API-FastAPI-14B8A6?style=flat-square&labelColor=111827&logo=fastapi&logoColor=white)
 ![Runtime: Python 3.11+](https://img.shields.io/badge/Runtime-Python_3.11+-4F8FF7?style=flat-square&labelColor=111827&logo=python&logoColor=white)
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-A3E635?style=flat-square&labelColor=111827)
 
 <br>
 
-[产品简介](#intro) · [核心功能](#features) · [本地运行](#run) · [项目结构](#structure) · [技术说明](#stack)
+[![在线体验](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-%E6%89%93%E5%BC%80_WearCue-A3E635?style=for-the-badge&labelColor=111827)](https://ss2fri90im8h5gjbjf5c8.apigateway-cn-beijing.volceapi.com/)
 
 <br>
 
-[<img src="穿搭信号-网页项目/public/brand/wearcue-bear.png" width="960" alt="WearCue 品牌形象">](#run)
+[在线体验](#online) · [产品简介](#intro) · [核心功能](#features) · [本地开发](#run) · [项目结构](#structure) · [技术说明](#stack)
 
 </div>
+
+<a id="online"></a>
+## 在线体验
+
+访问 **[WearCue 线上版](https://ss2fri90im8h5gjbjf5c8.apigateway-cn-beijing.volceapi.com/)**。首次进入会跳转到登录页，填写昵称、性别和邀请码后即可使用；允许位置访问后，WearCue 会按当前位置获取天气。
 
 <a id="intro"></a>
 ## 产品简介
@@ -43,7 +46,7 @@ WearCue 是一款面向日常出行的天气穿搭助手。它根据所在城市
 | 晨间提醒 | 设置提醒时间，通过浏览器通知查看当天穿搭 |
 
 <a id="run"></a>
-## 本地运行
+## 本地开发
 
 ### 环境要求
 
@@ -72,8 +75,8 @@ docker compose up --build
 
 后端启动后可访问：
 
-- API 文档：<http://localhost:8000/docs>
-- 健康检查：<http://localhost:8000/api/v1/health>
+- API 文档：`http://localhost:8000/docs`
+- 健康检查：`http://localhost:8000/api/v1/health`
 
 ### 2. 启动前端
 
@@ -86,7 +89,7 @@ pnpm install
 pnpm dev
 ```
 
-浏览器打开 <http://localhost:3456>。开发环境可使用 `.env` 中配置的邀请码登录；天气查询默认使用 Open-Meteo。
+浏览器打开 `http://localhost:3456`。开发环境可使用 `.env` 中配置的邀请码登录；天气查询默认使用 Open-Meteo。
 
 ### 3. 启用 AI 与提醒
 
@@ -124,6 +127,6 @@ wearcue/
 
 **Built with ❤️ by [@yuanhao667](https://github.com/yuanhao667)**
 
-[开始运行](#run) · [查看源码](https://github.com/yuanhao667/wearcue) · [反馈问题](https://github.com/yuanhao667/wearcue/issues)
+[在线体验](https://ss2fri90im8h5gjbjf5c8.apigateway-cn-beijing.volceapi.com/) · [本地开发](#run) · [反馈问题](https://github.com/yuanhao667/wearcue/issues)
 
 </div>
