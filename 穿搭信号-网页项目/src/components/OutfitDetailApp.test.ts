@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { detailAdviceStatus, detailSteps } from "./OutfitDetailApp";
+import { detailAdviceStatus, detailSteps, recommendationSavePayload } from "./OutfitDetailApp";
+import type { BackendRecommendation, ReplicationGuide } from "@/domain/backend";
 
 describe("detail advice progress", () => {
   it("cycles through advice-generation tasks", () => {
@@ -37,5 +38,19 @@ describe("detail outfit steps", () => {
       "先穿牛仔衬衫（牛仔蓝、常规）",
       "搭配黑色、薄款的低帮鞋",
     ]);
+  });
+});
+
+describe("recommendation save payload", () => {
+  it("preserves the generated outfit and its weather range", () => {
+    const recommendation = {
+      label: "清爽通勤风", audience: "mens", scene: "commute", items: [{ slot: "top", functional_icon_key: "short_sleeve", variant_type: "短袖", color_name: "白色", thickness: "thin", asset_key: "top_tshirt_short" }],
+      constraints: { apparent_min: 19, apparent_max: 32 },
+    } as BackendRecommendation;
+    const guide = { formula: "短袖", steps: ["穿短袖"], styling_points: [], weather_note: "注意温差", substitute: "同版型即可" } as ReplicationGuide;
+
+    expect(recommendationSavePayload(recommendation, guide, null, true)).toMatchObject({
+      label: "清爽通勤风", scene_ids: ["commute"], suitable_min: 19, suitable_max: 32, in_pool: true, replication_guide: guide,
+    });
   });
 });

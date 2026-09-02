@@ -29,6 +29,20 @@ export function detailSteps(steps: string[], items: DetailStepItem[]) {
   return enriched.concat(remaining.map((item) => `搭配${item.color_name}、${thicknessLabel(item.thickness)}的${item.variant_type}`));
 }
 
+export function recommendationSavePayload(recommendation: BackendRecommendation, guide: ReplicationGuide, analysis: OutfitAnalysis | null, inPool: boolean) {
+  return {
+    label: recommendation.label,
+    audience: recommendation.audience,
+    components: recommendation.items,
+    scene_ids: [recommendation.scene],
+    suitable_min: recommendation.constraints.apparent_min ?? recommendation.constraints.temperature_min ?? 15,
+    suitable_max: recommendation.constraints.apparent_max ?? recommendation.constraints.temperature_max ?? 28,
+    in_pool: inPool,
+    outfit_analysis: analysis,
+    replication_guide: guide,
+  };
+}
+
 function subscribe() { return () => undefined; }
 function snapshot() { return localStorage.getItem("wearcue_active_outfit_v1") || ""; }
 
@@ -44,6 +58,8 @@ export function OutfitDetailApp({ id }: { id: string }) {
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [adviceDone, setAdviceDone] = useState(false);
   const [adviceStatusStep, setAdviceStatusStep] = useState(0);
+  const [saveAction, setSaveAction] = useState<"pool" | "library" | null>(null);
+  const [saveMessage, setSaveMessage] = useState("");
   const requestedDetail = useRef("");
   const recommendation = useMemo<BackendRecommendation | null>(() => {
     if (!raw) return null;
@@ -148,12 +164,39 @@ export function OutfitDetailApp({ id }: { id: string }) {
     styling_points: [], weather_note: "按当天体感增减外层。", substitute: "选择相同版型和薄厚的单品即可。",
   };
   const steps = detailSteps(guide.steps, items);
+  async function saveRecommendation(inPool: boolean) {
+    if (!recommendation) return;
+    setSaveAction(inPool ? "pool" : "library");
+    setSaveMessage("");
+    try {
+      let outfit = savedOutfit;
+      if (!outfit) {
+        outfit = await apiJson<Outfit>("/outfits", { method: "POST", body: JSON.stringify(recommendationSavePayload(recommendation, guide, analysis, inPool)) });
+      } else if (inPool) {
+        outfit = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify({ in_pool: !outfit.in_pool }) });
+      }
+      setSavedOutfit(outfit);
+      setSaveMessage(inPool ? "" : "已保存到穿搭灵感");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "保存失败，请稍后重试");
+    } finally {
+      setSaveAction(null);
+    }
+  }
   return <main className="paper-page outfit-detail-page">
     <Link className="outfit-detail-back" href={savedOutfit ? "/closet" : "/"}>← 返回{savedOutfit ? "穿搭灵感" : "今日推荐"}</Link>
     <header className="outfit-detail-head"><h1>{displayLabel}</h1><strong>{guide.formula}</strong></header>
     <div className="outfit-detail-layout">
       <section className={`outfit-detail-visual-card${showPhotoColumn ? "" : " icons-only"}`}>
-        {showPhotoColumn && <section className="outfit-detail-photo-card"><div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>{imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}</section>}
+        {showPhotoColumn && <section className="outfit-detail-photo-card">
+          <div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>
+          {imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}
+          {recommendation && <div className="outfit-detail-photo-actions">
+            <button className={`outfit-save-primary${savedOutfit?.in_pool ? " is-saved" : ""}`} type="button" aria-pressed={Boolean(savedOutfit?.in_pool)} aria-label={savedOutfit?.in_pool ? "移出个人首页推荐" : "加入个人首页推荐"} disabled={Boolean(saveAction)} onClick={() => void saveRecommendation(true)}>{saveAction === "pool" ? savedOutfit?.in_pool ? "正在移出…" : "正在加入…" : savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button>
+            <button className="outfit-save-secondary" type="button" disabled={Boolean(saveAction || savedOutfit)} onClick={() => void saveRecommendation(false)}>{saveAction === "library" ? "正在保存…" : savedOutfit ? "已保存" : "保存到穿搭灵感"}</button>
+            {saveMessage && <p role="status">{saveMessage}</p>}
+          </div>}
+        </section>}
         <section className="outfit-detail-items"><div className="outfit-detail-grid">{items.map((item, index) => <article key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={audience} /><strong>{item.variant_type}</strong></article>)}</div></section>
       </section>
       <section className="review-card outfit-detail-result-card">

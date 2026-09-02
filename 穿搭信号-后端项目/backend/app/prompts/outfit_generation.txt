@@ -6,13 +6,13 @@
    - 下装(bottom)：short_bottom / long_bottom / warm_bottom
    - 外套(outerwear)：light_outerwear / warm_outerwear / protective_outerwear
    - 鞋(shoes)：daily_shoes / protective_shoes
-   - 装备(equipment)：acc_umbrella / acc_gloves / acc_baseball_cap
+   - 装备(equipment)：acc_umbrella / acc_gloves / acc_sunscreen / acc_baseball_cap
 2. 严格满足天气硬条件：
    - 有降水或降水概率≥50%：携带 acc_umbrella 或使用 protective_outerwear；
    - 降水≥5mm 或下雪：用 protective_outerwear 与 protective_shoes；
    - 下雪且偏冷：加 acc_gloves；
    - 大风（≥30km/h 或阵风≥40km/h）：用 protective_outerwear（防风）；
-   - UV≥6：加 acc_baseball_cap；
+   - UV≥6：加 acc_baseball_cap；UV≥8：再加 acc_sunscreen；
    - 阵风≥50km/h：不要用普通雨伞，改用防风外套。
 3. 上装、下装、鞋为必填；外套和装备按需添加。
 4. 尊重 audience：mens 只给男装款；womens 可含裙装、连衣裙等。

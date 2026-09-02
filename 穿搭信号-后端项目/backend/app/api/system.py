@@ -38,7 +38,7 @@ GARMENT_LABELS = {
     "bottom_skirt_long": "长裙", "onepiece_dress": "连衣裙", "shoe_sneaker": "低帮鞋",
     "shoe_canvas": "高帮鞋", "shoe_leather": "正装皮鞋", "shoe_pump": "高跟鞋",
     "acc_umbrella": "雨伞", "acc_baseball_cap": "棒球帽", "acc_gloves": "手套",
-    "acc_beanie": "针织帽",
+    "acc_beanie": "针织帽", "acc_sunscreen": "防晒霜",
 }
 # ponytail: 进程内锁足够覆盖当前单 worker；扩到多 worker 时改为数据库任务锁。
 DETAIL_LOCKS: defaultdict[tuple[str, str], asyncio.Lock] = defaultdict(asyncio.Lock)

@@ -13,7 +13,7 @@ describe("garment icon vocabulary", () => {
   });
 
   it("contains fully separated mens, womens and accessory collections", () => {
-    expect(GARMENT_ICON_MAP).toHaveLength(41);
+    expect(GARMENT_ICON_MAP).toHaveLength(42);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "mens")).toBe(true);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "womens")).toBe(true);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "accessory")).toBe(true);
@@ -41,6 +41,7 @@ describe("garment icon vocabulary", () => {
     expect(byTerm("薄款外套")?.baseIconKey).toBe("outer_light_jacket");
     expect(byTerm("冲锋衣")?.baseIconKey).toBe("outer_shell");
     expect(byTerm("休闲短裤")?.baseIconKey).toBe("bottom_shorts");
+    expect(byTerm("防晒霜")?.baseIconKey).toBe("acc_sunscreen");
   });
 
   it("maps a recognised sneaker name to the available sneaker SVG", () => {

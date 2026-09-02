@@ -22,6 +22,7 @@ FUNCTIONAL_TO_ASSET: Dict[str, str] = {
     "protective_shoes": "shoe_canvas",
     "acc_umbrella": "acc_umbrella",
     "acc_gloves": "acc_gloves",
+    "acc_sunscreen": "acc_sunscreen",
     "acc_baseball_cap": "acc_baseball_cap",
 }
 

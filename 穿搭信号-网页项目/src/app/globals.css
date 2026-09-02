@@ -419,9 +419,7 @@ body::before {
 html, body { background: #f5f6f7; color: #111315; }
 body { background: #f5f6f7; font-family: var(--paper-font); }
 body::before { color: rgba(17,19,21,.025); font-family: "Arial Black", Arial, sans-serif; font-style: normal; font-weight: 900; letter-spacing: 0; }
-.paper-header {
-  border-color: #e6e9ec; background: rgba(245,246,247,.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-}
+.paper-header { border-color: #e6e9ec; background: rgba(245,246,247,.9); }
 .paper-wordmark { color: #111315; font-family: var(--paper-font); font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
 .paper-wordmark span { border-color: var(--deep-green); background: var(--deep-green); color: #c8ff32; }
 .paper-header nav { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); isolation: isolate; }
@@ -493,6 +491,11 @@ body::before { color: rgba(17,19,21,.025); font-family: "Arial Black", Arial, sa
 .outfit-icon-mask::after { position: absolute; inset: 0; content: ""; -webkit-mask: var(--outfit-icon) center / contain no-repeat; mask: var(--outfit-icon) center / contain no-repeat; }
 .outfit-icon-mask::after { background: #4f565b; }
 .outfit-icon-mask::before { display: none; }
+.outfit-icon-mask[data-icon-key="bottom_casual_pants"] { transform: scale(.95); }
+.outfit-icon-mask[data-icon-key="outer_light_jacket"] { transform: translateY(3%); }
+.outfit-icon-mask[data-icon-key="outer_down_short"] { transform: translateY(3%) scale(1.04); }
+.outfit-icon-mask[data-icon-key="acc_baseball_cap"] { transform: translateY(3%); }
+.outfit-icon-mask[data-icon-key="shoe_sneaker"] { transform: scale(1.04); }
 .outfit-paper-card > div:last-child { border-color: #e4e7e9; }
 .outfit-paper-card p, .outfit-paper-card small { color: #7b8186; }
 .outfit-paper-card h3 { color: #111315; font-size: 22px; }
@@ -1189,7 +1192,8 @@ body {
   box-sizing: border-box;
   margin: 0;
   padding-inline: max(24px, calc((100% - 1200px) / 2));
-  background: #f5f6f7;
+  border-color: rgba(223, 227, 230, .58);
+  background: rgba(245, 246, 247, .62);
 }
 .paper-header .paper-wordmark { margin-left: 0; }
 .paper-header .settings-icon-button {
@@ -1451,8 +1455,8 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .recommendation-title-copy { min-width: 0; }
 .recommendation-title-row h2 { min-width: 0; }
 .recommendation-title-copy p { margin: 0; color: #989ea3; font-size: 14px; line-height: 1.5; }
-.view-outfit-button { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #c8ff32; border-radius: 999px; background: #c8ff32; color: #111315; padding: 10px 14px; font-size: 12px; font-weight: 850; line-height: 1; cursor: pointer; box-shadow: 0 8px 24px rgba(200,255,50,.14); transition: transform .18s ease, box-shadow .18s ease; }
-.view-outfit-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: login-arrow-nudge 1.8s ease-in-out infinite; will-change: transform; }
+.view-outfit-button { width: 138px; height: 42px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; border: 1px solid #c8ff32; border-radius: 999px; background: #c8ff32; color: #111315; padding: 0 16px; font-size: 13px; font-weight: 850; line-height: 1; cursor: pointer; box-shadow: 0 8px 24px rgba(200,255,50,.14); transition: transform .18s ease, box-shadow .18s ease; }
+.view-outfit-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: login-arrow-nudge 1.8s ease-in-out infinite; will-change: transform; }
 .view-outfit-button:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(200,255,50,.22); }
 
 /* Clothing is the decision; weather is supporting evidence. */
@@ -1523,7 +1527,6 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .today-paper .recommendation-outfit-item .outfit-icon-mask {
   width: 88%;
   height: 88%;
-  filter: drop-shadow(0 0 10px rgba(200,255,50,.16));
 }
 .today-paper .recommendation-outfit-item .outfit-icon-mask::after { background: #f7f8f9; }
 .today-paper .recommendation-outfit-item strong { color: #e2e5e7; }
@@ -1883,12 +1886,20 @@ body:has(.upload-paper)::before { display: none; }
 .outfit-detail-photo-card { position: relative; min-width: 0; box-sizing: border-box; overflow: hidden; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 0; }
 .outfit-detail-visual-card .outfit-detail-photo-card { border: 0; border-radius: 16px; }
 .outfit-detail-photo-card > .card-caption { position: absolute; z-index: 2; top: 14px; left: 14px; padding: 7px 11px; border: 1px solid rgba(255, 255, 255, .62); border-radius: 999px; background: rgba(255, 255, 255, .82); color: #4f585e; font-size: 13px; font-weight: 600; line-height: 1; letter-spacing: .04em; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.outfit-detail-photo { position: relative; min-width: 0; box-sizing: border-box; margin: 0; }
+.outfit-detail-photo { position: relative; min-width: 0; overflow: hidden; box-sizing: border-box; margin: 0; border-radius: 16px; }
 .outfit-detail-photo img { width: 100%; height: auto; display: block; }
-.outfit-detail-photo-placeholder { min-height: 620px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px; box-sizing: border-box; text-align: center; background: #f4f6f5; color: #697278; }
+.outfit-detail-photo-placeholder { min-height: 620px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: hidden; border-radius: 16px; padding: 32px; box-sizing: border-box; text-align: center; background: #f4f6f5; color: #697278; }
 .outfit-detail-photo-placeholder b { width: 112px; height: 112px; display: grid; place-items: center; border-radius: 50%; background: #183f31; color: var(--sunshine); }
 .outfit-detail-photo-placeholder h3, .outfit-detail-photo-placeholder p { margin: 0; }
 .outfit-detail-photo-placeholder .cross-audience-notice { width: 100%; box-sizing: border-box; text-align: left; }
+.outfit-detail-photo-actions { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr); gap: 8px; background: #fff; padding: 12px; }
+.outfit-detail-photo-actions button { min-width: 0; min-height: 44px; border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.outfit-detail-photo-actions button:disabled { cursor: default; opacity: .58; }
+.outfit-save-primary { border: 1px solid var(--sunshine); background: var(--sunshine); color: #111315; }
+.outfit-save-primary.is-saved { border-color: #dfe3e6; background: #eef0f2; color: #596067; }
+.outfit-save-primary.is-saved:hover { background: #e5e8ea; }
+.outfit-save-secondary { border: 1px solid #183f31; background: #fff; color: #183f31; }
+.outfit-detail-photo-actions p { grid-column: 1 / -1; margin: 0; color: #596067; font-size: 12px; text-align: center; }
 .outfit-detail-items, .replication-card { min-width: 0; box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 26px; }
 .outfit-detail-visual-card .outfit-detail-items { border: 0; border-radius: 0; background: transparent; padding: 0; }
 .outfit-detail-result-card { position: relative; overflow: hidden; display: block; min-width: 0; min-height: 0; box-sizing: border-box; padding: 26px; }
@@ -2001,6 +2012,8 @@ body:has(.upload-paper)::before { display: none; }
   .outfit-detail-grid article { width: 84px; min-width: 84px; flex-basis: 84px; padding: 7px; }
   .outfit-detail-grid .outfit-icon-frame { width: 46px; height: 46px; }
   .outfit-detail-grid strong { font-size: 10px; }
+  .outfit-detail-photo-actions { grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr); gap: 6px; padding: 10px; }
+  .outfit-detail-photo-actions button { min-height: 40px; padding: 8px 6px; font-size: 11px; }
   .outfit-detail-items,
   .replication-card { padding: 18px; border-radius: 18px; }
   .outfit-detail-grid { gap: 8px; margin-top: 0; }

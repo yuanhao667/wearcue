@@ -15,7 +15,7 @@ VALID_ASSET_KEYS = {
     "bottom_casual_pants", "bottom_sweatpants", "bottom_skirt_short",
     "bottom_skirt_long", "onepiece_dress", "shoe_sneaker", "shoe_canvas",
     "shoe_leather", "shoe_pump", "acc_baseball_cap", "acc_beanie", "acc_gloves",
-    "acc_umbrella",
+    "acc_umbrella", "acc_sunscreen",
 }
 
 ASSET_KEY_ALIASES = {
@@ -49,7 +49,7 @@ VARIANT_ASSET_KEYS = {
     "运动鞋": "shoe_sneaker", "休闲鞋": "shoe_sneaker", "低帮鞋": "shoe_sneaker",
     "高帮鞋": "shoe_canvas", "皮鞋": "shoe_leather", "正装皮鞋": "shoe_leather",
     "高跟鞋": "shoe_pump", "棒球帽": "acc_baseball_cap", "针织帽": "acc_beanie",
-    "手套": "acc_gloves", "雨伞": "acc_umbrella",
+    "手套": "acc_gloves", "雨伞": "acc_umbrella", "防晒霜": "acc_sunscreen",
 }
 
 FUNCTIONAL_ASSET_KEYS = {
@@ -60,7 +60,7 @@ FUNCTIONAL_ASSET_KEYS = {
     "long_bottom": "bottom_casual_pants", "warm_bottom": "bottom_sweatpants",
     "daily_shoes": "shoe_sneaker", "protective_shoes": "shoe_canvas",
     "umbrella": "acc_umbrella", "gloves": "acc_gloves",
-    "sun_protection": "acc_baseball_cap",
+    "sun_protection": "acc_baseball_cap", "sunscreen": "acc_sunscreen",
 }
 
 SLOT_ASSET_KEYS = {

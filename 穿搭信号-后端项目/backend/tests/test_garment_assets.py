@@ -8,7 +8,7 @@ GARMENT_ROOT = Path(__file__).resolve().parents[1] / "app" / "static" / "garment
 
 class GarmentAssetTests(unittest.TestCase):
     def test_final_runtime_library(self) -> None:
-        expected = {"mens": 17, "womens": 20, "accessories": 4}
+        expected = {"mens": 17, "womens": 20, "accessories": 5}
         actual = {
             collection: len(list((GARMENT_ROOT / collection).glob("*.svg")))
             for collection in expected

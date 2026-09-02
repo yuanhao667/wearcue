@@ -15,6 +15,39 @@ class NoRecommendationError(ValueError):
     pass
 
 
+def _ensure_weather_equipment(
+    items: Sequence[Dict[str, object]], constraints: WeatherConstraints
+) -> List[Dict[str, object]]:
+    result = [dict(item) for item in items]
+    keys = {
+        str(value)
+        for item in result
+        for value in (item.get("functional_icon_key"), item.get("asset_key"))
+        if value
+    }
+    labels = {
+        "umbrella": ("雨伞", "acc_umbrella"),
+        "gloves": ("保暖手套", "acc_gloves"),
+        "sunscreen": ("防晒霜", "acc_sunscreen"),
+        "sun_protection": ("棒球帽", "acc_baseball_cap"),
+    }
+    for equipment in constraints.equipment:
+        label, icon = labels[equipment]
+        if icon in keys:
+            continue
+        result.append({
+            "slot": "equipment",
+            "functional_icon_key": icon,
+            "asset_key": icon,
+            "variant_type": label,
+            "color_name": "基础色",
+            "color_value": None,
+            "thickness": "regular",
+        })
+        keys.add(icon)
+    return result
+
+
 def _official_guide(items: Sequence[Dict[str, object]], constraints: WeatherConstraints) -> Dict[str, object]:
     names = [str(item["variant_type"]) for item in items]
     weather_note = "早晚温差明显，外层要方便穿脱。" if constraints.apparent_delta >= 8 else "按当前体感穿，外层无需反复增减。"
@@ -78,23 +111,7 @@ def _protect_items(
             }
         )
 
-    for equipment in constraints.equipment:
-        labels = {
-            "umbrella": ("雨伞", "acc_umbrella"),
-            "gloves": ("保暖手套", "acc_gloves"),
-            "sun_protection": ("棒球帽", "acc_baseball_cap"),
-        }
-        label, icon = labels[equipment]
-        result.append(
-            {
-                "slot": "equipment",
-                "functional_icon_key": icon,
-                "variant_type": label,
-                "color_name": "基础色",
-                "thickness": "regular",
-            }
-        )
-    return result
+    return _ensure_weather_equipment(result, constraints)
 
 
 def recommend_official_outfit(
@@ -187,7 +204,7 @@ def recommend_personal_outfit(
         "scene": scene,
         "audience": audience,
         "constraints": constraints.to_dict(),
-        "items": outfit["components"],
+        "items": _ensure_weather_equipment(outfit["components"], constraints),
         "outfit_analysis": outfit.get("outfit_analysis") or None,
         "replication_guide": outfit.get("replication_guide") or _official_guide(outfit["components"], constraints),
     }
@@ -344,24 +361,7 @@ def _protect_dict_items(
             "color_value": None,
             "thickness": "regular",
         })
-    equipment_labels = {
-        "umbrella": ("雨伞", "acc_umbrella"),
-        "gloves": ("保暖手套", "acc_gloves"),
-        "sun_protection": ("棒球帽", "acc_baseball_cap"),
-    }
-    for equipment in constraints.equipment:
-        label, icon = equipment_labels.get(equipment, (equipment, "acc_umbrella"))
-        if icon not in keys:
-            result.append({
-                "slot": "equipment",
-                "functional_icon_key": icon,
-                "asset_key": icon,
-                "variant_type": label,
-                "color_name": "基础色",
-                "color_value": None,
-                "thickness": "regular",
-            })
-    return result
+    return _ensure_weather_equipment(result, constraints)
 
 
 def recommend_system_ai_outfit(

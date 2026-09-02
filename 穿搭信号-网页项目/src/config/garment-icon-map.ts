@@ -74,6 +74,7 @@ const BASE_GARMENT_ICON_MAP: readonly BaseGarmentIconDefinition[] = [
   icon("accessory", "acc_beanie", "针织帽", ["毛线帽", "冷帽"]),
   icon("accessory", "acc_gloves", "手套", ["保暖手套", "防风手套"], "P1"),
   icon("accessory", "acc_umbrella", "雨伞", ["折叠伞", "长柄伞"]),
+  icon("accessory", "acc_sunscreen", "防晒霜", ["防晒乳", "防晒露"]),
 ] as const;
 
 const wearableCollections: readonly WearableCollection[] = ["mens", "womens"];
@@ -115,7 +116,7 @@ const functionalFallbacks: Record<string, string> = {
   short_sleeve: "top_tshirt_short", short_or_long_sleeve: "top_tshirt_long", long_sleeve: "top_tshirt_long", warm_top: "top_knit",
   light_outerwear: "outer_light_jacket", warm_outerwear: "outer_down_short", protective_outerwear: "outer_shell",
   short_bottom: "bottom_shorts", long_bottom: "bottom_casual_pants", warm_bottom: "bottom_sweatpants",
-  daily_shoes: "shoe_sneaker", protective_shoes: "shoe_canvas", umbrella: "acc_umbrella", gloves: "acc_gloves", sun_protection: "acc_baseball_cap",
+  daily_shoes: "shoe_sneaker", protective_shoes: "shoe_canvas", umbrella: "acc_umbrella", gloves: "acc_gloves", sunscreen: "acc_sunscreen", sun_protection: "acc_baseball_cap",
 };
 
 export function garmentIconsFor(slot: OutfitSlot, audience: Audience) {

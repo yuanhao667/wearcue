@@ -31,9 +31,9 @@ commute 只表示中国语境下日常上班或上学，不等于商务、会议
 
 季节必须根据整套可见单品判断，不得无依据默认 spring-autumn：短袖 T 恤、背心或吊带搭配短裤或短裙，且没有外套、卫衣、针织衫等保暖层时，必须返回 summer；厚针织衫、厚大衣、羽绒服或保暖长裤为主体时返回 winter；其余过渡性搭配才返回 spring-autumn。
 
-slot 只能是 top、bottom、outerwear、onepiece、shoes、equipment。thickness 只能是 thin、regular、thick。functional_icon_key 只能使用 short_sleeve、long_sleeve、warm_top、light_outerwear、warm_outerwear、protective_outerwear、short_bottom、long_bottom、warm_bottom、daily_shoes、protective_shoes、acc_umbrella、acc_baseball_cap、acc_gloves、acc_beanie。
+slot 只能是 top、bottom、outerwear、onepiece、shoes、equipment。thickness 只能是 thin、regular、thick。functional_icon_key 只能使用 short_sleeve、long_sleeve、warm_top、light_outerwear、warm_outerwear、protective_outerwear、short_bottom、long_bottom、warm_bottom、daily_shoes、protective_shoes、acc_umbrella、acc_sunscreen、acc_baseball_cap、acc_gloves、acc_beanie。
 
-asset_key 与 variant_type 必须使用以下对应关系：top_tshirt_short=短袖 T 恤；top_tshirt_long=长袖 T 恤；top_tank=基础背心；top_camisole=基础吊带；top_shirt=长袖衬衫；top_sweatshirt=卫衣；top_knit=厚针织衫；top_knit_vest=针织背心；outer_light_jacket=薄款外套；outer_wool_coat=厚大衣；outer_down_short=厚羽绒服；outer_shell=冲锋衣；bottom_shorts=短裤；bottom_casual_pants=常规长裤；bottom_sweatpants=保暖长裤；bottom_skirt_short=短裙；bottom_skirt_long=长裙；onepiece_dress=连衣裙；shoe_sneaker=低帮鞋；shoe_canvas=高帮鞋；shoe_leather=正装皮鞋；shoe_pump=高跟鞋；acc_baseball_cap=棒球帽；acc_beanie=针织帽；acc_gloves=手套；acc_umbrella=雨伞。
+asset_key 与 variant_type 必须使用以下对应关系：top_tshirt_short=短袖 T 恤；top_tshirt_long=长袖 T 恤；top_tank=基础背心；top_camisole=基础吊带；top_shirt=长袖衬衫；top_sweatshirt=卫衣；top_knit=厚针织衫；top_knit_vest=针织背心；outer_light_jacket=薄款外套；outer_wool_coat=厚大衣；outer_down_short=厚羽绒服；outer_shell=冲锋衣；bottom_shorts=短裤；bottom_casual_pants=常规长裤；bottom_sweatpants=保暖长裤；bottom_skirt_short=短裙；bottom_skirt_long=长裙；onepiece_dress=连衣裙；shoe_sneaker=低帮鞋；shoe_canvas=高帮鞋；shoe_leather=正装皮鞋；shoe_pump=高跟鞋；acc_baseball_cap=棒球帽；acc_beanie=针织帽；acc_gloves=手套；acc_umbrella=雨伞；acc_sunscreen=防晒霜。
 
 无法准确匹配时必须从上述素材库款式中选择最接近的基础款，approximate=true，confidence 低于 0.7。不得要求用户新增、上传或补充图标，建议补充的单品也只能使用上述 asset_key。outfit_analysis.summary 只写一句且不超过 30 个中文字符；structure_points 写 1—3 条，每条不超过 20 个中文字符；completion_advice 最多 3 条，每条只推荐一个明确单品。
 

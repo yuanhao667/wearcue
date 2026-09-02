@@ -117,6 +117,7 @@ export interface RecommendationConstraints {
   apparent_delta: number;
   warnings: string[];
   needs_removable_layer: boolean;
+  requires_layering: boolean;
   needs_waterproof: boolean;
   needs_windproof: boolean;
   city_id?: string;
@@ -140,6 +141,7 @@ export interface RecommendationConstraints {
   weather_code?: number;
   cold_offset?: number;
   needs_sun_protection: boolean;
+  needs_strong_sun_protection: boolean;
 }
 
 export interface BackendRecommendation {

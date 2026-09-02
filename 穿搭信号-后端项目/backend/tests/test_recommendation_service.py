@@ -10,6 +10,7 @@ from app.services.recommendation_service import (
     NoRecommendationError,
     recommend_ai_outfit,
     recommend_official_outfit,
+    recommend_personal_outfit,
     recommend_system_ai_outfit,
     system_ai_templates,
 )
@@ -66,7 +67,39 @@ class RecommendationTests(unittest.TestCase):
             "womens",
         )
         equipment = [item for item in result["items"] if item["slot"] == "equipment"]
-        self.assertEqual(equipment[0]["functional_icon_key"], "acc_baseball_cap")
+        self.assertEqual(
+            [item["functional_icon_key"] for item in equipment],
+            ["acc_sunscreen", "acc_baseball_cap"],
+        )
+
+    def test_strong_sun_adds_protection_to_a_personal_outfit(self):
+        result = recommend_personal_outfit(
+            WeatherInput(apparent_min=28, apparent_max=32, uv_index_max=8),
+            "travel",
+            "womens",
+            [{
+                "id": "personal-hot",
+                "label": "个人夏日穿搭",
+                "audience": "womens",
+                "components": [{
+                    "slot": "equipment",
+                    "functional_icon_key": "acc_baseball_cap",
+                    "asset_key": "acc_baseball_cap",
+                    "variant_type": "棒球帽",
+                    "color_name": "黑色",
+                    "thickness": "regular",
+                }],
+                "scene_ids": ["travel"],
+                "suitable_min": 20,
+                "suitable_max": 40,
+                "in_pool": True,
+            }],
+        )
+
+        self.assertEqual(
+            [item["functional_icon_key"] for item in result["items"]],
+            ["acc_baseball_cap", "acc_sunscreen"],
+        )
 
     def test_system_ai_recommendations_never_cross_scenes(self):
         templates = [

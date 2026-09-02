@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3456",
-    "build": "next build --webpack",
+    "build": "next build --webpack && cp -R public .next/standalone/ && cp -R .next/static .next/standalone/.next/",
     "start": "next start -p 3456",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

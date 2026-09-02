@@ -1,7 +1,11 @@
-const HAT_KEYS = new Set(["acc_baseball_cap", "acc_beanie", "acc_sun_hat"]);
-const SLOT_ORDER: Record<string, number> = { top: 1, outerwear: 2, onepiece: 3, bottom: 4, shoes: 5, equipment: 6 };
+const WEATHER_GEAR_ORDER: Record<string, number> = { acc_sunscreen: 0, acc_umbrella: 1, outer_shell: 2, protective_outerwear: 2, acc_baseball_cap: 3, acc_sun_hat: 3, acc_beanie: 4 };
+const SLOT_ORDER: Record<string, number> = { top: 10, outerwear: 11, onepiece: 12, bottom: 13, shoes: 14, equipment: 15 };
+type SortableOutfitItem = { slot: string; functional_icon_key?: string | null; asset_key?: string | null };
 
-export function outfitItemSortKey(item: { slot: string; functional_icon_key?: string | null; asset_key?: string | null }) {
-  if (HAT_KEYS.has(item.functional_icon_key || "") || HAT_KEYS.has(item.asset_key || "")) return 0;
-  return SLOT_ORDER[item.slot] ?? 99;
+function itemKeys(item: SortableOutfitItem) {
+  return [item.functional_icon_key || "", item.asset_key || ""];
+}
+
+export function outfitItemSortKey(item: SortableOutfitItem) {
+  return Math.min(...itemKeys(item).map((key) => WEATHER_GEAR_ORDER[key] ?? 99), SLOT_ORDER[item.slot] ?? 99);
 }

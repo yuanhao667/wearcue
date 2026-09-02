@@ -70,7 +70,7 @@ export function AppNav() {
 
   return (
     <>
-      <header className="paper-header">
+      <header className="paper-header" style={{ backdropFilter: "blur(18px) saturate(135%)", WebkitBackdropFilter: "blur(18px) saturate(135%)" }}>
         <Link href="/" className="paper-wordmark" aria-label="WearCue 首页">
           <Image src="/brand/wearcue-logo-20260828.png" alt="WearCue" width={1774} height={887} priority />
         </Link>

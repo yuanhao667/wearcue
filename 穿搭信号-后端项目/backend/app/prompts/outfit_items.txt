@@ -6,14 +6,14 @@
    - 下装(bottom)：short_bottom / long_bottom / warm_bottom
    - 外套(outerwear)：light_outerwear / warm_outerwear / protective_outerwear
    - 鞋(shoes)：daily_shoes / protective_shoes
-   - 装备(equipment)：acc_umbrella / acc_gloves / acc_baseball_cap
+   - 装备(equipment)：acc_umbrella / acc_gloves / acc_sunscreen / acc_baseball_cap
 2. 输入同时包含原始实时天气数据（apparent_min、apparent_max、max_precipitation_probability、total_precipitation、total_snowfall、max_wind_speed、max_wind_gust、uv_index_max）和后端计算后的硬条件。原始数据用于理解当天情况，后端硬条件为最终约束，不得省略或放宽：
    - required_top、required_bottom、required_shoes 对应的 functional_icon_key 必须逐一包含；
    - required_outerwear 非空时必须包含对应的 functional_icon_key；
-   - equipment=umbrella / gloves / sun_protection 时，分别必须包含 acc_umbrella / acc_gloves / acc_baseball_cap；
+   - equipment=umbrella / gloves / sunscreen / sun_protection 时，分别必须包含 acc_umbrella / acc_gloves / acc_sunscreen / acc_baseball_cap；
    - needs_heavy_rain_protection=true 或 needs_snow_protection=true：必须同时包含 protective_outerwear 和 protective_shoes；
    - needs_windproof=true：必须包含 protective_outerwear；
-   - needs_sun_protection=true：必须包含 acc_baseball_cap；
+   - needs_sun_protection=true：必须包含 acc_baseball_cap；needs_strong_sun_protection=true：还必须包含 acc_sunscreen；
    - avoid_umbrella=true：禁止包含 acc_umbrella。
 3. 上装、下装、鞋为必填；外套和装备按需添加。
 4. 尊重 audience：mens 只给男装款；womens 可含裙装、连衣裙等。
