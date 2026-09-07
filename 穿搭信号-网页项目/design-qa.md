@@ -53,6 +53,7 @@
 - The no-photo compatibility merge is restricted to the two known legacy icon-only titles; newly created image-less outfits keep their own season, scene, style, and text.
 - Photo-bound system recommendations preserve their reviewed component list after weather matching. Weather rules may add reminders or notes, but may not invent visible garments such as “天气适配上装” or “可脱穿薄外层”. Detail pages also prefer the loaded system record over a matching stale home-recommendation cache.
 - All 46 packaged system images are content-ready: every entry has a non-empty component list, outfit analysis, replication formula and steps, outfit DNA, signature features, and locked features.
+- All 46 system outfits now use unique semantic names based on visible styling characteristics; legacy numeric suffixes are also removed at the API/model normalization and UI presentation boundaries.
 
 ## Validation
 
@@ -66,13 +67,16 @@
 - Settings page DOM check: “账号管理” card contains the “退出登录” button, passed
 - System detail manifest completeness: 46/46 passed; incomplete IDs: 0
 - Home entrance capture at 40 ms, 180 ms, and 740 ms: left-to-right stagger and settled final state, passed
-- Frontend Vitest: 16 files, 58 tests passed
-- Backend pytest: 98 tests passed (1 existing Starlette deprecation warning)
+- Frontend Vitest: 17 files, 60 tests passed
+- Backend pytest: 101 tests passed (1 existing Starlette deprecation warning)
 - Runtime asset review: 50 SVGs total; 11 accessories, including “双肩包” and “眼镜 / 墨镜”, passed
 - TypeScript: passed
 - ESLint: passed
 - Next.js production build: passed
 - Browser flow “全部季节 → 详情页 → 返回穿搭灵感”: returned with “全部季节” and 23 matching cards, passed
+- Detail return origin: home links carry `from=home`, discovery links carry `from=closet`; the detail back action follows the explicit origin instead of inferring from loaded data, passed
+- System/official recommendation detail actions: “加入个人首页推荐” is replaced by the non-interactive “已在首页推荐” state, passed
+- Discovery primary tags: all top-right scene/style pills use the deep-green treatment, passed
 - `git diff --check`: passed
 
 final result: passed

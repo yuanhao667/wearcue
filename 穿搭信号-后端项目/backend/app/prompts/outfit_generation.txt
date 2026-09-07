@@ -17,6 +17,7 @@
 8. replication_guide、outfit_analysis 和 image_direction 必须消费同一份 outfit_dna、items、wearing_method、locked_features，不得各自改款。
 9. reference 模式先提取 4～8 个 signature_features，再锁定至少 3 个 locked_features；image_direction.must_show 必须逐项复制 locked_features。
 10. original 模式对照 recent_outfit_signatures，避免连续重复相同裤型、鞋型、帽子和上下装组合。
+11. label 必须用真实可见的颜色、材质、廓形、层次或风格特征区分方案，禁止在名称末尾添加 01、02、1、2 等编号；数据库 ID 负责唯一性。
 
 可用 asset_key：top_tshirt_short、top_tshirt_long、top_tank、top_camisole、top_shirt、top_sweatshirt、top_knit、top_knit_vest、outer_light_jacket、outer_wool_coat、outer_down_short、outer_shell、bottom_shorts、bottom_casual_pants、bottom_sweatpants、bottom_skirt_short、bottom_skirt_long、onepiece_dress、shoe_sneaker、shoe_canvas、shoe_leather、shoe_pump、shoe_sneaker_high_top、acc_baseball_cap、acc_bucket_hat、acc_beanie、acc_gloves、acc_tote_bag、acc_crossbody_bag、acc_backpack、acc_glasses、acc_scarf。只能使用输入 available_assets 中实际存在的键。
 

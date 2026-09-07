@@ -15,6 +15,7 @@ import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
 import { outfitThicknessLabel } from "@/domain/outfit-thickness";
+import { displayOutfitLabel } from "@/domain/outfit-label";
 
 type RecommendationsByScene = Partial<Record<SceneId, BackendRecommendation>>;
 
@@ -330,7 +331,7 @@ export function TodayApp() {
       }
     } catch { /* 使用当前推荐覆盖无效缓存 */ }
     cacheActiveRecommendation(activeRecommendation);
-    router.push(`/outfit/${recommendation.template_id}`);
+    router.push(`/outfit/${recommendation.template_id}?from=home`);
   }
 
   return (
@@ -372,7 +373,7 @@ export function TodayApp() {
                 {scenes.map((item) => <button key={item.id} className={scene === item.id ? "active" : ""} disabled={swapping} onClick={() => void selectScene(item.id)}>{item.label}</button>)}
               </div>
             </div>
-            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{recommendation.label}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button className="view-outfit-button" onClick={viewOutfit}>生成穿搭方案<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
+            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{displayOutfitLabel(recommendation.label)}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button className="view-outfit-button" onClick={viewOutfit}>生成穿搭方案<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
             {message && <p className="inline-message" role="status">{message}</p>}
             <div className="recommendation-outfit-area" ref={outfitAreaRef}>
               <div className="recommendation-outfit-head"><span>今日搭配<small>{recommendation.items.length} 件{recommendation.items.length > 6 ? " · 可滚动" : ""}{swapQuota ? ` · 今日 AI 生成剩余 ${swapQuota.remaining}/${swapQuota.limit}` : ""} · 非 AI 不限次</small></span><button aria-busy={swapRequestPending} disabled={swapping} onClick={() => void swap()}>{!swapRequestPending && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 5.5A6 6 0 1 0 14 9" /><path d="M10.5 2.5h3v3" /></svg>}<span>{swapRequestPending ? homeSwapStatus(swapStatusStep, swapQuota?.remaining !== 0) : "换一套"}</span></button></div>

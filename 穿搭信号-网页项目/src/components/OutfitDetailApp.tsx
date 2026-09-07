@@ -9,6 +9,7 @@ import { apiAsset, apiJson } from "@/lib/backend-api";
 import type { AIQuota, BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
 import { outfitThicknessLabel, usesRegularAccessoryThickness } from "@/domain/outfit-thickness";
+import { displayOutfitLabel } from "@/domain/outfit-label";
 
 const DETAIL_ADVICE_STEPS = ["AI 正在分析这套单品组合", "AI 正在生成穿搭步骤", "AI 正在检查天气适配", "AI 正在整理替代建议"];
 
@@ -64,7 +65,7 @@ export function recommendationSavePayload(recommendation: BackendRecommendation,
 function subscribe() { return () => undefined; }
 function snapshot() { return localStorage.getItem("wearcue_active_outfit_v1") || ""; }
 
-export function OutfitDetailApp({ id }: { id: string }) {
+export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?: "home" | "closet" }) {
   const raw = useSyncExternalStore(subscribe, snapshot, () => "");
   const [savedOutfit, setSavedOutfit] = useState<Outfit | null>(null);
   const [loading, setLoading] = useState(true);
@@ -172,7 +173,9 @@ export function OutfitDetailApp({ id }: { id: string }) {
   }, [adviceLoading]);
 
   if (!recommendation && loading) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>正在加载穿搭</h2></section></main>;
-  if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href="/closet">返回穿搭灵感</Link></section></main>;
+  const backHref = origin === "home" ? "/" : "/closet";
+  const backLabel = origin === "home" ? "首页" : "穿搭灵感";
+  if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href={backHref}>返回{backLabel}</Link></section></main>;
 
   // Once an outfit record has loaded, it is the source of truth for a
   // photo-bound detail page. A matching cached home recommendation may carry
@@ -181,7 +184,7 @@ export function OutfitDetailApp({ id }: { id: string }) {
   const items = [...(savedOutfit?.components ?? recommendation?.items ?? [])]
     .filter((item) => Boolean(resolveGarmentIcon(item, audience)))
     .sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
-  const label = savedOutfit?.label ?? recommendation?.label ?? "今日穿搭";
+  const label = displayOutfitLabel(savedOutfit?.label ?? recommendation?.label ?? "今日穿搭");
   const displayLabel = savedOutfit ? label : recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
   const rawAnalysis = savedOutfit?.outfit_analysis ?? recommendation?.outfit_analysis ?? aiAnalysis ?? null;
   const analysis = rawAnalysis ? {
@@ -222,8 +225,9 @@ export function OutfitDetailApp({ id }: { id: string }) {
       setSaveAction(null);
     }
   }
+  const isDefaultRecommendation = recommendation?.source === "official" || recommendation?.source === "system";
   return <main className="paper-page outfit-detail-page">
-    <Link className="outfit-detail-back" href={savedOutfit ? "/closet" : "/"}>← 返回{savedOutfit ? "穿搭灵感" : "今日推荐"}</Link>
+    <Link className="outfit-detail-back" href={backHref}>← 返回{backLabel}</Link>
     <header className="outfit-detail-head"><h1>{displayLabel}</h1><strong>{guide.formula}</strong></header>
     <div className="outfit-detail-layout">
       <section className={`outfit-detail-visual-card${showPhotoColumn ? "" : " icons-only"}`}>
@@ -231,7 +235,9 @@ export function OutfitDetailApp({ id }: { id: string }) {
           <div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>
           {imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}
           {recommendation && <div className="outfit-detail-photo-actions">
-            <button className={`outfit-save-primary${savedOutfit?.in_pool ? " is-saved" : ""}`} type="button" aria-pressed={Boolean(savedOutfit?.in_pool)} aria-label={savedOutfit?.in_pool ? "移出个人首页推荐" : "加入个人首页推荐"} disabled={Boolean(saveAction)} onClick={() => void saveRecommendation(true)}>{saveAction === "pool" ? savedOutfit?.in_pool ? "正在移出…" : "正在加入…" : savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button>
+            {isDefaultRecommendation
+              ? <span className="outfit-save-primary is-saved is-default" role="status">已在首页推荐</span>
+              : <button className={`outfit-save-primary${savedOutfit?.in_pool ? " is-saved" : ""}`} type="button" aria-pressed={Boolean(savedOutfit?.in_pool)} aria-label={savedOutfit?.in_pool ? "移出个人首页推荐" : "加入个人首页推荐"} disabled={Boolean(saveAction)} onClick={() => void saveRecommendation(true)}>{saveAction === "pool" ? savedOutfit?.in_pool ? "正在移出…" : "正在加入…" : savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button>}
             <button className="outfit-save-secondary" type="button" disabled={Boolean(saveAction || savedOutfit)} onClick={() => void saveRecommendation(false)}>{saveAction === "library" ? "正在保存…" : savedOutfit ? "已保存" : "保存到穿搭灵感"}</button>
             {saveMessage && <p role="status">{saveMessage}</p>}
           </div>}

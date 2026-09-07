@@ -234,6 +234,18 @@ def test_ai_name_is_trimmed_to_thirty_characters(monkeypatch) -> None:
     assert asyncio.run(service.generate_name({"components": [_component()]})) == "春" * 30
 
 
+def test_ai_name_removes_legacy_sequence_suffix(monkeypatch) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, recognition_result, max_tokens, model, fallback_model):
+        return {"name": "蓝调层次通勤 03"}
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    assert asyncio.run(service.generate_name({
+        "components": [_component()], "suggested_scenes": ["commute"]
+    })) == "蓝调层次通勤"
+
+
 def test_ai_name_uses_style_plus_suggested_scene(monkeypatch) -> None:
     service = OutfitAIService()
 
@@ -569,6 +581,20 @@ def test_generic_weather_labels_are_not_reused_across_scenes(
     monkeypatch.setattr(service, "_call", fake_call)
     expected_for_audience = "帅气约会" if scene == "date" else "活力出行" if scene == "travel" else expected
     assert asyncio.run(service.generate_items({"scene": scene, "audience": "mens"}))["label"] == expected_for_audience
+
+
+def test_realtime_outfit_label_removes_sequence_suffix(monkeypatch) -> None:
+    service = OutfitAIService()
+
+    async def fake_call(prompt, content, max_tokens, model, fallback_model, temperature=0.7):
+        return {
+            "label": "蓝调运动通勤 02",
+            "items": [{"slot": "top", "functional_icon_key": "short_sleeve"}],
+        }
+
+    monkeypatch.setattr(service, "_call", fake_call)
+    result = asyncio.run(service.generate_items({"scene": "commute", "audience": "mens"}))
+    assert result["label"] == "蓝调运动通勤"
 
 
 def test_text_ai_does_not_change_models_for_auth_errors(monkeypatch) -> None:
@@ -931,7 +957,7 @@ def test_new_account_library_starts_with_matching_ai_example(tmp_path, monkeypat
     assert len(client.get("/api/v1/inspirations").json()) == 1
     assert client.get(f"/api/v1/inspirations/{sample['inspiration_id']}/image").status_code == 200
     padded = next(item for item in mens if item["id"] == "system-042-6c4d312c")
-    assert padded["label"] == "冬季简约通勤 05"
+    assert padded["label"] == "灰调飞行夹克通勤"
     assert padded["season"] == "winter"
     assert (padded["suitable_min"], padded["suitable_max"]) == (0, 10)
 
@@ -957,11 +983,11 @@ def test_new_account_library_starts_with_matching_ai_example(tmp_path, monkeypat
     assert sample["season"] == "summer"
     assert sample["style_tags"] == ["sport"]
     light_date = next(item for item in womens if item["id"] == "system-017-f6b839c6")
-    assert light_date["label"] == "夏季简约约会 04"
+    assert light_date["label"] == "白衬衫松弛约会"
     assert light_date["season"] == "summer"
     assert (light_date["suitable_min"], light_date["suitable_max"]) == (22, 30)
     active_travel = next(item for item in womens if item["id"] == "system-018-bc107caa")
-    assert active_travel["label"] == "夏季运动出行 02"
+    assert active_travel["label"] == "蓝调运动出行"
     assert active_travel["season"] == "summer"
     assert (active_travel["suitable_min"], active_travel["suitable_max"]) == (20, 28)
 
@@ -1009,7 +1035,7 @@ def test_system_asset_metadata_is_refreshed_from_manifest(tmp_path) -> None:
 
     refreshed = Store(tmp_path).get_outfit(outfit_id)
     assert refreshed is not None
-    assert refreshed["label"] == "冬季简约通勤 05"
+    assert refreshed["label"] == "灰调飞行夹克通勤"
     assert refreshed["season"] == "winter"
     assert (refreshed["suitable_min"], refreshed["suitable_max"]) == (0, 10)
 

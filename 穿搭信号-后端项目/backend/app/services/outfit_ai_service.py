@@ -94,6 +94,7 @@ SCENE_LABEL_FALLBACKS = {
     ("travel", "womens"): "轻旅出行",
 }
 NAMING_SCENES = {"commute": "通勤", "date": "约会", "travel": "出行"}
+TRAILING_NAME_SEQUENCE_RE = re.compile(r"\s+(?:0?\d{1,3}|[０-９]{1,3})$")
 
 
 class OutfitAIServiceError(RuntimeError):
@@ -177,7 +178,7 @@ def _normalize_label(raw: Any, context: Dict[str, Any]) -> str:
     scene = _first_str(context.get("scene"))
     audience = _first_str(context.get("audience"))
     fallback = SCENE_LABEL_FALLBACKS.get((scene, audience), "AI 穿搭方案")
-    label = _first_str(raw, fallback)
+    label = TRAILING_NAME_SEQUENCE_RE.sub("", _first_str(raw, fallback)).strip()
     if scene in {"date", "travel"} and "清爽" in label:
         label = fallback
     if any(term in label for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
@@ -186,7 +187,9 @@ def _normalize_label(raw: Any, context: Dict[str, Any]) -> str:
 
 
 def _normalize_outfit_name(raw: Any, recognition_result: Dict[str, Any]) -> str:
-    name = _first_str(raw).strip("“”\"' \n\r\t")
+    name = TRAILING_NAME_SEQUENCE_RE.sub(
+        "", _first_str(raw).strip("“”\"' \n\r\t")
+    ).strip()
     suggested_scenes = [
         NAMING_SCENES[scene_id]
         for scene_id in recognition_result.get("suggested_scenes") or []

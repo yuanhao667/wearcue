@@ -5,7 +5,7 @@
   "assets": [
     {
       "asset_id": "system-001-1da18315",
-      "label": "冬季简约通勤 01",
+      "label": "暖棕街头通勤",
       "image": "system_assets/system-001-1da18315.jpg",
       "sha256": "1da18315fd053d0d2a831690a00284f6d27d48fc363ad7f099d833371047e793",
       "audience": "womens",
@@ -252,7 +252,7 @@
     },
     {
       "asset_id": "system-002-1836d2ba",
-      "label": "冬季简约约会 01",
+      "label": "围巾松弛约会",
       "image": "system_assets/system-002-1836d2ba.jpg",
       "sha256": "1836d2baa200988c0c68f45332b79fc14c058259a5a07122129f2399b80f4b2a",
       "audience": "womens",
@@ -447,7 +447,7 @@
     },
     {
       "asset_id": "system-003-3860491d",
-      "label": "冬季运动出行 01",
+      "label": "深蓝运动轻旅",
       "image": "system_assets/system-003-3860491d.jpg",
       "sha256": "3860491d19d959e2d6f0223d69a7e31d2da7c42a3de4cdd43e27902e5a0d47fc",
       "audience": "womens",
@@ -643,7 +643,7 @@
     },
     {
       "asset_id": "system-004-1aabf4b6",
-      "label": "冬季运动出行 02",
+      "label": "紫调活力骑行",
       "image": "system_assets/system-004-1aabf4b6.jpg",
       "sha256": "1aabf4b68649aca544fb2f735f4c8273689e14feac343262297482e7b5abf498",
       "audience": "womens",
@@ -866,7 +866,7 @@
     },
     {
       "asset_id": "system-005-9d940836",
-      "label": "夏季简约约会 01",
+      "label": "彩虹轻甜约会",
       "image": "system_assets/system-005-9d940836.jpg",
       "sha256": "9d940836e0729a9a5f3fef63a3bdaaf43ce1c44cc6bf6b6059080fe9ef86f892",
       "audience": "womens",
@@ -1039,7 +1039,7 @@
     },
     {
       "asset_id": "system-006-a21ea498",
-      "label": "夏季简约约会 02",
+      "label": "学院感夏日约会",
       "image": "system_assets/system-006-a21ea498.jpg",
       "sha256": "a21ea4980d7e370eaf09b2757d75751a8e944a9f9d0ecb7b8e805d6c070a3bec",
       "audience": "womens",
@@ -1235,7 +1235,7 @@
     },
     {
       "asset_id": "system-007-a09adb6d",
-      "label": "夏季简约约会 03",
+      "label": "花苞裙浪漫约会",
       "image": "system_assets/system-007-a09adb6d.jpg",
       "sha256": "a09adb6d654b848663ac515b455ce428917a483b51cbcbb21b1df163210dd37a",
       "audience": "womens",
@@ -1405,7 +1405,7 @@
     },
     {
       "asset_id": "system-008-ff518c3c",
-      "label": "夏季简约出行 01",
+      "label": "条纹长裙轻旅",
       "image": "system_assets/system-008-ff518c3c.jpg",
       "sha256": "ff518c3cb8210e689f29ed7748f3c596656413dc5f535f4e8b29403bc1caf82e",
       "audience": "womens",
@@ -1600,7 +1600,7 @@
     },
     {
       "asset_id": "system-009-f25103fb",
-      "label": "夏季简约出行 02",
+      "label": "蓝白海岸轻旅",
       "image": "system_assets/system-009-f25103fb.jpg",
       "sha256": "f25103fb43986b4241f763e769cf7eae15699f0ce6f2dc746af29bb9178db18f",
       "audience": "womens",
@@ -1801,7 +1801,7 @@
     },
     {
       "asset_id": "system-010-0f9e8da3",
-      "label": "夏季简约通勤 01",
+      "label": "披肩清爽通勤",
       "image": "system_assets/system-010-0f9e8da3.jpg",
       "sha256": "0f9e8da36835029f0d67afc6d1a5e1b417568cad31c7945ee204657bb3b8131d",
       "audience": "womens",
@@ -2024,7 +2024,7 @@
     },
     {
       "asset_id": "system-011-fd4283b0",
-      "label": "夏季简约通勤 02",
+      "label": "条纹松弛通勤",
       "image": "system_assets/system-011-fd4283b0.jpg",
       "sha256": "fd4283b0c41ba191643792faf29db4659d9585a3e47ce9dde62d2631d5d6abca",
       "audience": "womens",
@@ -2221,7 +2221,7 @@
     },
     {
       "asset_id": "system-012-8832354e",
-      "label": "夏季运动出行 01",
+      "label": "半拉链活力出行",
       "image": "system_assets/system-012-8832354e.jpg",
       "sha256": "8832354e39f717b6081145bcc6c7c5b171c6b4492d2e7d0f0d9a0813b02f9a18",
       "audience": "womens",
@@ -2418,7 +2418,7 @@
     },
     {
       "asset_id": "system-013-b600cb09",
-      "label": "春秋户外出行 01",
+      "label": "湖畔轻量徒步",
       "image": "system_assets/system-013-b600cb09.jpg",
       "sha256": "b600cb09c53e1e42f9602c25863f2692bb0aea2a4019b1507f83b0c63ec35c58",
       "audience": "womens",
@@ -2616,7 +2616,7 @@
     },
     {
       "asset_id": "system-014-b7bd7c80",
-      "label": "春秋户外出行 02",
+      "label": "高山机能徒步",
       "image": "system_assets/system-014-b7bd7c80.jpg",
       "sha256": "b7bd7c80c033c788039b4e5963b0a351902e003e9d673b4970020026952f66f3",
       "audience": "womens",
@@ -2845,7 +2845,7 @@
     },
     {
       "asset_id": "system-015-9b99b18e",
-      "label": "春秋户外出行 03",
+      "label": "抓绒轻户外",
       "image": "system_assets/system-015-9b99b18e.jpg",
       "sha256": "9b99b18e65a5145da9ccb892e0d13d7eb610f3e7801747179dcaf67a517b7915",
       "audience": "womens",
@@ -3017,7 +3017,7 @@
     },
     {
       "asset_id": "system-016-a6fc7785",
-      "label": "春秋简约通勤 01",
+      "label": "牛仔利落通勤",
       "image": "system_assets/system-016-a6fc7785.jpg",
       "sha256": "a6fc7785f042065cb5cd50e241385dfe1b8fa931360e31a2ae2537f769d60e1b",
       "audience": "womens",
@@ -3238,7 +3238,7 @@
     },
     {
       "asset_id": "system-017-f6b839c6",
-      "label": "夏季简约约会 04",
+      "label": "白衬衫松弛约会",
       "image": "system_assets/system-017-f6b839c6.jpg",
       "sha256": "f6b839c645406424a6c00c4f65ec28ea6a425bf32fd256230430d6a7037176bf",
       "audience": "womens",
@@ -3434,7 +3434,7 @@
     },
     {
       "asset_id": "system-018-bc107caa",
-      "label": "夏季运动出行 02",
+      "label": "蓝调运动出行",
       "image": "system_assets/system-018-bc107caa.jpg",
       "sha256": "bc107caae84eae60188176b0853a0a2beafb393170a28a80c97c3526c55f5d4c",
       "audience": "womens",
@@ -3577,7 +3577,7 @@
     },
     {
       "asset_id": "system-019-efbc66e7",
-      "label": "春秋运动出行 02",
+      "label": "绗缝轻运动出行",
       "image": "system_assets/system-019-efbc66e7.jpg",
       "sha256": "efbc66e73c15757b61cf84b2656f6523e44de811e84f5a4db519ba65b01f8ff2",
       "audience": "womens",
@@ -3776,7 +3776,7 @@
     },
     {
       "asset_id": "system-020-bd23cc34",
-      "label": "冬季运动通勤 01",
+      "label": "黑红街头通勤",
       "image": "system_assets/system-020-bd23cc34.jpg",
       "sha256": "bd23cc3474cc316e582bc45943d4ee33c21aec7c967669b04021e24daf0f3d0a",
       "audience": "womens",
@@ -3999,7 +3999,7 @@
     },
     {
       "asset_id": "system-021-e1cbb8f2",
-      "label": "春秋运动通勤 01",
+      "label": "软皮托特运动通勤",
       "image": "system_assets/system-021-e1cbb8f2.jpg",
       "sha256": "e1cbb8f26357b8f5f07d9a49959f3e8f95f274e0952a79419b5553f7f5a70f23",
       "audience": "womens",
@@ -4173,7 +4173,7 @@
     },
     {
       "asset_id": "system-022-3eb67405",
-      "label": "春秋运动通勤 02",
+      "label": "撞色学院通勤",
       "image": "system_assets/system-022-3eb67405.jpg",
       "sha256": "3eb67405f1aff7af8aa03aaaaad990d90af5ff343d78e6127ee05716058a4439",
       "audience": "womens",
@@ -4319,7 +4319,7 @@
     },
     {
       "asset_id": "system-023-3b5336e0",
-      "label": "冬季户外出行 01",
+      "label": "黑色松弛轻旅",
       "image": "system_assets/system-023-3b5336e0.jpg",
       "sha256": "3b5336e074585bfdc0a71dd2296ff2004f937efd9432e2f8db343d5b470b1182",
       "audience": "mens",
@@ -4541,7 +4541,7 @@
     },
     {
       "asset_id": "system-024-24eb810f",
-      "label": "冬季简约通勤 02",
+      "label": "格纹叠穿通勤",
       "image": "system_assets/system-024-24eb810f.jpg",
       "sha256": "24eb810fe5832dcf604d8ee4970b6498cd12d1bfc5b1628e2b38bd3e6512e739",
       "audience": "mens",
@@ -4810,7 +4810,7 @@
     },
     {
       "asset_id": "system-025-69b0fbe5",
-      "label": "冬季简约通勤 03",
+      "label": "工装层次通勤",
       "image": "system_assets/system-025-69b0fbe5.jpg",
       "sha256": "69b0fbe5a0041b997185c93563d5f88270cf05d14986e855a491acc4afa1a43d",
       "audience": "mens",
@@ -5033,7 +5033,7 @@
     },
     {
       "asset_id": "system-026-1779ec36",
-      "label": "冬季简约通勤 04",
+      "label": "绗缝牛仔通勤",
       "image": "system_assets/system-026-1779ec36.jpg",
       "sha256": "1779ec36a690b23dd33af463abf937b15661ec8f6d119b46df7302731256090b",
       "audience": "mens",
@@ -5259,7 +5259,7 @@
     },
     {
       "asset_id": "system-027-74247b78",
-      "label": "冬季简约约会 02",
+      "label": "毛领复古约会",
       "image": "system_assets/system-027-74247b78.jpg",
       "sha256": "74247b78efb0947026131b1dd8c9b2504e405a6d5e3697b907b6b67b7af1eb13",
       "audience": "mens",
@@ -5483,7 +5483,7 @@
     },
     {
       "asset_id": "system-028-c7f05158",
-      "label": "夏季运动出行 02",
+      "label": "灰调活力出行",
       "image": "system_assets/system-028-c7f05158.jpg",
       "sha256": "c7f05158d3359b21faa28c2178a9892c4b27605aa0dde964a53b77f0f74c1827",
       "audience": "mens",
@@ -5630,7 +5630,7 @@
     },
     {
       "asset_id": "system-029-91d2824b",
-      "label": "夏季户外出行 01",
+      "label": "橙色山野轻旅",
       "image": "system_assets/system-029-91d2824b.jpg",
       "sha256": "91d2824bff21c2d6a6715247ca2061bd4971c663bc2df62ac54c067c5968e28c",
       "audience": "mens",
@@ -5827,7 +5827,7 @@
     },
     {
       "asset_id": "system-030-fa413b01",
-      "label": "夏季简约出行 03",
+      "label": "图案街头出行",
       "image": "system_assets/system-030-fa413b01.jpg",
       "sha256": "fa413b01bf8242928219bcda710d3822cd175c9ae6a613c7a0b37a167194b8c2",
       "audience": "mens",
@@ -6001,7 +6001,7 @@
     },
     {
       "asset_id": "system-031-1e9a733b",
-      "label": "夏季简约出行 04",
+      "label": "短袖衬衫轻旅",
       "image": "system_assets/system-031-1e9a733b.jpg",
       "sha256": "1e9a733be43515f5a9383dc60855d3487eddd606f551386ddf8e359b2f8fc6c1",
       "audience": "mens",
@@ -6176,7 +6176,7 @@
     },
     {
       "asset_id": "system-032-5363f33c",
-      "label": "夏季简约约会 04",
+      "label": "牛仔叠穿约会",
       "image": "system_assets/system-032-5363f33c.jpg",
       "sha256": "5363f33c823508fa2c71a87191f54335f6402b1ad9a41d125faf94c55e0d5f61",
       "audience": "mens",
@@ -6376,7 +6376,7 @@
     },
     {
       "asset_id": "system-033-d07a3745",
-      "label": "夏季运动出行 03",
+      "label": "蓝白学院运动",
       "image": "system_assets/system-033-d07a3745.jpg",
       "sha256": "d07a3745b2fa70526cd3030c38a1060a420b0596f2933bca1ea580f05b9ae995",
       "audience": "mens",
@@ -6548,7 +6548,7 @@
     },
     {
       "asset_id": "system-034-8b82c1ad",
-      "label": "夏季运动通勤 01",
+      "label": "藏青运动通勤",
       "image": "system_assets/system-034-8b82c1ad.jpg",
       "sha256": "8b82c1ad727fbd3769b023fbbdd008e0ee1c6cbffc13cccef47e7149475c9208",
       "audience": "mens",
@@ -6719,7 +6719,7 @@
     },
     {
       "asset_id": "system-035-8bf1acfd",
-      "label": "春秋户外出行 04",
+      "label": "橙色机能徒步",
       "image": "system_assets/system-035-8bf1acfd.jpg",
       "sha256": "8bf1acfde60fd126a50c91fa9bfc8d154ee7598dfbd10e5230d4c0d751e5b8f0",
       "audience": "mens",
@@ -6891,7 +6891,7 @@
     },
     {
       "asset_id": "system-036-c0864841",
-      "label": "春秋户外出行 05",
+      "label": "灰调机能轻旅",
       "image": "system_assets/system-036-c0864841.jpg",
       "sha256": "c0864841c815beaeae67db448734c24b2590434bb5e0f053e72cab36deb8c3a2",
       "audience": "mens",
@@ -7095,7 +7095,7 @@
     },
     {
       "asset_id": "system-037-f0868074",
-      "label": "春秋简约通勤 02",
+      "label": "军绿工装通勤",
       "image": "system_assets/system-037-f0868074.jpg",
       "sha256": "f08680743bc2d8712fd8489138c379d970d8490155392d8f741004ae463d50a2",
       "audience": "mens",
@@ -7265,7 +7265,7 @@
     },
     {
       "asset_id": "system-038-9e583791",
-      "label": "春秋简约通勤 03",
+      "label": "半拉链松弛通勤",
       "image": "system_assets/system-038-9e583791.jpg",
       "sha256": "9e5837910d3dbe115cac0b8f3760067aeea16122a8c113ed20053290742dfa82",
       "audience": "mens",
@@ -7439,7 +7439,7 @@
     },
     {
       "asset_id": "system-039-b47d126a",
-      "label": "春秋简约约会 02",
+      "label": "衬衫叠穿约会",
       "image": "system_assets/system-039-b47d126a.jpg",
       "sha256": "b47d126a524fa5545ccc989db7c01b0cb0ca9f5b1e19232063be93603dd7140d",
       "audience": "mens",
@@ -7641,7 +7641,7 @@
     },
     {
       "asset_id": "system-040-056cf987",
-      "label": "春秋简约通勤 04",
+      "label": "翻领针织通勤",
       "image": "system_assets/system-040-056cf987.jpg",
       "sha256": "056cf987ecbbe07b81c51ca382cdb6288d2a3c556482df99f70afcc36d7e49ab",
       "audience": "mens",
@@ -7762,7 +7762,7 @@
     },
     {
       "asset_id": "system-041-d403adbc",
-      "label": "春秋简约通勤 05",
+      "label": "咖调工装通勤",
       "image": "system_assets/system-041-d403adbc.jpg",
       "sha256": "d403adbc6c9dbbf8b65220ec5c982c908dfe6ff6bbf067ed80ad4c30d864381b",
       "audience": "mens",
@@ -7960,7 +7960,7 @@
     },
     {
       "asset_id": "system-042-6c4d312c",
-      "label": "冬季简约通勤 05",
+      "label": "灰调飞行夹克通勤",
       "image": "system_assets/system-042-6c4d312c.jpg",
       "sha256": "6c4d312c189e38f56f5c4db37639117b22c4a87e63d7519496f7f7655cad95ab",
       "audience": "mens",
@@ -8162,7 +8162,7 @@
     },
     {
       "asset_id": "system-043-20407ba5",
-      "label": "春秋简约通勤 07",
+      "label": "条纹背心层次通勤",
       "image": "system_assets/system-043-20407ba5.jpg",
       "sha256": "20407ba578fd81c18cfd480aa16e91b3a8f8095fd46f9d3ff31a095a05129d72",
       "audience": "mens",
@@ -8363,7 +8363,7 @@
     },
     {
       "asset_id": "system-044-ca1bb575",
-      "label": "春秋运动出行 03",
+      "label": "轻量运动出行",
       "image": "system_assets/system-044-ca1bb575.jpg",
       "sha256": "ca1bb57546d12bbed6adad1fe06727d895086be5f0f92f2a4b362dd2c2554a76",
       "audience": "mens",
@@ -8513,7 +8513,7 @@
     },
     {
       "asset_id": "system-045-e09aca15",
-      "label": "春秋运动约会 01",
+      "label": "复古运动约会",
       "image": "system_assets/system-045-e09aca15.jpg",
       "sha256": "e09aca15e42a1e8b55f3f15205a6f362609840c81b9c9b9f92e2adcfca68dfb0",
       "audience": "mens",
@@ -8736,7 +8736,7 @@
     },
     {
       "asset_id": "system-046-d6d9defb",
-      "label": "春秋运动通勤 03",
+      "label": "蓝调层次通勤",
       "image": "system_assets/system-046-d6d9defb.jpg",
       "sha256": "d6d9defb531e8c95c6879a3d654948f9777966fbdc2be6a81ffe4d6923eac22f",
       "audience": "mens",

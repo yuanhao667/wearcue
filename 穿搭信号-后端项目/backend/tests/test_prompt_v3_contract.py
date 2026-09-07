@@ -1,4 +1,5 @@
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +24,7 @@ def test_prompt_v3_shared_contract_and_accessory_policy() -> None:
     assert "70%" in image and "30%" in image
     assert "不得擅自新增" in image
     assert "不自动重做" in plan
+    assert "禁止在名称末尾添加 01、02、1、2 等编号" in plan
     assert "acc_umbrella" not in VALID_ASSET_KEYS
     assert "acc_sunscreen" not in VALID_ASSET_KEYS
     assert {
@@ -150,6 +152,17 @@ def test_vision_prompt_and_presets_exclude_components_without_icons() -> None:
         component.get("asset_key")
         for item in payload["assets"]
         for component in item["components"]
+    )
+
+
+def test_system_asset_names_are_semantic_unique_and_have_no_sequence_suffix() -> None:
+    payload = json.loads((ROOT / "app" / "defaults" / "system_assets.json").read_text())
+    labels = [asset["label"] for asset in payload["assets"]]
+
+    assert len(labels) == len(set(labels))
+    assert all(
+        not re.search(r"\s+(?:0?\d{1,3}|[０-９]{1,3})$", label)
+        for label in labels
     )
 
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiAsset, apiJson } from "@/lib/backend-api";
 import type { Outfit, SceneId, SeasonId, StyleId } from "@/domain/backend";
+import { displayOutfitLabel } from "@/domain/outfit-label";
 
 type DiscoveryTab = "all" | "mine";
 const DISCOVERY_SEASON_STORAGE_KEY = "wearcue_discovery_season_v1";
@@ -134,16 +135,17 @@ export function LibraryApp() {
   }
 
   function outfitCard(outfit: Outfit) {
+    const displayLabel = displayOutfitLabel(outfit.label);
     const fallbackImageUrl = `/images/example_${outfit.audience}_ai.jpg`;
     const imageUrl = outfit.inspiration_id
       ? apiAsset(`/inspirations/${outfit.inspiration_id}/image?size=medium`)
       : outfit.image_url ? apiAsset(outfit.image_url) : fallbackImageUrl;
     return <article className="library-card discovery-card" key={outfit.id} onClick={(event) => {
       if ((event.target as HTMLElement).closest("a, button")) return;
-      router.push(`/outfit/${outfit.id}`);
+      router.push(`/outfit/${outfit.id}?from=closet`);
     }}>
-      <Link className="discovery-card-visual" href={`/outfit/${outfit.id}`}>
-        <img src={imageUrl} alt={`${outfit.label}完整穿搭`} onError={(event) => {
+      <Link className="discovery-card-visual" href={`/outfit/${outfit.id}?from=closet`}>
+        <img src={imageUrl} alt={`${displayLabel}完整穿搭`} onError={(event) => {
           if (event.currentTarget.src.endsWith(fallbackImageUrl)) return;
           event.currentTarget.src = fallbackImageUrl;
         }} />
@@ -153,7 +155,7 @@ export function LibraryApp() {
         <span className="discovery-card-overlay-blur" aria-hidden="true" />
         <div className="library-card-head">
           <span className={`library-card-source${outfit.source === "system" ? " is-system" : ""}`}>{outfit.source === "system" ? "系统预制" : "我的穿搭"}</span>
-          <h2 title={outfit.label}>{outfit.label}</h2>
+          <h2 title={displayLabel}>{displayLabel}</h2>
           <div className="discovery-card-meta">
             <p className="discovery-card-secondary"><span>{seasonLabel(outfit.season)} · {audienceLabel(outfit.audience)}{outfit.style_tags[1] ? ` · ${styleLabel(outfit.style_tags[1])}` : ""}</span><span>{outfit.suitable_min}～{outfit.suitable_max}℃</span></p>
           </div>
@@ -162,7 +164,7 @@ export function LibraryApp() {
           {outfit.source === "system"
             ? <button type="button" aria-label={outfit.favorite ? "取消喜欢" : "喜欢"} aria-pressed={outfit.favorite} className={`library-toggle-button is-favorite${outfit.favorite ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { favorite: !outfit.favorite })}><HeartIcon /></button>
             : <button type="button" aria-label={outfit.in_pool ? "移出首页推荐" : "加入首页推荐"} aria-pressed={outfit.in_pool} className={`library-toggle-button is-home${outfit.in_pool ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { in_pool: !outfit.in_pool })}><HomeIcon /></button>}
-          <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${outfit.label}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}`}>查看详情 →</Link></div>
+          <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`}>查看详情 →</Link></div>
         </div>
       </div>
     </article>;

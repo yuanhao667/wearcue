@@ -1987,6 +1987,7 @@ body:has(.upload-paper)::before { display: none; }
 .outfit-detail-photo-placeholder .cross-audience-notice { width: 100%; box-sizing: border-box; text-align: left; }
 .outfit-detail-photo-actions { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr); gap: 8px; background: #fff; padding: 12px; }
 .outfit-detail-photo-actions button { min-width: 0; min-height: 44px; border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.outfit-detail-photo-actions .outfit-save-primary.is-default { min-width: 0; min-height: 44px; display: grid; place-items: center; box-sizing: border-box; border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 800; }
 .outfit-detail-photo-actions button:disabled { cursor: default; opacity: .58; }
 .outfit-save-primary { border: 1px solid var(--sunshine); background: var(--sunshine); color: #111315; }
 .outfit-save-primary.is-saved { border-color: #dfe3e6; background: #eef0f2; color: #596067; }
@@ -2267,9 +2268,9 @@ body:has(.upload-paper)::before { display: none; }
 }
 .library-paper.discovery-paper .discovery-card-primary-tags b {
   border-radius: 999px;
-  background: var(--discovery-accent);
+  background: var(--deep-green);
   padding: 5px 8px;
-  color: var(--discovery-text);
+  color: #fff;
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
