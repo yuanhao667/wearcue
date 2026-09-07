@@ -389,7 +389,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     )
 
     assert calls[0][0] == service.items_prompt
-    assert calls[0][2:] == (1100, "qwen-turbo", "qwen3.8-flash", 0.45)
+    assert calls[0][2:] == (950, "qwen-turbo", "qwen3.8-flash", 0.45)
     assert calls[0][1]["scene_name"] == "通勤"
     assert calls[0][1]["scene_requirements"].startswith("中国语境下的男士通勤")
     assert "严禁主动生成" in calls[0][1]["scene_requirements"]
@@ -402,6 +402,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert items_result["label"] == "适合通勤场景的清"
     assert items_result["replication_guide"] is None
     assert items_result["outfit_analysis"] is None
+    assert items_result["prompt_version"] == "wearcue-realtime-plan-v3.1"
     assert advice_result["replication_guide"]["styling_points"][:2] == [
         "保留完整纵向线条，衣袖和裤长避免偏短；采用合身但不紧绷的常规松量。",
         "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
@@ -409,7 +410,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
     assert "replication_guide.steps 必须逐件覆盖 items" in service.advice_prompt
     assert "outfit_dna" in service.advice_prompt
-    assert "不要生成详情页文案" in service.items_prompt
+    assert "禁止调用或等待图片生成" in service.items_prompt
     assert "中年商务男装目录" in service.items_prompt
     assert "必须消费同一份 outfit_dna" in service.prompt
     assert "locked_features" in service.prompt

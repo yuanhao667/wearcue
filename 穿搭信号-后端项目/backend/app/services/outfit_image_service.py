@@ -12,6 +12,7 @@ import httpx
 from .outfit_ai_service import scene_context_for
 
 logger = logging.getLogger(__name__)
+DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.1"
 
 
 class OutfitImageServiceError(RuntimeError):
@@ -172,7 +173,8 @@ class OutfitImageService:
                 if not image or len(image) > MAX_GENERATED_IMAGE_BYTES:
                     raise OutfitImageServiceError("AI 生图结果无效")
                 logger.info(
-                    "AI outfit image completed in %dms",
+                    "AI outfit image %s completed in %dms",
+                    DETAIL_IMAGE_PROMPT_VERSION,
                     round((time.perf_counter() - started_at) * 1000),
                 )
                 return image

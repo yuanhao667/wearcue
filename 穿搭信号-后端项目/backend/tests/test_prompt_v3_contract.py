@@ -22,12 +22,18 @@ def test_prompt_v3_shared_contract_and_accessory_policy() -> None:
     for document in (plan, vision, advice, image):
         assert "outfit_dna" in document
         assert "locked_features" in document
+    assert items.startswith("# Prompt A")
+    assert image.startswith("# Prompt B")
     assert "70%" in image and "30%" in image
     assert "中年商务男装目录" in items and "中年商务男装目录" in image
     assert "蓝灰衬衫配黑壳与修身灰裤" in image
-    assert "replication_guide" not in items
-    assert "outfit_analysis" not in items
-    assert "不得擅自新增" in image
+    output_schema = items.split("输出且仅输出以下紧凑结构：", 1)[1]
+    assert '"replication_guide"' not in output_schema
+    assert '"outfit_analysis"' not in output_schema
+    assert "没有对应图标的元素不得输出" in items
+    assert "不重新设计方案，不增减单品" in image
+    assert "时尚前卫但可照着穿" in image
+    assert "裤裙摆与鞋型体积必须平衡" in image
     assert "不自动重做" in plan
     assert "禁止在名称末尾添加 01、02、1、2 等编号" in plan
     assert "acc_umbrella" not in VALID_ASSET_KEYS

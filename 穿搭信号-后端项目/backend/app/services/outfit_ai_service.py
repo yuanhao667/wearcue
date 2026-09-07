@@ -11,6 +11,7 @@ import httpx
 from app.domain.component_rules import normalize_component_thickness
 
 logger = logging.getLogger(__name__)
+REALTIME_PLAN_PROMPT_VERSION = "wearcue-realtime-plan-v3.1"
 
 # functional_icon_key -> 基础图标 key（与前端 functionalFallbacks 保持一致）
 FUNCTIONAL_TO_ASSET: Dict[str, str] = {
@@ -359,7 +360,11 @@ class OutfitAIService:
         ][:2]
         return {
             "status": "ok",
-            "prompt_version": "wearcue-outfit-plan-v3",
+            "prompt_version": (
+                "wearcue-outfit-plan-v3"
+                if include_detail
+                else REALTIME_PLAN_PROMPT_VERSION
+            ),
             "label": _normalize_label(raw.get("label"), context),
             "season": raw.get("season") if raw.get("season") in {"spring-autumn", "summer", "winter"} else context.get("season", "spring-autumn"),
             "temperature_range_c": raw.get("temperature_range_c") or {
@@ -400,13 +405,14 @@ class OutfitAIService:
         raw = await self._call(
             self.items_prompt,
             enriched_context,
-            1100,
+            950,
             self.fast_model,
             self.quality_model,
             temperature=0.45,
         )
         logger.info(
-            "AI realtime outfit plan completed in %dms",
+            "AI realtime outfit plan %s completed in %dms",
+            REALTIME_PLAN_PROMPT_VERSION,
             round((time.perf_counter() - started_at) * 1000),
         )
         _reject_business_commute(raw, enriched_context)
