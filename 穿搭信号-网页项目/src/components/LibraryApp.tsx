@@ -154,7 +154,7 @@ export function LibraryApp() {
       <div className="discovery-card-overlay">
         <span className="discovery-card-overlay-blur" aria-hidden="true" />
         <div className="library-card-head">
-          <span className={`library-card-source${outfit.source === "system" ? " is-system" : ""}`}>{outfit.source === "system" ? "系统预制" : "我的穿搭"}</span>
+          <span className={`library-card-source${outfit.source === "system" ? " is-system" : ""}`}>{outfit.source === "system" ? "系统推荐" : "我的穿搭"}</span>
           <h2 title={displayLabel}>{displayLabel}</h2>
           <div className="discovery-card-meta">
             <p className="discovery-card-secondary"><span>{seasonLabel(outfit.season)} · {audienceLabel(outfit.audience)}{outfit.style_tags[1] ? ` · ${styleLabel(outfit.style_tags[1])}` : ""}</span><span>{outfit.suitable_min}～{outfit.suitable_max}℃</span></p>
