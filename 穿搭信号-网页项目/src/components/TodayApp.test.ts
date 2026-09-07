@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BackendRecommendation, BackendSettings, TodayWeather } from "@/domain/backend";
-import { activeAIRecommendationForContext, homeSwapStatus, requestFrom, withSceneRecommendation } from "./TodayApp";
+import { activeAIRecommendationForContext, homeSwapStatus, outfitDetailActionLabel, requestFrom, withSceneRecommendation, withSeenRecommendation } from "./TodayApp";
 
 describe("home swap progress", () => {
   it("uses cached context and rotates AI generation copy", () => {
@@ -91,5 +91,26 @@ describe("home swap progress", () => {
     expect(updated.commute).toBe(commute);
     expect(updated.date?.template_id).toBe("date-2");
     expect(updated.travel).toBe(travel);
+  });
+
+  it("keeps cumulative swap exclusions per scene", () => {
+    const first = { template_id: "personal-a", scene: "commute" } as BackendRecommendation;
+    const second = { template_id: "system-b", scene: "commute" } as BackendRecommendation;
+    const otherScene = { template_id: "date-a", scene: "date" } as BackendRecommendation;
+
+    const history = withSeenRecommendation(
+      withSeenRecommendation(withSeenRecommendation({}, first), second),
+      otherScene,
+    );
+
+    expect(history.commute).toEqual(["personal-a", "system-b"]);
+    expect(history.date).toEqual(["date-a"]);
+  });
+
+  it("only calls an AI recommendation a generation action", () => {
+    expect(outfitDetailActionLabel("personal")).toBe("查看穿搭方案");
+    expect(outfitDetailActionLabel("official")).toBe("查看穿搭方案");
+    expect(outfitDetailActionLabel("system")).toBe("查看穿搭方案");
+    expect(outfitDetailActionLabel("ai")).toBe("生成穿搭方案");
   });
 });

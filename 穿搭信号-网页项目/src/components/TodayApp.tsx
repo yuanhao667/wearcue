@@ -10,7 +10,7 @@ import { TypingHeadline } from "./TypingHeadline";
 import { apiJson } from "@/lib/backend-api";
 import { locateCurrentDistrict, simplifyLocationName, takeLoginLocation } from "@/lib/browser-location";
 import { fetchBrowserWeather } from "@/lib/browser-weather";
-import { clearTodaySession, readTodaySession, saveTodaySession } from "@/lib/today-session";
+import { clearTodaySession, readTodaySession, saveTodaySession, type SeenTemplateIdsByScene } from "@/lib/today-session";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
@@ -21,6 +21,17 @@ type RecommendationsByScene = Partial<Record<SceneId, BackendRecommendation>>;
 
 export function withSceneRecommendation(current: RecommendationsByScene, next: BackendRecommendation): RecommendationsByScene {
   return { ...current, [next.scene]: next };
+}
+
+export function withSeenRecommendation(current: SeenTemplateIdsByScene, next: BackendRecommendation): SeenTemplateIdsByScene {
+  const seen = current[next.scene] ?? [];
+  return seen.includes(next.template_id)
+    ? current
+    : { ...current, [next.scene]: [...seen, next.template_id] };
+}
+
+export function outfitDetailActionLabel(source: BackendRecommendation["source"]) {
+  return source === "ai" ? "生成穿搭方案" : "查看穿搭方案";
 }
 
 const scenes: Array<{ id: SceneId; label: string }> = [
@@ -145,6 +156,7 @@ export function TodayApp() {
   const outfitAreaRef = useRef<HTMLDivElement>(null);
   const [weather, setWeather] = useState<TodayWeather | null>(null);
   const [recommendationsByScene, setRecommendationsByScene] = useState<RecommendationsByScene>({});
+  const [seenTemplateIdsByScene, setSeenTemplateIdsByScene] = useState<SeenTemplateIdsByScene>({});
   const [sceneState, setScene] = useState<SceneId>("commute");
   const [useRestoredRecommendation, setUseRestoredRecommendation] = useState(true);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -187,10 +199,12 @@ export function TodayApp() {
         body: JSON.stringify(requestFrom(nextWeather, nextSettings, activeScene)),
       });
       cacheActiveRecommendation(nextRecommendation);
+      const nextSeen = withSeenRecommendation({}, nextRecommendation);
       setSettings(nextSettings);
       setWeather(nextWeather);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(nextSettings, nextWeather, nextRecommendation);
+      saveTodaySession(nextSettings, nextWeather, nextRecommendation, nextSeen);
       setStatus("success");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "今日数据暂时不可用");
@@ -207,6 +221,7 @@ export function TodayApp() {
       }
       setSettings(cached.settings);
       setWeather(cached.weather);
+      setSeenTemplateIdsByScene(withSeenRecommendation(cached.seenTemplateIdsByScene, cached.recommendation));
       setRecommendationsByScene({ [cached.recommendation.scene]: cached.recommendation });
       setScene(cached.recommendation.scene);
       setStatus("success");
@@ -245,8 +260,10 @@ export function TodayApp() {
     setScene(nextScene);
     if (!weather || !settings) return;
     if (existing) {
+      const nextSeen = withSeenRecommendation(seenTemplateIdsByScene, existing);
+      setSeenTemplateIdsByScene(nextSeen);
       cacheActiveRecommendation(existing);
-      saveTodaySession(settings, weather, existing);
+      saveTodaySession(settings, weather, existing, nextSeen);
       return;
     }
     setSwapping(true);
@@ -256,9 +273,11 @@ export function TodayApp() {
         method: "POST",
         body: JSON.stringify(requestFrom(weather, settings, nextScene)),
       });
+      const nextSeen = withSeenRecommendation(seenTemplateIdsByScene, nextRecommendation);
       cacheActiveRecommendation(nextRecommendation);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(settings, weather, nextRecommendation);
+      saveTodaySession(settings, weather, nextRecommendation, nextSeen);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "推荐暂时不可用");
     } finally { setSwapping(false); }
@@ -273,13 +292,16 @@ export function TodayApp() {
     setSwapRequestPending(true);
     setMessage("");
     try {
+      const seenBeforeSwap = withSeenRecommendation(seenTemplateIdsByScene, recommendation);
       const nextRecommendation = await apiJson<BackendRecommendation>("/recommendations/swap", {
         method: "POST",
-        body: JSON.stringify(requestFrom(weather, settings, scene, [recommendation.template_id])),
+        body: JSON.stringify(requestFrom(weather, settings, scene, seenBeforeSwap[scene] ?? [])),
       });
+      const nextSeen = withSeenRecommendation(seenBeforeSwap, nextRecommendation);
       cacheActiveRecommendation(nextRecommendation);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(settings, weather, nextRecommendation);
+      saveTodaySession(settings, weather, nextRecommendation, nextSeen);
       if (nextRecommendation.ai_quota) setSwapQuota(nextRecommendation.ai_quota);
       if (nextRecommendation.ai_fallback_reason === "quota_exhausted") {
         setMessage("今日实时 AI 换一套已用完，已为你切换非 AI 方案，仍可无限换。");
@@ -302,6 +324,7 @@ export function TodayApp() {
       clearTodaySession();
       setUseRestoredRecommendation(false);
       setRecommendationsByScene({});
+      setSeenTemplateIdsByScene({});
       await loadToday(scene);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "城市切换失败");
@@ -373,7 +396,7 @@ export function TodayApp() {
                 {scenes.map((item) => <button key={item.id} className={scene === item.id ? "active" : ""} disabled={swapping} onClick={() => void selectScene(item.id)}>{item.label}</button>)}
               </div>
             </div>
-            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{displayOutfitLabel(recommendation.label)}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button className="view-outfit-button" onClick={viewOutfit}>生成穿搭方案<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
+            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{displayOutfitLabel(recommendation.label)}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button className="view-outfit-button" onClick={viewOutfit}>{outfitDetailActionLabel(recommendation.source)}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
             {message && <p className="inline-message" role="status">{message}</p>}
             <div className="recommendation-outfit-area" ref={outfitAreaRef}>
               <div className="recommendation-outfit-head"><span>今日搭配<small>{recommendation.items.length} 件{recommendation.items.length > 6 ? " · 可滚动" : ""}{swapQuota ? ` · 今日 AI 生成剩余 ${swapQuota.remaining}/${swapQuota.limit}` : ""} · 非 AI 不限次</small></span><button aria-busy={swapRequestPending} disabled={swapping} onClick={() => void swap()}>{!swapRequestPending && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 5.5A6 6 0 1 0 14 9" /><path d="M10.5 2.5h3v3" /></svg>}<span>{swapRequestPending ? homeSwapStatus(swapStatusStep, swapQuota?.remaining !== 0) : "换一套"}</span></button></div>

@@ -67,7 +67,7 @@
 - Settings page DOM check: “账号管理” card contains the “退出登录” button, passed
 - System detail manifest completeness: 46/46 passed; incomplete IDs: 0
 - Home entrance capture at 40 ms, 180 ms, and 740 ms: left-to-right stagger and settled final state, passed
-- Frontend Vitest: 17 files, 60 tests passed
+- Frontend Vitest: 17 files, 63 tests passed
 - Backend pytest: 101 tests passed (1 existing Starlette deprecation warning)
 - Runtime asset review: 50 SVGs total; 11 accessories, including “双肩包” and “眼镜 / 墨镜”, passed
 - TypeScript: passed
@@ -77,6 +77,8 @@
 - Detail return origin: home links carry `from=home`, discovery links carry `from=closet`; the detail back action follows the explicit origin instead of inferring from loaded data, passed
 - System/official recommendation detail actions: “加入个人首页推荐” is replaced by the non-interactive “已在首页推荐” state, passed
 - Discovery primary tags: all top-right scene/style pills use the deep-green treatment, passed
+- Home recommendation CTA: personal, official, and system sources display “查看穿搭方案”; only real-time AI sources display “生成穿搭方案”, passed
+- Home swap progression: viewed template IDs accumulate per scene in the session cache; personal and system candidates cannot rotate back into the queue, and AI generation starts after those candidate layers are exhausted, passed
 - `git diff --check`: passed
 
 final result: passed

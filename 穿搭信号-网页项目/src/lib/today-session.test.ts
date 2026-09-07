@@ -17,4 +17,19 @@ describe("today session cache", () => {
     expect(readTodaySession(now + 121 * 60 * 1_000)).toBeNull();
     expect(readTodaySession(Date.parse("2026-08-31T00:00:00Z"))).toBeNull();
   });
+
+  it("restores the cumulative swap history after visiting a detail page", () => {
+    const now = Date.parse("2026-08-30T12:00:00Z");
+    const settings = { city_id: "shanghai", audience: "mens" } as BackendSettings;
+    const weather = { date: "2026-08-30", timezone: "Asia/Shanghai" } as TodayWeather;
+    const recommendation = { template_id: "system-2", scene: "commute" } as BackendRecommendation;
+
+    saveTodaySession(settings, weather, recommendation, {
+      commute: ["personal-1", "system-1", "system-2"],
+    }, now);
+
+    expect(readTodaySession(now + 1_000)?.seenTemplateIdsByScene.commute).toEqual([
+      "personal-1", "system-1", "system-2",
+    ]);
+  });
 });
