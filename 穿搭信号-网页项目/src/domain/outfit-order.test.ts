@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { outfitItemSortKey } from "./outfit-order";
 
 describe("outfitItemSortKey", () => {
-  it("puts weather protection gear before the regular outfit", () => {
+  it("sorts the outfit from head to foot and leaves utility accessories last", () => {
     const items = [
       { slot: "shoes", functional_icon_key: "daily_shoes", asset_key: "shoe_sneaker" },
       { slot: "equipment", functional_icon_key: "acc_baseball_cap", asset_key: "acc_baseball_cap" },
@@ -12,6 +12,6 @@ describe("outfitItemSortKey", () => {
       { slot: "equipment", functional_icon_key: "acc_sunscreen", asset_key: "acc_sunscreen" },
     ].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
 
-    expect(items.map((item) => item.asset_key)).toEqual(["acc_sunscreen", "acc_umbrella", "outer_shell", "acc_baseball_cap", "top_shirt", "shoe_sneaker"]);
+    expect(items.map((item) => item.asset_key)).toEqual(["acc_baseball_cap", "top_shirt", "outer_shell", "shoe_sneaker", "acc_umbrella", "acc_sunscreen"]);
   });
 });

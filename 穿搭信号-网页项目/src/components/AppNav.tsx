@@ -32,11 +32,38 @@ export function AppNav() {
   const pathname = usePathname();
   const router = useRouter();
   const countedAccount = useRef("");
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const [showSettingsNudge, setShowSettingsNudge] = useState(false);
   const activeNavIndex = navItems.findIndex((item) => item.href === pathname);
   useEffect(() => {
     if (pathname === "/closet") router.prefetch("/");
   }, [pathname, router]);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let frame = 0;
+
+    function updateHeader() {
+      const currentY = window.scrollY;
+      if (currentY <= 12) {
+        setHeaderCollapsed(false);
+      } else if (currentY > lastY + 1) {
+        setHeaderCollapsed(true);
+      } else if (currentY < lastY - 1) {
+        setHeaderCollapsed(false);
+      }
+      lastY = currentY;
+      frame = 0;
+    }
+    function handleScroll() {
+      if (!frame) frame = window.requestAnimationFrame(updateHeader);
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
   const savedProfile = useSyncExternalStore(subscribeProfile, profileSnapshot, () => "");
   let profile: UserProfile = emptyProfile;
   try { profile = savedProfile ? JSON.parse(savedProfile) : emptyProfile; } catch { profile = emptyProfile; }
@@ -70,7 +97,7 @@ export function AppNav() {
 
   return (
     <>
-      <header className="paper-header" style={{ backdropFilter: "blur(18px) saturate(135%)", WebkitBackdropFilter: "blur(18px) saturate(135%)" }}>
+      <header className={`paper-header${headerCollapsed ? " is-collapsed" : ""}`} style={{ backdropFilter: "blur(18px) saturate(135%)", WebkitBackdropFilter: "blur(18px) saturate(135%)" }}>
         <Link href="/" className="paper-wordmark" aria-label="WearCue 首页">
           <Image src="/brand/wearcue-logo-20260828.png" alt="WearCue" width={1774} height={887} priority />
         </Link>

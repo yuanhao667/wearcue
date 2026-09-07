@@ -28,13 +28,20 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     monkeypatch.setenv("INVITE_CODES", "INVITE-A,INVITE-B")
     client = TestClient(app)
 
+    unregistered = client.post(
+        "/api/v1/auth/login",
+        json={"mode": "login", "invite_code": "INVITE-A"},
+    )
+    assert unregistered.status_code == 404
+    assert unregistered.json()["error"]["message"] == "该邀请码尚未注册，请先注册"
+
     login_a = client.post(
         "/api/v1/auth/login",
-        json={"nickname": "小明", "audience": "mens", "invite_code": "INVITE-A"},
+        json={"mode": "register", "nickname": "小明", "audience": "mens", "invite_code": "INVITE-A"},
     )
     login_b = client.post(
         "/api/v1/auth/login",
-        json={"nickname": "小红", "audience": "womens", "invite_code": "INVITE-B"},
+        json={"mode": "register", "nickname": "小红", "audience": "womens", "invite_code": "INVITE-B"},
     )
     assert login_a.status_code == login_b.status_code == 200
     token_a = login_a.json()["token"]
@@ -44,11 +51,11 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert client.get("/api/v1/outfits").status_code == 401
     outfits_a = client.get("/api/v1/outfits", headers=_headers(token_a)).json()
     outfits_b = client.get("/api/v1/outfits", headers=_headers(token_b)).json()
-    assert len(outfits_a) == len(outfits_b) == 1
-    assert outfits_a[0]["source"] == outfits_b[0]["source"] == "system"
-    assert outfits_a[0]["audience"] == "mens"
-    assert outfits_b[0]["audience"] == "womens"
-    assert outfits_a[0]["id"] != outfits_b[0]["id"]
+    assert len(outfits_a) == 25
+    assert len(outfits_b) == 23
+    assert all(item["source"] == "system" for item in outfits_a + outfits_b)
+    assert all(item["audience"] == "mens" for item in outfits_a)
+    assert all(item["audience"] == "womens" for item in outfits_b)
     client.post("/api/v1/settings", json={"cold_offset": -4}, headers=_headers(token_a))
     assert client.get("/api/v1/settings", headers=_headers(token_a)).json()["cold_offset"] == -4
     assert client.get("/api/v1/settings", headers=_headers(token_b)).json()["cold_offset"] == 0
@@ -84,7 +91,7 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
 
     relogin_a = client.post(
         "/api/v1/auth/login",
-        json={"nickname": "错误昵称", "audience": "womens", "invite_code": "INVITE-A"},
+        json={"mode": "login", "invite_code": "INVITE-A"},
     ).json()
     assert relogin_a["user"] == login_a.json()["user"]
     original_user_id = login_a.json()["user"]["id"]
@@ -95,3 +102,10 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     ).json()["user"]
     assert updated_user["id"] == original_user_id
     assert client.get("/api/v1/auth/me", headers=_headers(token_a)).json()["user"]["id"] == original_user_id
+
+    duplicate = client.post(
+        "/api/v1/auth/login",
+        json={"mode": "register", "nickname": "另一个人", "audience": "womens", "invite_code": "INVITE-A"},
+    )
+    assert duplicate.status_code == 409
+    assert duplicate.json()["error"]["message"] == "该邀请码已注册，请直接登录"

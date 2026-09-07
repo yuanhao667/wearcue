@@ -2,7 +2,11 @@ import json
 from pathlib import Path
 
 from app.schemas import VisionResult
-from app.services.vision_service import canonical_asset_key, normalize_vision_result
+from app.services.vision_service import (
+    canonical_asset_key,
+    coerce_vision_result,
+    normalize_vision_result,
+)
 
 
 def test_provider_asset_keys_are_normalized_to_existing_icon_keys() -> None:
@@ -28,11 +32,52 @@ def test_unknown_asset_key_falls_back_to_variant_then_function() -> None:
     }) == "bottom_casual_pants"
 
 
+def test_new_accessories_resolve_to_supplied_icons() -> None:
+    assert canonical_asset_key({
+        "slot": "equipment", "variant_type": "登山双肩包",
+        "functional_icon_key": "backpack", "asset_key": "unknown",
+    }) == "acc_backpack"
+    assert canonical_asset_key({
+        "slot": "equipment", "variant_type": "黑框墨镜",
+        "functional_icon_key": "sunglasses", "asset_key": "unknown",
+    }) == "acc_glasses"
+    assert canonical_asset_key({
+        "slot": "equipment", "variant_type": "白色窄框猫眼墨镜",
+        "functional_icon_key": "unknown", "asset_key": "unknown",
+    }) == "acc_glasses"
+    normalized = normalize_vision_result({
+        "components": [{
+            "slot": "equipment", "variant_type": "黑色窄框墨镜",
+            "functional_icon_key": "sunglasses", "asset_key": "acc_glasses",
+            "thickness": "thin",
+        }],
+    })
+    assert normalized["components"][0]["thickness"] == "regular"
+
+
 def test_unknown_model_vocabulary_always_uses_a_library_icon() -> None:
     assert canonical_asset_key({
         "slot": "shoes", "variant_type": "未来感鞋款",
         "functional_icon_key": "unknown", "asset_key": "custom_icon",
     }) == "shoe_sneaker"
+
+
+def test_unknown_accessory_does_not_force_an_unrelated_icon() -> None:
+    assert canonical_asset_key({
+        "slot": "equipment", "variant_type": "粗针织堆堆腿套",
+        "functional_icon_key": "leg_warmers", "asset_key": "unknown",
+    }) is None
+
+
+def test_asset_key_repairs_legacy_slot_so_a_top_never_falls_back_to_a_hat() -> None:
+    result = normalize_vision_result({
+        "components": [{
+            "slot": "equipment", "variant_type": "基础款短袖T恤",
+            "functional_icon_key": "short_sleeve", "asset_key": "top_tshirt_short",
+        }],
+    })
+
+    assert result["components"][0]["slot"] == "top"
 
 
 def test_formula_short_skirt_repairs_inconsistent_shorts_component() -> None:
@@ -103,3 +148,37 @@ def test_prompt_example_is_valid_and_self_consistent() -> None:
     assert all(component.variant_type in formula for component in example.components)
     assert example.outfit_analysis.completion_advice == []
     assert example.suggested_season == "summer"
+
+
+def test_provider_vocabulary_is_coerced_before_strict_validation() -> None:
+    result = coerce_vision_result({
+        "model_version": "provider-test",
+        "garment_audience": "female",
+        "image_coverage": "full",
+        "components": [
+            {
+                "slot": "outer", "functional_icon_key": "warm_outerwear",
+                "variant_type": "拼色棉服", "color_type": "color_block",
+                "color_name": "黑棕拼色", "color_value": "#1A1A1A & #7B5E43",
+                "thickness": "medium",
+            },
+            {
+                "slot": "shoe", "functional_icon_key": "daily_shoes",
+                "variant_type": "运动鞋", "color_type": "solid",
+                "color_name": "白色", "color_value": "#FFFFFF",
+                "thickness": "light",
+            },
+        ],
+        "replication_guide": {"formula": "拼色棉服＋运动鞋", "steps": ["穿棉服", "穿运动鞋"]},
+        "outfit_analysis": {"summary": "厚外套与轻量鞋形成冬季层次。"},
+    })
+
+    parsed = VisionResult.model_validate(result)
+    assert parsed.garment_audience == "womens"
+    assert parsed.image_coverage == "full_body"
+    assert parsed.components[0].slot == "outerwear"
+    assert parsed.components[0].thickness == "regular"
+    assert parsed.components[0].color_type == "pattern"
+    assert parsed.components[0].color_value == "#1A1A1A"
+    assert parsed.components[1].slot == "shoes"
+    assert parsed.components[1].thickness == "thin"

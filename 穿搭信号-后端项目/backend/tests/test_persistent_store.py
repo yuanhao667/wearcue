@@ -9,7 +9,8 @@ def test_store_restores_database_and_keeps_assets_on_persistent_volume(tmp_path,
     monkeypatch.setenv("PERSISTENT_DATA_DIR", str(persistent))
 
     first = Store(local)
-    session = first.login("persistent-invite", "测试", "mens")
+    session = first.register("persistent-invite", "测试", "mens")
+    assert session is not None
     assert (persistent / "database" / "outfit-signal.sqlite3").is_file()
     assert first.upload_dir == persistent / "uploads"
 

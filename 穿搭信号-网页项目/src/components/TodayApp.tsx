@@ -14,6 +14,7 @@ import { clearTodaySession, readTodaySession, saveTodaySession } from "@/lib/tod
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
+import { outfitThicknessLabel } from "@/domain/outfit-thickness";
 
 type RecommendationsByScene = Partial<Record<SceneId, BackendRecommendation>>;
 
@@ -312,7 +313,7 @@ export function TodayApp() {
   }
 
   function outfitItem(item: BackendRecommendation["items"][number], index: number) {
-    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong>{item.variant_type}</strong><em>{thicknessLabel(item.thickness)}</em></div></div>;
+    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong>{item.variant_type}</strong><em>{outfitThicknessLabel(item)}</em></div></div>;
   }
 
   function viewOutfit() {
@@ -389,8 +390,4 @@ export function TodayApp() {
 
     </main>
   );
-}
-
-function thicknessLabel(value: string) {
-  return ({ thin: "薄款", regular: "常规", thick: "厚款" } as Record<string, string>)[value] ?? value;
 }

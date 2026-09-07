@@ -6,11 +6,14 @@ from pydantic import BaseModel, Field, field_validator
 
 
 SceneId = Literal["commute", "date", "travel"]
+SeasonId = Literal["spring-autumn", "summer", "winter"]
+StyleId = Literal["minimal", "sport", "outdoor"]
 
 
 class LoginRequest(BaseModel):
-    nickname: str = Field(min_length=1, max_length=5)
-    audience: Literal["mens", "womens"]
+    mode: Literal["login", "register"]
+    nickname: Optional[str] = Field(default=None, min_length=1, max_length=5)
+    audience: Optional[Literal["mens", "womens"]] = None
     invite_code: str = Field(min_length=1, max_length=120)
 
 
@@ -93,6 +96,14 @@ class OutfitComponent(BaseModel):
     approximate: bool = False
     suggested: bool = False
     asset_key: Optional[str] = None
+    fit: Optional[str] = Field(default=None, max_length=30)
+    shoulder: Optional[str] = Field(default=None, max_length=40)
+    length: Optional[str] = Field(default=None, max_length=40)
+    waistline: Optional[str] = Field(default=None, max_length=30)
+    bottom_shape: Optional[str] = Field(default=None, max_length=30)
+    structure_details: List[str] = Field(default_factory=list, max_length=6)
+    material: Optional[str] = Field(default=None, max_length=80)
+    wearing_method: Optional[str] = Field(default=None, max_length=80)
 
 
 class ReplicationGuide(BaseModel):
@@ -119,6 +130,8 @@ class OutfitSaveRequest(BaseModel):
     audience: Literal["mens", "womens"] = "mens"
     components: List[OutfitComponent] = Field(min_length=1, max_length=8)
     scene_ids: List[SceneId] = Field(default_factory=lambda: ["commute"], min_length=1, max_length=3)
+    season: SeasonId = "spring-autumn"
+    style_tags: List[StyleId] = Field(default_factory=lambda: ["minimal"], min_length=1, max_length=2)
     suitable_min: float = Field(default=15, ge=-40, le=50)
     suitable_max: float = Field(default=28, ge=-40, le=60)
     in_pool: bool = False
@@ -128,6 +141,7 @@ class OutfitSaveRequest(BaseModel):
 
 class OutfitStatusRequest(BaseModel):
     in_pool: Optional[bool] = None
+    favorite: Optional[bool] = None
     scene_ids: Optional[List[SceneId]] = Field(default=None, min_length=1, max_length=3)
 
 
@@ -142,8 +156,13 @@ class VisionResult(BaseModel):
     requires_user_confirmation: bool = True
     suggested_scenes: List[Literal["commute", "date", "travel"]] = Field(default_factory=list)
     suggested_temperature: SuggestedTemperature = Field(default_factory=SuggestedTemperature)
-    suggested_season: Literal["spring-autumn", "winter", "summer"] = "spring-autumn"
+    suggested_season: SeasonId = "spring-autumn"
+    suggested_style_tags: List[StyleId] = Field(default_factory=list, max_length=2)
     components: List[OutfitComponent]
+    reference_outfit: dict = Field(default_factory=dict)
+    outfit_dna: dict = Field(default_factory=dict)
+    signature_features: List[str] = Field(default_factory=list, min_length=0, max_length=8)
+    locked_features: List[str] = Field(default_factory=list, min_length=0, max_length=8)
     outfit_analysis: OutfitAnalysis = Field(default_factory=OutfitAnalysis)
     replication_guide: ReplicationGuide
 
@@ -184,6 +203,9 @@ class RecommendationAdviceRequest(BaseModel):
     scene: SceneId
     items: List[OutfitComponent] = Field(min_length=1, max_length=12)
     constraints: dict = Field(default_factory=dict)
+    outfit_dna: dict = Field(default_factory=dict)
+    locked_features: List[str] = Field(default_factory=list, max_length=8)
+    image_direction: dict = Field(default_factory=dict)
     generate_advice: bool = True
 
     @field_validator("constraints")

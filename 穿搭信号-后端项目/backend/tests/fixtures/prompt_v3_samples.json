@@ -1,0 +1,819 @@
+[
+  {
+    "id": "v3-01",
+    "mode": "reference_recreation",
+    "audience": "mens",
+    "season": "spring-autumn",
+    "scene": "commute",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-02",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "summer",
+    "scene": "commute",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-03",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "winter",
+    "scene": "date",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-04",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "spring-autumn",
+    "scene": "date",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-05",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "summer",
+    "scene": "travel",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-06",
+    "mode": "reference_recreation",
+    "audience": "womens",
+    "season": "winter",
+    "scene": "travel",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-07",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "spring-autumn",
+    "scene": "commute",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-08",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "summer",
+    "scene": "commute",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-09",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "winter",
+    "scene": "date",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-10",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "spring-autumn",
+    "scene": "date",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-11",
+    "mode": "reference_recreation",
+    "audience": "mens",
+    "season": "summer",
+    "scene": "travel",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-12",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "winter",
+    "scene": "travel",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-13",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "spring-autumn",
+    "scene": "commute",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-14",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "summer",
+    "scene": "commute",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-15",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "winter",
+    "scene": "date",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-16",
+    "mode": "reference_recreation",
+    "audience": "womens",
+    "season": "spring-autumn",
+    "scene": "date",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-17",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "summer",
+    "scene": "travel",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-18",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "winter",
+    "scene": "travel",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-19",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "spring-autumn",
+    "scene": "commute",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-20",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "summer",
+    "scene": "commute",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-21",
+    "mode": "reference_recreation",
+    "audience": "mens",
+    "season": "winter",
+    "scene": "date",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-22",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "spring-autumn",
+    "scene": "date",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-23",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "summer",
+    "scene": "travel",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-24",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "winter",
+    "scene": "travel",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-25",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "spring-autumn",
+    "scene": "commute",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-26",
+    "mode": "reference_recreation",
+    "audience": "womens",
+    "season": "summer",
+    "scene": "commute",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 22,
+      "weather": "clear"
+    },
+    "reference_required": true,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-27",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "winter",
+    "scene": "date",
+    "style_tags": [
+      "outdoor"
+    ],
+    "weather": {
+      "current_apparent_temperature": 31,
+      "weather": "high_uv"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-28",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "spring-autumn",
+    "scene": "date",
+    "style_tags": [
+      "minimal",
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": 12,
+      "weather": "light_rain"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-29",
+    "mode": "original_generation",
+    "audience": "mens",
+    "season": "summer",
+    "scene": "travel",
+    "style_tags": [
+      "minimal"
+    ],
+    "weather": {
+      "current_apparent_temperature": 3,
+      "weather": "windy"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  },
+  {
+    "id": "v3-30",
+    "mode": "original_generation",
+    "audience": "womens",
+    "season": "winter",
+    "scene": "travel",
+    "style_tags": [
+      "sport"
+    ],
+    "weather": {
+      "current_apparent_temperature": -4,
+      "weather": "snow"
+    },
+    "reference_required": false,
+    "review": {
+      "status": "pending_human_image_review",
+      "pass": null,
+      "severe_issue": null,
+      "checks": [
+        "outfit_dna_consistent",
+        "locked_features_preserved",
+        "text_image_consistent",
+        "no_extra_visible_accessory",
+        "blogger_70_editorial_30"
+      ]
+    }
+  }
+]

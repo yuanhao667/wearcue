@@ -16,6 +16,7 @@ export function assetPath(item: OutfitComponent, audience: Audience) {
 }
 
 export function OutfitIcon({ item, audience }: { item: OutfitComponent; audience: Audience }) {
+  if (!resolveGarmentIcon(item, audience)) return null;
   const style = {
     "--outfit-icon": `url("${assetPath(item, audience)}")`,
   } as CSSProperties;

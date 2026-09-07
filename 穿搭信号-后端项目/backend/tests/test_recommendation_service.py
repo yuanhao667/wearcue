@@ -11,6 +11,7 @@ from app.services.recommendation_service import (
     recommend_ai_outfit,
     recommend_official_outfit,
     recommend_personal_outfit,
+    recommend_system_outfit,
     recommend_system_ai_outfit,
     system_ai_templates,
 )
@@ -60,19 +61,17 @@ class RecommendationTests(unittest.TestCase):
         self.assertEqual(outerwear[0]["functional_icon_key"], "light_outerwear")
         self.assertTrue(outerwear[0]["removable"])
 
-    def test_sun_protection_uses_baseball_cap(self):
+    def test_sun_protection_is_an_outing_reminder_not_a_visible_item(self):
         result = recommend_official_outfit(
             WeatherInput(apparent_min=28, apparent_max=32, uv_index_max=8),
             "travel",
             "womens",
         )
         equipment = [item for item in result["items"] if item["slot"] == "equipment"]
-        self.assertEqual(
-            [item["functional_icon_key"] for item in equipment],
-            ["acc_sunscreen", "acc_baseball_cap"],
-        )
+        self.assertEqual(equipment, [])
+        self.assertIn("sunscreen", {item["type"] for item in result["outing_reminders"]})
 
-    def test_strong_sun_adds_protection_to_a_personal_outfit(self):
+    def test_strong_sun_does_not_inject_sunscreen_or_hat_into_personal_items(self):
         result = recommend_personal_outfit(
             WeatherInput(apparent_min=28, apparent_max=32, uv_index_max=8),
             "travel",
@@ -98,8 +97,33 @@ class RecommendationTests(unittest.TestCase):
 
         self.assertEqual(
             [item["functional_icon_key"] for item in result["items"]],
-            ["acc_baseball_cap", "acc_sunscreen"],
+            ["acc_baseball_cap"],
         )
+        self.assertIn("sunscreen", {item["type"] for item in result["outing_reminders"]})
+
+    def test_personal_matching_prefers_current_apparent_temperature(self):
+        outfit = {
+            "id": "personal-current-temperature",
+            "label": "当前体感可穿",
+            "audience": "mens",
+            "components": [{
+                "slot": "top", "functional_icon_key": "long_sleeve",
+                "asset_key": "top_tshirt_long", "variant_type": "长袖 T 恤",
+                "color_name": "黑色", "thickness": "regular",
+            }],
+            "scene_ids": ["commute"],
+            "suitable_min": 19,
+            "suitable_max": 21,
+            "in_pool": True,
+        }
+        result = recommend_personal_outfit(
+            WeatherInput(
+                apparent_min=8, apparent_max=12,
+                current_temperature=18, current_apparent_temperature=20,
+            ),
+            "commute", "mens", [outfit],
+        )
+        self.assertEqual(result["template_id"], outfit["id"])
 
     def test_system_ai_recommendations_never_cross_scenes(self):
         templates = [
@@ -127,6 +151,55 @@ class RecommendationTests(unittest.TestCase):
             self.assertEqual(result["label"], "夏日约会感")
             with self.assertRaises(NoRecommendationError):
                 recommend_system_ai_outfit(weather, "travel", "mens")
+
+    def test_system_presets_prefer_current_apparent_temperature(self):
+        templates = [
+            {
+                "id": "cold-daily-range", "scene": "commute", "audience": "mens",
+                "thermal_band": "cold", "temperature_range_c": {"min": 5, "max": 14},
+                "quality_status": "approved", "label": "低温方案", "items": [],
+            },
+            {
+                "id": "current-range", "scene": "commute", "audience": "mens",
+                "thermal_band": "mild", "temperature_range_c": {"min": 19, "max": 21},
+                "quality_status": "approved", "label": "当前体感方案", "items": [],
+            },
+        ]
+        weather = WeatherInput(
+            apparent_min=8, apparent_max=12,
+            current_temperature=18, current_apparent_temperature=20,
+        )
+        with patch("app.services.recommendation_service.system_ai_templates", return_value=templates):
+            result = recommend_system_ai_outfit(weather, "commute", "mens")
+        self.assertEqual(result["template_id"], "current-range")
+
+    def test_photo_bound_system_outfit_never_invents_weather_garments(self):
+        components = [
+            {
+                "slot": "top", "functional_icon_key": "short_sleeve",
+                "asset_key": "top_tshirt_short", "variant_type": "条纹短袖T恤",
+                "color_name": "米白色", "thickness": "thin",
+            },
+            {
+                "slot": "bottom", "functional_icon_key": "short_bottom",
+                "asset_key": "bottom_shorts", "variant_type": "百慕大短裤",
+                "color_name": "卡其色", "thickness": "thin",
+            },
+        ]
+        outfit = {
+            "id": "system-photo", "label": "照片预制穿搭", "source": "system",
+            "system_ready": True, "audience": "womens", "scene_ids": ["commute"],
+            "suitable_min": 20, "suitable_max": 35, "components": components,
+        }
+
+        result = recommend_system_outfit(
+            WeatherInput(apparent_min=25, apparent_max=34),
+            "commute", "womens", [outfit],
+        )
+
+        self.assertEqual(result["items"], components)
+        self.assertFalse(any(item["slot"] == "outerwear" for item in result["items"]))
+        self.assertFalse(any("天气适配" in item["variant_type"] for item in result["items"]))
 
     def test_system_commute_examples_have_no_business_clothing(self):
         forbidden = ("西装", "西服", "西裤", "领带", "正装", "商务", "正式", "德比鞋")

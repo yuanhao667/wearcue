@@ -69,10 +69,17 @@ const BASE_GARMENT_ICON_MAP: readonly BaseGarmentIconDefinition[] = [
   icon("shoes", "shoe_canvas", "高帮鞋", ["高帮帆布鞋", "高帮运动鞋"]),
   icon("shoes", "shoe_leather", "正装皮鞋", ["皮鞋", "德比鞋", "牛津鞋"], "P1", "mens"),
   icon("shoes", "shoe_pump", "高跟鞋", ["浅口单鞋", "猫跟鞋"], "P1", "womens"),
+  icon("shoes", "shoe_sneaker_high_top", "高帮运动鞋", ["高帮球鞋", "高帮运动鞋", "短靴", "踝靴", "工装短靴", "大黄靴"]),
 
   icon("accessory", "acc_baseball_cap", "棒球帽", ["鸭舌帽", "运动帽"]),
+  icon("accessory", "acc_bucket_hat", "渔夫帽", ["盆帽"]),
   icon("accessory", "acc_beanie", "针织帽", ["毛线帽", "冷帽"]),
   icon("accessory", "acc_gloves", "手套", ["保暖手套", "防风手套"], "P1"),
+  icon("accessory", "acc_tote_bag", "托特包", ["单肩包", "手提托特包"]),
+  icon("accessory", "acc_crossbody_bag", "斜挎包", ["小号斜挎包"]),
+  icon("accessory", "acc_backpack", "双肩包", ["背包", "双肩背包", "登山包", "旅行背包"]),
+  icon("accessory", "acc_glasses", "眼镜 / 墨镜", ["眼镜", "墨镜", "太阳镜", "太阳眼镜", "黑框眼镜"]),
+  icon("accessory", "acc_scarf", "围巾", ["保暖围巾"]),
   icon("accessory", "acc_umbrella", "雨伞", ["折叠伞", "长柄伞"]),
   icon("accessory", "acc_sunscreen", "防晒霜", ["防晒乳", "防晒露"]),
 ] as const;
@@ -117,23 +124,34 @@ const functionalFallbacks: Record<string, string> = {
   light_outerwear: "outer_light_jacket", warm_outerwear: "outer_down_short", protective_outerwear: "outer_shell",
   short_bottom: "bottom_shorts", long_bottom: "bottom_casual_pants", warm_bottom: "bottom_sweatpants",
   daily_shoes: "shoe_sneaker", protective_shoes: "shoe_canvas", umbrella: "acc_umbrella", gloves: "acc_gloves", sunscreen: "acc_sunscreen", sun_protection: "acc_baseball_cap",
+  backpack: "acc_backpack", acc_backpack: "acc_backpack",
+  glasses: "acc_glasses", sunglasses: "acc_glasses", acc_glasses: "acc_glasses",
+};
+
+const legacyAssetFallbacks: Record<string, string> = {
+  shoe_boot_short: "shoe_sneaker_high_top",
+  shoe_sandal: "shoe_sneaker",
 };
 
 export function garmentIconsFor(slot: OutfitSlot, audience: Audience) {
   const collection: GarmentCollection = slot === "equipment" ? "accessory" : audience;
-  const options = GARMENT_ICON_MAP.filter((item) => item.category === slotCategory[slot] && item.collection === collection);
+  const options = GARMENT_ICON_MAP.filter((item) => item.category === slotCategory[slot] && item.collection === collection && !["acc_umbrella", "acc_sunscreen"].includes(item.baseIconKey));
   return options.length ? options : GARMENT_ICON_MAP.filter((item) => item.category === slotCategory[slot]);
 }
 
 export function resolveGarmentIcon(item: OutfitComponent, audience: Audience) {
   const options = garmentIconsFor(item.slot, audience);
   const variant = item.variant_type.trim().toLocaleLowerCase();
+  const assetKey = legacyAssetFallbacks[item.asset_key ?? ""] ?? item.asset_key;
   return GARMENT_ICON_BY_KEY.get(item.asset_key ?? "")
     ?? options.find((option) => [option.label, ...option.aliases].some((term) => term.toLocaleLowerCase() === variant))
-    ?? options.find((option) => option.baseIconKey === item.asset_key || option.iconKey === item.asset_key)
-    ?? GARMENT_ICON_MAP.find((option) => option.category === slotCategory[item.slot] && option.baseIconKey === item.asset_key)
+    ?? options.find((option) => option.baseIconKey === assetKey || option.iconKey === assetKey)
+    ?? GARMENT_ICON_MAP.find((option) => option.category === slotCategory[item.slot] && option.baseIconKey === assetKey)
     ?? options.find((option) => option.baseIconKey === functionalFallbacks[item.functional_icon_key])
-    ?? options[0];
+    // Unsupported accessories must stay iconless. Falling back to the first
+    // accessory invents an unrelated symbol (for example a scarf for leg
+    // warmers), while core garment slots still keep their safe fallback.
+    ?? (item.slot === "equipment" ? undefined : options[0]);
 }
 
 export function crossAudienceGarmentLabels(items: OutfitComponent[], audience: Audience) {

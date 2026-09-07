@@ -1,10 +1,12 @@
 import base64
 import json
 import os
+import re
 from pathlib import Path
 
 import httpx
 
+from app.domain.component_rules import normalize_component_thickness
 from app.schemas import VisionResult
 
 
@@ -16,6 +18,8 @@ VALID_ASSET_KEYS = {
     "bottom_skirt_long", "onepiece_dress", "shoe_sneaker", "shoe_canvas",
     "shoe_leather", "shoe_pump", "acc_baseball_cap", "acc_beanie", "acc_gloves",
     "acc_umbrella", "acc_sunscreen",
+    "acc_bucket_hat", "acc_tote_bag", "acc_crossbody_bag", "acc_backpack", "acc_glasses", "acc_scarf",
+    "shoe_sneaker_high_top",
 }
 
 ASSET_KEY_ALIASES = {
@@ -32,6 +36,14 @@ ASSET_KEY_ALIASES = {
     "shoe_pump_summer": "shoe_pump",
     "shoe_snow_boot": "shoe_canvas",
     "acc_sun_hat": "acc_baseball_cap",
+    "shoe_high_top_sneaker": "shoe_sneaker_high_top",
+    "shoe_boot_short": "shoe_sneaker_high_top",
+    "shoe_sandal": "shoe_sneaker",
+    "acc_shoulder_bag": "acc_tote_bag",
+    "backpack": "acc_backpack",
+    "acc_backpack_bag": "acc_backpack",
+    "acc_sunglasses": "acc_glasses",
+    "acc_eyeglasses": "acc_glasses",
 }
 
 VARIANT_ASSET_KEYS = {
@@ -48,7 +60,11 @@ VARIANT_ASSET_KEYS = {
     "短裙": "bottom_skirt_short", "长裙": "bottom_skirt_long", "连衣裙": "onepiece_dress",
     "运动鞋": "shoe_sneaker", "休闲鞋": "shoe_sneaker", "低帮鞋": "shoe_sneaker",
     "高帮鞋": "shoe_canvas", "皮鞋": "shoe_leather", "正装皮鞋": "shoe_leather",
-    "高跟鞋": "shoe_pump", "棒球帽": "acc_baseball_cap", "针织帽": "acc_beanie",
+    "高帮运动鞋": "shoe_sneaker_high_top", "凉鞋": "shoe_sneaker", "短靴": "shoe_sneaker_high_top",
+    "高跟鞋": "shoe_pump", "棒球帽": "acc_baseball_cap", "渔夫帽": "acc_bucket_hat", "针织帽": "acc_beanie",
+    "托特包": "acc_tote_bag", "单肩包": "acc_tote_bag", "斜挎包": "acc_crossbody_bag",
+    "双肩包": "acc_backpack", "双肩背包": "acc_backpack", "登山双肩包": "acc_backpack", "登山包": "acc_backpack", "背包": "acc_backpack",
+    "眼镜": "acc_glasses", "墨镜": "acc_glasses", "太阳镜": "acc_glasses", "太阳眼镜": "acc_glasses", "黑框眼镜": "acc_glasses", "围巾": "acc_scarf",
     "手套": "acc_gloves", "雨伞": "acc_umbrella", "防晒霜": "acc_sunscreen",
 }
 
@@ -61,6 +77,8 @@ FUNCTIONAL_ASSET_KEYS = {
     "daily_shoes": "shoe_sneaker", "protective_shoes": "shoe_canvas",
     "umbrella": "acc_umbrella", "gloves": "acc_gloves",
     "sun_protection": "acc_baseball_cap", "sunscreen": "acc_sunscreen",
+    "backpack": "acc_backpack", "acc_backpack": "acc_backpack",
+    "glasses": "acc_glasses", "sunglasses": "acc_glasses", "acc_glasses": "acc_glasses",
 }
 
 SLOT_ASSET_KEYS = {
@@ -74,8 +92,101 @@ AUDIENCE_STYLE_REPLACEMENTS = {
     "womens": {"硬汉": "利落", "硬朗": "利落", "粗犷": "有层次", "阳刚": "有力量", "猛男": "活力", "绅士": "精致"},
 }
 
+SLOT_ALIASES = {
+    "acc": "equipment", "accessory": "equipment", "accessories": "equipment", "hat": "equipment",
+    "bag": "equipment", "outer": "outerwear", "jacket": "outerwear",
+    "shoe": "shoes", "footwear": "shoes", "pants": "bottom",
+    "skirt": "bottom", "dress": "onepiece",
+}
+THICKNESS_ALIASES = {
+    "light": "thin", "lightweight": "thin", "medium": "regular",
+    "normal": "regular", "mid": "regular", "heavy": "thick",
+    "warm": "thick",
+}
 
-def canonical_asset_key(component: dict) -> str:
+
+def coerce_vision_result(result: dict) -> dict:
+    """Repair common provider vocabulary drift before strict schema validation."""
+    result = dict(result)
+    audience = str(result.get("garment_audience") or "unisex").lower()
+    result["garment_audience"] = {
+        "male": "mens", "man": "mens", "men": "mens",
+        "female": "womens", "woman": "womens", "women": "womens",
+    }.get(audience, audience if audience in {"mens", "womens", "unisex"} else "unisex")
+    coverage = str(result.get("image_coverage") or "unknown").lower()
+    result["image_coverage"] = {
+        "full": "full_body", "fullbody": "full_body", "half_body": "partial",
+    }.get(coverage, coverage if coverage in {"full_body", "partial", "unknown"} else "unknown")
+    result["suggested_scenes"] = [
+        value for value in result.get("suggested_scenes", [])
+        if value in {"commute", "date", "travel"}
+    ][:3]
+    season = result.get("suggested_season")
+    result["suggested_season"] = {
+        "spring": "spring-autumn", "autumn": "spring-autumn", "fall": "spring-autumn",
+    }.get(season, season if season in {"spring-autumn", "summer", "winter"} else "spring-autumn")
+    result["suggested_style_tags"] = [
+        value for value in result.get("suggested_style_tags", [])
+        if value in {"minimal", "sport", "outdoor"}
+    ][:2]
+
+    components = []
+    for raw_component in result.get("components", [])[:8]:
+        component = dict(raw_component)
+        slot = str(component.get("slot") or "").lower()
+        component["slot"] = SLOT_ALIASES.get(slot, slot if slot in SLOT_ASSET_KEYS else "equipment")
+        thickness = str(component.get("thickness") or "regular").lower()
+        component["thickness"] = THICKNESS_ALIASES.get(
+            thickness, thickness if thickness in {"thin", "regular", "thick"} else "regular"
+        )
+        color_type = str(component.get("color_type") or "solid").lower()
+        component["color_type"] = "solid" if color_type == "solid" else "pattern"
+        color_value = str(component.get("color_value") or "")
+        match = re.search(r"#[0-9A-Fa-f]{6}", color_value)
+        component["color_value"] = match.group(0) if match else None
+        component["confidence"] = min(1.0, max(0.0, float(component.get("confidence", 1))))
+        for field, limit in (
+            ("functional_icon_key", 60), ("variant_type", 60), ("color_name", 30),
+            ("pattern_description", 80), ("fit", 30), ("shoulder", 40),
+            ("length", 40), ("waistline", 30), ("bottom_shape", 30),
+            ("material", 80), ("wearing_method", 80),
+        ):
+            if component.get(field) is not None:
+                component[field] = str(component[field])[:limit]
+        component["structure_details"] = [
+            str(value)[:80] for value in component.get("structure_details", [])
+        ][:6]
+        components.append(normalize_component_thickness(component))
+    result["components"] = components
+
+    guide = dict(result.get("replication_guide") or {})
+    formula = str(guide.get("formula") or "＋".join(
+        str(component.get("variant_type") or "单品") for component in components
+    ))[:60]
+    steps = [str(value)[:120] for value in guide.get("steps", [])][:6]
+    if len(steps) < 2:
+        steps = [f"穿好{component.get('variant_type') or '单品'}" for component in components[:6]]
+    if len(steps) < 2:
+        steps.append("按照片中的层次完成搭配")
+    result["replication_guide"] = {
+        "formula": formula or "按照片复刻完整穿搭",
+        "steps": steps,
+        "styling_points": [str(value)[:120] for value in guide.get("styling_points", [])][:3],
+        "weather_note": str(guide.get("weather_note") or "按当天体感增减外层。")[:80],
+        "substitute": str(guide.get("substitute") or "选择同版型和薄厚的单品替换。")[:80],
+    }
+    analysis = dict(result.get("outfit_analysis") or {})
+    result["outfit_analysis"] = {
+        "summary": str(analysis.get("summary") or "按参考图的版型和层次直接复刻。")[:60],
+        "structure_points": [str(value)[:120] for value in analysis.get("structure_points", [])][:3],
+        "completion_advice": [str(value)[:120] for value in analysis.get("completion_advice", [])][:3],
+    }
+    result["signature_features"] = [str(value)[:120] for value in result.get("signature_features", [])][:8]
+    result["locked_features"] = [str(value)[:120] for value in result.get("locked_features", [])][:8]
+    return result
+
+
+def canonical_asset_key(component: dict) -> str | None:
     """Convert provider vocabulary into the stable icon vocabulary used by the UI."""
     raw_key = str(component.get("asset_key") or "").strip().lower()
     for prefix in ("mens_", "womens_", "accessories_"):
@@ -86,9 +197,19 @@ def canonical_asset_key(component: dict) -> str:
     if key in VALID_ASSET_KEYS:
         return key
     variant = "".join(str(component.get("variant_type") or "").lower().split())
-    return VARIANT_ASSET_KEYS.get(variant) or FUNCTIONAL_ASSET_KEYS.get(
+    # Providers often return a descriptive variant (for example
+    # “黑色大框墨镜”) instead of one of the exact vocabulary entries above.
+    # Keep visible eyewear on the supplied glasses icon instead of falling
+    # through to the generic equipment/hat fallback.
+    if any(token in variant for token in ("眼镜", "墨镜", "太阳镜", "太阳眼镜")):
+        return "acc_glasses"
+    matched = VARIANT_ASSET_KEYS.get(variant) or FUNCTIONAL_ASSET_KEYS.get(
         str(component.get("functional_icon_key") or "").strip().lower()
-    ) or SLOT_ASSET_KEYS.get(str(component.get("slot") or "").strip().lower(), "top_tshirt_long")
+    )
+    if matched:
+        return matched
+    slot = str(component.get("slot") or "").strip().lower()
+    return None if slot == "equipment" else SLOT_ASSET_KEYS.get(slot, "top_tshirt_long")
 
 
 def _normalize_audience_style_text(value, audience: str):
@@ -103,8 +224,25 @@ def _normalize_audience_style_text(value, audience: str):
 
 
 def normalize_vision_result(result: dict) -> dict:
+    result["components"] = [
+        component for component in result.get("components", [])
+        if component.get("asset_key") not in {"acc_umbrella", "acc_sunscreen"}
+        and component.get("functional_icon_key") not in {
+            "acc_umbrella", "umbrella", "acc_sunscreen", "sunscreen", "sun_protection"
+        }
+    ]
     for component in result.get("components", []):
         component["asset_key"] = canonical_asset_key(component)
+        component.update(normalize_component_thickness(component))
+        asset_key = component["asset_key"]
+        component["slot"] = (
+            "equipment" if not asset_key or asset_key.startswith("acc_")
+            else "shoes" if asset_key.startswith("shoe_")
+            else "bottom" if asset_key.startswith("bottom_")
+            else "outerwear" if asset_key.startswith("outer_")
+            else "onepiece" if asset_key.startswith("onepiece_")
+            else "top"
+        )
     asset_keys = {component.get("asset_key") for component in result.get("components", [])}
     if asset_keys & {"top_tshirt_short", "top_tank", "top_camisole"} and asset_keys & {
         "bottom_shorts", "bottom_skirt_short"
@@ -168,7 +306,7 @@ class VisionService:
                     "model": selected_model,
                     "enable_thinking": False,
                     "temperature": 0,
-                    "max_tokens": 1000,
+                    "max_tokens": 2200,
                     "response_format": {"type": "json_object"},
                     "messages": [
                         {"role": "system", "content": self.prompt},
@@ -198,7 +336,7 @@ class VisionService:
                     if isinstance(content, list):
                         content = "".join(part.get("text", "") for part in content)
                     raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
-                    result = VisionResult.model_validate(json.loads(raw))
+                    result = VisionResult.model_validate(coerce_vision_result(json.loads(raw)))
                     return normalize_vision_result(result.model_dump())
                 except httpx.HTTPStatusError as caught:
                     error = caught

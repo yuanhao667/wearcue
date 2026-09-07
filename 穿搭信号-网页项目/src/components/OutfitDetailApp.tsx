@@ -7,6 +7,7 @@ import { OutfitIcon } from "./OutfitIcon";
 import { apiAsset, apiJson } from "@/lib/backend-api";
 import type { AIQuota, BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
+import { outfitThicknessLabel, usesRegularAccessoryThickness } from "@/domain/outfit-thickness";
 
 const DETAIL_ADVICE_STEPS = ["AI 正在分析这套单品组合", "AI 正在生成穿搭步骤", "AI 正在检查天气适配", "AI 正在整理替代建议"];
 
@@ -14,19 +15,33 @@ export function detailAdviceStatus(step: number) {
   return DETAIL_ADVICE_STEPS[step % DETAIL_ADVICE_STEPS.length];
 }
 
-type DetailStepItem = { variant_type: string; color_name: string; thickness: string };
+type DetailStepItem = { variant_type: string; color_name: string; thickness: string; functional_icon_key?: string; asset_key?: string | null };
 
-export function detailSteps(steps: string[], items: DetailStepItem[]) {
-  const remaining = [...items];
-  const enriched = steps.map((step) => {
-    const matchedIndex = remaining.findIndex((item) => step.includes(item.variant_type));
-    const item = remaining.splice(matchedIndex >= 0 ? matchedIndex : 0, 1)[0];
-    if (!item) return step;
-    const thickness = thicknessLabel(item.thickness);
-    if (step.includes(item.color_name) && step.includes(thickness)) return step;
-    return `${step}（${item.color_name}、${thickness}）`;
+function itemStepMatchScore(step: string, item: DetailStepItem) {
+  if (step.includes(item.variant_type)) return 100;
+  const compactStep = step.replace(/[^\p{L}\p{N}]/gu, "");
+  const compactItem = item.variant_type.replace(/[^\p{L}\p{N}]/gu, "");
+  const pairs = new Set(Array.from({ length: Math.max(0, compactItem.length - 1) }, (_, index) => compactItem.slice(index, index + 2)));
+  const sharedPairs = [...pairs].filter((pair) => compactStep.includes(pair)).length;
+  return sharedPairs + (item.color_name && step.includes(item.color_name) ? 4 : 0);
+}
+
+export function detailSteps(steps: string[] | undefined, items: DetailStepItem[]) {
+  const remainingSteps = [...(steps ?? [])];
+  const enriched = items.map((item) => {
+    const scores = remainingSteps.map((step) => itemStepMatchScore(step, item));
+    const bestScore = Math.max(...scores, 0);
+    const matchedIndex = bestScore >= 1 ? scores.indexOf(bestScore) : -1;
+    const step = matchedIndex >= 0 ? remainingSteps.splice(matchedIndex, 1)[0] : undefined;
+    const normalizedStep = usesRegularAccessoryThickness(item)
+      ? step?.replaceAll("薄款", "常规").replaceAll("厚款", "常规")
+      : step;
+    if (!normalizedStep) return `搭配${item.color_name}、${outfitThicknessLabel(item)}的${item.variant_type}`;
+    const thickness = outfitThicknessLabel(item);
+    if (normalizedStep.includes(item.color_name) && normalizedStep.includes(thickness)) return normalizedStep;
+    return `${normalizedStep}（${item.color_name}、${thickness}）`;
   });
-  return enriched.concat(remaining.map((item) => `搭配${item.color_name}、${thicknessLabel(item.thickness)}的${item.variant_type}`));
+  return enriched.concat(remainingSteps);
 }
 
 export function recommendationSavePayload(recommendation: BackendRecommendation, guide: ReplicationGuide, analysis: OutfitAnalysis | null, inPool: boolean) {
@@ -37,6 +52,8 @@ export function recommendationSavePayload(recommendation: BackendRecommendation,
     scene_ids: [recommendation.scene],
     suitable_min: recommendation.constraints.apparent_min ?? recommendation.constraints.temperature_min ?? 15,
     suitable_max: recommendation.constraints.apparent_max ?? recommendation.constraints.temperature_max ?? 28,
+    season: recommendation.season ?? "spring-autumn",
+    style_tags: recommendation.style_tags?.length ? recommendation.style_tags : ["minimal"],
     in_pool: inPool,
     outfit_analysis: analysis,
     replication_guide: guide,
@@ -79,13 +96,17 @@ export function OutfitDetailApp({ id }: { id: string }) {
 
   useEffect(() => {
     if (loading) return;
-    const targetItems = recommendation?.items ?? savedOutfit?.components;
+    const targetItems = savedOutfit?.components ?? recommendation?.items;
     if (!targetItems || savedOutfit?.inspiration_id) return;
     const needsAdvice = Boolean(
-      recommendation?.source === "ai"
+      !savedOutfit
+      && recommendation?.source === "ai"
       && !recommendation.replication_guide
       && !recommendation.outfit_analysis,
     );
+    if (savedOutfit?.image_url && !needsAdvice) {
+      return;
+    }
     const requestKey = `${id}:${needsAdvice}`;
     if (requestedDetail.current === requestKey) return;
     requestedDetail.current = requestKey;
@@ -102,10 +123,13 @@ export function OutfitDetailApp({ id }: { id: string }) {
       method: "POST",
       body: JSON.stringify({
         recommendation_id: id,
-        label: recommendation?.label ?? savedOutfit?.label ?? "今日穿搭",
+        label: savedOutfit?.label ?? recommendation?.label ?? "今日穿搭",
         scene: recommendation?.scene ?? savedOutfit?.scene_ids[0] ?? "commute",
         items: targetItems,
         constraints: recommendation?.constraints ?? {},
+        outfit_dna: recommendation?.outfit_dna ?? {},
+        locked_features: recommendation?.locked_features ?? [],
+        image_direction: recommendation?.image_direction ?? {},
         generate_advice: needsAdvice,
       }),
     }).then((value) => {
@@ -149,20 +173,32 @@ export function OutfitDetailApp({ id }: { id: string }) {
   if (!recommendation && loading) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>正在加载穿搭</h2></section></main>;
   if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href="/closet">返回穿搭灵感</Link></section></main>;
 
-  const items = [...(recommendation?.items ?? savedOutfit?.components ?? [])].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
-  const audience = recommendation?.audience ?? savedOutfit?.audience ?? "mens";
-  const label = recommendation?.label ?? savedOutfit?.label ?? "今日穿搭";
-  const displayLabel = recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
-  const analysis = recommendation?.outfit_analysis ?? aiAnalysis ?? savedOutfit?.outfit_analysis ?? null;
+  // Once an outfit record has loaded, it is the source of truth for a
+  // photo-bound detail page. A matching cached home recommendation may carry
+  // weather-adapted placeholder items and must not override the photo data.
+  const items = [...(savedOutfit?.components ?? recommendation?.items ?? [])].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
+  const audience = savedOutfit?.audience ?? recommendation?.audience ?? "mens";
+  const label = savedOutfit?.label ?? recommendation?.label ?? "今日穿搭";
+  const displayLabel = savedOutfit ? label : recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
+  const rawAnalysis = savedOutfit?.outfit_analysis ?? recommendation?.outfit_analysis ?? aiAnalysis ?? null;
+  const analysis = rawAnalysis ? {
+    summary: rawAnalysis.summary ?? "",
+    structure_points: rawAnalysis.structure_points ?? [],
+    completion_advice: rawAnalysis.completion_advice ?? [],
+  } : null;
   const originalImageUrl = savedOutfit?.inspiration_id ? apiAsset(`/inspirations/${savedOutfit.inspiration_id}/image?size=medium`) : "";
-  const imageUrl = originalImageUrl || generatedImageUrl;
+  const cachedDetailImageUrl = savedOutfit?.image_url ? apiAsset(savedOutfit.image_url) : "";
+  const imageUrl = originalImageUrl || cachedDetailImageUrl || generatedImageUrl;
   const showPhotoColumn = Boolean(imageUrl || imageError || (!savedOutfit?.inspiration_id && (recommendation || savedOutfit)));
   const imageLoading = showPhotoColumn && !imageUrl && !imageError && !adviceDone;
-  const guide = recommendation?.replication_guide ?? aiAdvice ?? savedOutfit?.replication_guide ?? {
-    formula: items.map((item) => item.variant_type).join("＋"),
-    steps: items.map((item) => `选择${thicknessLabel(item.thickness)}${item.variant_type}`),
-    styling_points: [], weather_note: "按当天体感增减外层。", substitute: "选择相同版型和薄厚的单品即可。",
-  };
+  const rawGuide = savedOutfit?.replication_guide ?? recommendation?.replication_guide ?? aiAdvice;
+  const guide = {
+    formula: rawGuide?.formula || items.map((item) => item.variant_type).join("＋"),
+    steps: rawGuide?.steps ?? items.map((item) => `选择${outfitThicknessLabel(item)}${item.variant_type}`),
+    styling_points: rawGuide?.styling_points ?? [],
+    weather_note: rawGuide?.weather_note || "按当天体感增减外层。",
+    substitute: rawGuide?.substitute || "选择相同版型和薄厚的单品即可。",
+  } satisfies ReplicationGuide;
   const steps = detailSteps(guide.steps, items);
   async function saveRecommendation(inPool: boolean) {
     if (!recommendation) return;
@@ -229,5 +265,3 @@ export function OutfitDetailApp({ id }: { id: string }) {
     </div>
   </main>;
 }
-
-function thicknessLabel(value: string) { return ({ thin: "薄款", regular: "常规", thick: "厚款" } as Record<string, string>)[value] ?? value; }

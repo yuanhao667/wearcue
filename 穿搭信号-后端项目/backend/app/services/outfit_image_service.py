@@ -48,9 +48,21 @@ class OutfitImageService:
         items: List[Dict[str, Any]],
         constraints: Dict[str, Any],
         person_profile: Dict[str, Any],
+        outfit_dna: Dict[str, Any] | None = None,
+        locked_features: List[str] | None = None,
+        image_direction: Dict[str, Any] | None = None,
     ) -> bytes:
         if not self.configured:
             raise OutfitImageServiceError("AI 生图模型尚未配置")
+        items = [
+            item for item in items
+            if item.get("functional_icon_key") not in {
+                "acc_umbrella", "umbrella", "acc_sunscreen", "sunscreen", "sun_protection"
+            }
+            and item.get("asset_key") not in {"acc_umbrella", "acc_sunscreen"}
+        ]
+        if not items:
+            raise OutfitImageServiceError("没有可用于人物生图的穿搭单品")
         scene_context = scene_context_for(scene, audience)
         scene_requirements = scene_context["scene_requirements"]
         context = {
@@ -69,10 +81,21 @@ class OutfitImageService:
                         str(item.get("thickness")), item.get("thickness")
                     ),
                     "位置": item.get("slot"),
+                    "版型": item.get("fit"),
+                    "肩线": item.get("shoulder"),
+                    "长度": item.get("length"),
+                    "腰线": item.get("waistline"),
+                    "裤型或裙型": item.get("bottom_shape"),
+                    "结构细节": item.get("structure_details"),
+                    "材质": item.get("material"),
+                    "穿法": item.get("wearing_method"),
                 }
                 for item in items
             ],
             "天气约束": constraints,
+            "穿搭DNA": outfit_dna or {},
+            "锁定特征": locked_features or [],
+            "图片方向": image_direction or {},
             "人物信息": {
                 "身高段": person_profile["height_group"],
                 "体重段": person_profile["weight_group"],
@@ -104,6 +127,7 @@ class OutfitImageService:
                 + f"\n场景风格要求：{scene_requirements}"
                 + "场景要求只控制整体气质、姿态、背景及既有衣物的穿法，"
                 + "不得为此新增、删除或替换衣物。"
+                + "\n所有锁定特征必须逐项清楚呈现；穿搭DNA优先于通用审美修饰。"
                 + "\n\n完整结构化输入：\n"
                 + json.dumps(context, ensure_ascii=False)
             ),

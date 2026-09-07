@@ -17,7 +17,18 @@ async def login(payload: LoginRequest) -> dict:
     invite_code = payload.invite_code.strip()
     if not any(hmac.compare_digest(invite_code, code) for code in allowed_invite_codes()):
         raise HTTPException(403, "邀请码无效，请向邀请人确认")
-    return store.login(invite_code, payload.nickname.strip(), payload.audience)
+    if payload.mode == "register":
+        nickname = (payload.nickname or "").strip()
+        if not nickname or not payload.audience:
+            raise HTTPException(422, "请完整填写注册信息")
+        session = store.register(invite_code, nickname, payload.audience)
+        if not session:
+            raise HTTPException(409, "该邀请码已注册，请直接登录")
+        return session
+    session = store.login(invite_code)
+    if not session:
+        raise HTTPException(404, "该邀请码尚未注册，请先注册")
+    return session
 
 
 @router.get("/me")
@@ -39,4 +50,3 @@ async def logout(
     if credentials:
         store.logout(credentials.credentials)
     return {"ok": True}
-

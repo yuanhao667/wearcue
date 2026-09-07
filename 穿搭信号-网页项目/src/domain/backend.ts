@@ -1,5 +1,7 @@
 export type Audience = "mens" | "womens";
 export type SceneId = "commute" | "date" | "travel";
+export type SeasonId = "spring-autumn" | "summer" | "winter";
+export type StyleId = "minimal" | "sport" | "outdoor";
 export type Thickness = "thin" | "regular" | "thick";
 export type OutfitSlot = "top" | "bottom" | "outerwear" | "onepiece" | "shoes" | "equipment";
 
@@ -78,6 +80,14 @@ export interface OutfitComponent {
   approximate?: boolean;
   suggested?: boolean;
   asset_key?: string | null;
+  fit?: string | null;
+  shoulder?: string | null;
+  length?: string | null;
+  waistline?: string | null;
+  bottom_shape?: string | null;
+  structure_details?: string[];
+  material?: string | null;
+  wearing_method?: string | null;
 }
 
 export interface ReplicationGuide {
@@ -145,13 +155,22 @@ export interface RecommendationConstraints {
 }
 
 export interface BackendRecommendation {
-  source: "official" | "personal" | "ai" | "system_ai";
+  source: "official" | "personal" | "ai" | "system_ai" | "system";
   template_id: string;
   label: string;
   scene: SceneId;
   audience: Audience;
   constraints: RecommendationConstraints;
   items: OutfitComponent[];
+  outing_reminders?: Array<{ type: "umbrella" | "sunscreen" | "weather"; text: string }>;
+  prompt_version?: "wearcue-outfit-plan-v3" | string;
+  season?: SeasonId;
+  style_tags?: StyleId[];
+  temperature_range_c?: { min: number; max: number };
+  outfit_dna?: Record<string, unknown>;
+  signature_features?: string[];
+  locked_features?: string[];
+  image_direction?: Record<string, unknown>;
   outfit_analysis?: OutfitAnalysis | null;
   replication_guide?: ReplicationGuide | null;
   ai_quota?: AIQuota;
@@ -165,10 +184,16 @@ export interface Outfit {
   source: "manual" | "inspiration" | "system";
   components: OutfitComponent[];
   scene_ids: SceneId[];
+  season: SeasonId;
+  style_tags: StyleId[];
   suitable_min: number;
   suitable_max: number;
+  favorite: boolean;
+  system_ready?: boolean;
   in_pool: boolean;
   inspiration_id?: string | null;
+  image_url?: string | null;
+  image_key?: string | null;
   skip_count: number;
   created_at: string;
   updated_at: string;
@@ -184,7 +209,12 @@ export interface VisionResult {
   suggested_scenes: SceneId[];
   suggested_temperature: SuggestedTemperature;
   suggested_season: "spring-autumn" | "winter" | "summer";
+  suggested_style_tags: StyleId[];
   components: OutfitComponent[];
+  reference_outfit: Record<string, unknown>;
+  outfit_dna: Record<string, unknown>;
+  signature_features: string[];
+  locked_features: string[];
   outfit_analysis: OutfitAnalysis;
   replication_guide: ReplicationGuide;
   ai_generated_name?: string;

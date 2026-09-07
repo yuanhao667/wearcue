@@ -6,6 +6,8 @@ from typing import Any, Dict, List
 
 import httpx
 
+from app.domain.component_rules import normalize_component_thickness
+
 # functional_icon_key -> 基础图标 key（与前端 functionalFallbacks 保持一致）
 FUNCTIONAL_TO_ASSET: Dict[str, str] = {
     "short_sleeve": "top_tshirt_short",
@@ -24,6 +26,29 @@ FUNCTIONAL_TO_ASSET: Dict[str, str] = {
     "acc_gloves": "acc_gloves",
     "acc_sunscreen": "acc_sunscreen",
     "acc_baseball_cap": "acc_baseball_cap",
+    "acc_beanie": "acc_beanie",
+    "acc_bucket_hat": "acc_bucket_hat",
+    "acc_tote_bag": "acc_tote_bag",
+    "acc_crossbody_bag": "acc_crossbody_bag",
+    "acc_backpack": "acc_backpack",
+    "backpack": "acc_backpack",
+    "acc_glasses": "acc_glasses",
+    "glasses": "acc_glasses",
+    "sunglasses": "acc_glasses",
+    "acc_scarf": "acc_scarf",
+    "shoe_sandal": "shoe_sneaker",
+    "shoe_boot_short": "shoe_sneaker_high_top",
+    "shoe_sneaker_high_top": "shoe_sneaker_high_top",
+}
+
+VALID_ASSET_KEYS = {
+    "top_tshirt_short", "top_tshirt_long", "top_tank", "top_camisole", "top_shirt",
+    "top_sweatshirt", "top_knit", "top_knit_vest", "outer_light_jacket",
+    "outer_wool_coat", "outer_down_short", "outer_shell", "bottom_shorts",
+    "bottom_casual_pants", "bottom_sweatpants", "bottom_skirt_short",
+    "bottom_skirt_long", "onepiece_dress", "shoe_sneaker", "shoe_canvas",
+    "shoe_leather", "shoe_pump", "shoe_sneaker_high_top", "acc_baseball_cap", "acc_beanie", "acc_bucket_hat",
+    "acc_gloves", "acc_tote_bag", "acc_crossbody_bag", "acc_backpack", "acc_glasses", "acc_scarf",
 }
 
 VALID_SLOTS = {"top", "bottom", "outerwear", "onepiece", "shoes", "equipment"}
@@ -179,15 +204,8 @@ def _normalize_outfit_name(raw: Any, recognition_result: Dict[str, Any]) -> str:
             ("出行", "womens"): "轻旅出行",
         }.get((scene, audience), "协调穿搭")
     if suggested_scenes:
-        scene = next((scene_name for scene_name in suggested_scenes if scene_name in name), suggested_scenes[0])
-        if scene == "通勤" and any(term in name for term in COMMUTE_BUSINESS_TERMS):
+        if "通勤" in name and any(term in name for term in COMMUTE_BUSINESS_TERMS):
             return "日常通勤"
-        style = name
-        for scene_name in NAMING_SCENES.values():
-            style = style.replace(scene_name, "")
-        style = style.strip(" ·＋+-，,。")
-        if style:
-            name = style[: 30 - len(scene)] + scene
     else:
         for scene_name in NAMING_SCENES.values():
             name = name.replace(scene_name, "")
@@ -198,13 +216,8 @@ def name_follows_style_scene(name: str, recognition_result: Dict[str, Any]) -> b
     audience = _first_str(recognition_result.get("garment_audience"))
     if any(term in name for term in AUDIENCE_STYLE_TERMS.get(audience, ())):
         return False
-    suggested_scenes = [
-        NAMING_SCENES[scene_id]
-        for scene_id in recognition_result.get("suggested_scenes") or []
-        if scene_id in NAMING_SCENES
-    ]
-    return not suggested_scenes or any(
-        name.endswith(scene) and len(name) > len(scene) for scene in suggested_scenes
+    return bool(name.strip()) and not (
+        "通勤" in name and any(term in name for term in COMMUTE_BUSINESS_TERMS)
     )
 
 
@@ -277,6 +290,9 @@ class OutfitAIService:
         items: List[Dict[str, Any]] = []
         for item in raw_items or []:
             functional_key = _first_str(item.get("functional_icon_key"))
+            raw_asset_key = _first_str(item.get("asset_key"))
+            if functional_key not in FUNCTIONAL_TO_ASSET and raw_asset_key in VALID_ASSET_KEYS:
+                functional_key = raw_asset_key
             if functional_key not in FUNCTIONAL_TO_ASSET:
                 continue
             slot = _first_str(item.get("slot"))
@@ -288,29 +304,66 @@ class OutfitAIService:
             color_value = _first_str(item.get("color_value"))
             if color_value and not HEX_RE.match(color_value):
                 color_value = ""
-            items.append(
+            asset_key = raw_asset_key if raw_asset_key in VALID_ASSET_KEYS else FUNCTIONAL_TO_ASSET[functional_key]
+            if asset_key in {"acc_umbrella", "acc_sunscreen"}:
+                continue
+            items.append(normalize_component_thickness(
                 {
                     "slot": slot,
                     "functional_icon_key": functional_key,
-                    "asset_key": FUNCTIONAL_TO_ASSET[functional_key],
+                    "asset_key": asset_key,
                     "variant_type": _first_str(item.get("variant_type"), functional_key),
                     "color_name": _first_str(item.get("color_name"), "基础色"),
                     "color_value": color_value or None,
                     "color_type": "solid",
                     "thickness": thickness,
+                    "fit": _first_str(item.get("fit")) or None,
+                    "shoulder": _first_str(item.get("shoulder")) or None,
+                    "length": _first_str(item.get("length")) or None,
+                    "waistline": _first_str(item.get("waistline")) or None,
+                    "bottom_shape": _first_str(item.get("bottom_shape")) or None,
+                    "structure_details": [
+                        _first_str(detail) for detail in item.get("structure_details") or []
+                        if _first_str(detail)
+                    ][:6],
+                    "material": _first_str(item.get("material")) or None,
+                    "pattern_description": _first_str(item.get("pattern_description")) or None,
+                    "wearing_method": _first_str(item.get("wearing_method")) or None,
                 }
-            )
+            ))
         return items
 
     def _normalize(self, raw: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         items = self._normalize_items(raw.get("items"))
         if not items:
             raise OutfitAIServiceError("AI 推荐未返回可映射到图标的单品")
+        status = _first_str(raw.get("status"), "ok")
+        if status != "ok":
+            raise OutfitAIServiceError(_first_str(raw.get("regeneration_instruction"), "AI 方案未通过 V3 质量检查"))
+        styles = [
+            style for style in raw.get("style_tags") or []
+            if style in {"minimal", "sport", "outdoor"}
+        ][:2]
         return {
+            "status": "ok",
+            "prompt_version": "wearcue-outfit-plan-v3",
             "label": _normalize_label(raw.get("label"), context),
+            "season": raw.get("season") if raw.get("season") in {"spring-autumn", "summer", "winter"} else context.get("season", "spring-autumn"),
+            "temperature_range_c": raw.get("temperature_range_c") or {
+                "min": context.get("current_apparent_temperature", context.get("apparent_min", 15)),
+                "max": context.get("apparent_max", 28),
+            },
+            "scene": raw.get("scene") if raw.get("scene") in {"commute", "date", "travel"} else context.get("scene", "commute"),
+            "style_tags": styles or ["minimal"],
             "items": items,
+            "outfit_dna": raw.get("outfit_dna") or {},
+            "signature_features": (raw.get("signature_features") or [])[:8],
+            "locked_features": (raw.get("locked_features") or [])[:8],
+            "outing_reminders": raw.get("outing_reminders") or [],
             "replication_guide": _normalize_guide(raw.get("replication_guide")),
             "outfit_analysis": _normalize_analysis(raw.get("outfit_analysis")),
+            "image_direction": raw.get("image_direction") or {},
+            "quality_check": raw.get("quality_check") or {},
         }
 
     async def generate(self, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -327,22 +380,16 @@ class OutfitAIService:
         """只生成首页展示需要的单品（快）。"""
         enriched_context = _with_scene_context(context)
         raw = await self._call(
-            self.items_prompt,
+            self.prompt,
             enriched_context,
-            500,
-            self.fast_model,
+            2000,
             self.quality_model,
+            self.fast_model,
             temperature=0.2,
         )
         _reject_business_commute(raw, enriched_context)
         _reject_audience_style(raw, enriched_context)
-        items = self._normalize_items(raw.get("items"))
-        if not items:
-            raise OutfitAIServiceError("AI 未返回可映射到图标的单品")
-        return {
-            "label": _normalize_label(raw.get("label"), enriched_context),
-            "items": items,
-        }
+        return self._normalize(raw, enriched_context)
 
     async def generate_advice(
         self,
@@ -351,6 +398,8 @@ class OutfitAIService:
         scene: str,
         audience: str,
         person_profile: Dict[str, str],
+        outfit_dna: Dict[str, Any] | None = None,
+        locked_features: List[str] | None = None,
     ) -> Dict[str, Any]:
         """按需生成建议文案（点进详情时调用）。"""
         enriched_context = _with_scene_context(
@@ -360,6 +409,8 @@ class OutfitAIService:
                 "weather": weather_summary,
                 "items": items,
                 "person_profile": person_profile,
+                "outfit_dna": outfit_dna or {},
+                "locked_features": locked_features or [],
             }
         )
         raw = await self._call(

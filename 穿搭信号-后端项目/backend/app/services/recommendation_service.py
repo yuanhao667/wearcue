@@ -7,12 +7,25 @@ from typing import Any, Dict, List, Optional, Sequence
 from uuid import uuid4
 
 from app.domain.official_templates import OfficialTemplate, TemplateItem, official_templates
+from app.domain.component_rules import normalize_component_thickness
 from app.domain.weather_rules import WeatherConstraints, WeatherInput, evaluate_weather_rules
-from app.services.outfit_ai_service import FUNCTIONAL_TO_ASSET, OutfitAIService
+from app.services.outfit_ai_service import FUNCTIONAL_TO_ASSET, VALID_ASSET_KEYS, OutfitAIService
 
 
 class NoRecommendationError(ValueError):
     pass
+
+
+def _season_for_date(value: str) -> str:
+    try:
+        month = int(value.split("-")[1])
+    except (AttributeError, IndexError, ValueError):
+        return "spring-autumn"
+    if 6 <= month <= 8:
+        return "summer"
+    if month == 12 or month <= 2:
+        return "winter"
+    return "spring-autumn"
 
 
 def _ensure_weather_equipment(
@@ -25,13 +38,8 @@ def _ensure_weather_equipment(
         for value in (item.get("functional_icon_key"), item.get("asset_key"))
         if value
     }
-    labels = {
-        "umbrella": ("雨伞", "acc_umbrella"),
-        "gloves": ("保暖手套", "acc_gloves"),
-        "sunscreen": ("防晒霜", "acc_sunscreen"),
-        "sun_protection": ("棒球帽", "acc_baseball_cap"),
-    }
-    for equipment in constraints.equipment:
+    labels = {"gloves": ("保暖手套", "acc_gloves")}
+    for equipment in (item for item in constraints.equipment if item in labels):
         label, icon = labels[equipment]
         if icon in keys:
             continue
@@ -45,7 +53,27 @@ def _ensure_weather_equipment(
             "thickness": "regular",
         })
         keys.add(icon)
-    return result
+    return [normalize_component_thickness(item) for item in result]
+
+
+def _outing_reminders(constraints: WeatherConstraints) -> List[Dict[str, str]]:
+    reminders: List[Dict[str, str]] = []
+    if constraints.needs_waterproof:
+        if constraints.avoid_umbrella:
+            reminders.append({"type": "weather", "text": "风力较强，优先穿防水防风外套，不建议使用普通雨伞。"})
+        else:
+            reminders.append({"type": "umbrella", "text": "今天有降水，出门记得带伞。"})
+    if constraints.needs_sun_protection:
+        reminders.append({"type": "sunscreen", "text": "紫外线较高，出门前记得使用防晒霜。"})
+    return reminders
+
+
+def _matching_temperature(weather: WeatherInput, constraints: WeatherConstraints) -> float:
+    if weather.current_apparent_temperature is not None:
+        return weather.current_apparent_temperature
+    if weather.current_temperature is not None:
+        return weather.current_temperature
+    return constraints.calibrated_apparent_min
 
 
 def _official_guide(items: Sequence[Dict[str, object]], constraints: WeatherConstraints) -> Dict[str, object]:
@@ -157,6 +185,7 @@ def recommend_official_outfit(
         "audience": audience,
         "constraints": constraints.to_dict(),
         "items": items,
+        "outing_reminders": _outing_reminders(constraints),
         "replication_guide": _official_guide(items, constraints),
     }
 
@@ -180,16 +209,15 @@ def recommend_personal_outfit(
         protected = protected and (
             not constraints.needs_snow_protection or "protective_shoes" in keys
         )
-        protected = protected and (
-            not constraints.needs_sun_protection or bool(keys & {"acc_baseball_cap", "sun_protection"})
-        )
+        current_temperature = _matching_temperature(weather, constraints)
         return bool(
             outfit.get("in_pool")
             and outfit.get("audience") == audience
             and scene in outfit.get("scene_ids", [])
-            and float(outfit.get("suitable_min", 100)) <= constraints.calibrated_apparent_min
-            and float(outfit.get("suitable_max", -100)) >= weather.apparent_max
+            and float(outfit.get("suitable_min", 100)) <= current_temperature
+            and float(outfit.get("suitable_max", -100)) >= current_temperature
             and outfit.get("id") not in excluded
+            and bool(components)
             and protected
         )
 
@@ -203,10 +231,60 @@ def recommend_personal_outfit(
         "label": outfit["label"],
         "scene": scene,
         "audience": audience,
+        "season": outfit.get("season"),
+        "style_tags": outfit.get("style_tags", []),
         "constraints": constraints.to_dict(),
         "items": _ensure_weather_equipment(outfit["components"], constraints),
+        "outing_reminders": _outing_reminders(constraints),
         "outfit_analysis": outfit.get("outfit_analysis") or None,
         "replication_guide": outfit.get("replication_guide") or _official_guide(outfit["components"], constraints),
+    }
+
+
+def recommend_system_outfit(
+    weather: WeatherInput,
+    scene: str,
+    audience: str,
+    outfits: Sequence[Dict[str, object]],
+    excluded_ids: Optional[Sequence[str]] = None,
+) -> Optional[Dict[str, object]]:
+    """Select a reviewed system outfit after the personal layer and before AI."""
+    constraints = evaluate_weather_rules(weather)
+    excluded = set(excluded_ids or ())
+    current_temperature = _matching_temperature(weather, constraints)
+    candidates = [
+        outfit for outfit in outfits
+        if outfit.get("source") == "system"
+        and outfit.get("system_ready")
+        and outfit.get("audience") == audience
+        and scene in outfit.get("scene_ids", [])
+        and float(outfit.get("suitable_min", 100)) <= current_temperature
+        and float(outfit.get("suitable_max", -100)) >= current_temperature
+        and outfit.get("id") not in excluded
+        and bool(outfit.get("components"))
+    ]
+    if not candidates:
+        return None
+    outfit = candidates[0]
+    # A reviewed system outfit is photo-bound content. It has already passed
+    # the temperature filter above, so rewriting its visible garments to the
+    # current weather vocabulary would make the detail icons contradict the
+    # photo (for example inventing a “可脱穿薄外层”). Keep the photographed
+    # components intact and express weather changes through reminders/notes.
+    items = [dict(item) for item in outfit["components"]]
+    return {
+        "source": "system",
+        "template_id": outfit["id"],
+        "label": outfit["label"],
+        "scene": scene,
+        "audience": audience,
+        "season": outfit.get("season"),
+        "style_tags": outfit.get("style_tags", []),
+        "constraints": constraints.to_dict(),
+        "items": items,
+        "outing_reminders": _outing_reminders(constraints),
+        "outfit_analysis": outfit.get("outfit_analysis") or None,
+        "replication_guide": outfit.get("replication_guide") or _official_guide(items, constraints),
     }
 
 
@@ -221,8 +299,13 @@ async def recommend_ai_outfit(
     """生成一套 AI 推荐穿搭（个人推荐池无命中时的首选兑底）。"""
     constraints = evaluate_weather_rules(weather)
     context = {
+        "mode": "original_generation",
         "scene": scene,
         "audience": audience,
+        "season": _season_for_date(local_date),
+        "preferred_style_tags": [],
+        "available_assets": sorted(VALID_ASSET_KEYS),
+        "recent_outfit_signatures": [],
         "city_id": city_id,
         "local_date": local_date,
         "apparent_min": weather.apparent_min,
@@ -276,8 +359,18 @@ async def recommend_ai_outfit(
             if key in context
         },
         "items": items,
-        "outfit_analysis": None,
-        "replication_guide": None,
+        "outing_reminders": _outing_reminders(constraints),
+        "prompt_version": result.get("prompt_version", "wearcue-outfit-plan-v3"),
+        "season": result.get("season"),
+        "style_tags": result.get("style_tags", []),
+        "temperature_range_c": result.get("temperature_range_c"),
+        "outfit_dna": result.get("outfit_dna", {}),
+        "signature_features": result.get("signature_features", []),
+        "locked_features": result.get("locked_features", []),
+        "image_direction": result.get("image_direction", {}),
+        "quality_check": result.get("quality_check", {}),
+        "outfit_analysis": result.get("outfit_analysis"),
+        "replication_guide": result.get("replication_guide"),
     }
 
 
@@ -301,10 +394,9 @@ def _protect_dict_items(
     result: List[Dict[str, Any]] = [
         dict(item)
         for item in items
-        if not (
-            constraints.avoid_umbrella
-            and item.get("functional_icon_key") == "acc_umbrella"
-        )
+        if item.get("functional_icon_key") not in {
+            "acc_umbrella", "umbrella", "acc_sunscreen", "sunscreen", "sun_protection"
+        }
     ]
     slots = {item.get("slot") for item in result}
     keys = {item.get("functional_icon_key") for item in result}
@@ -375,12 +467,24 @@ def recommend_system_ai_outfit(
     """从预生成批中选择一套系统推荐（快，不调 AI）。"""
     constraints = evaluate_weather_rules(weather)
     excluded = set(excluded_template_ids or ())
+    current_temperature = _matching_temperature(weather, constraints)
+
+    def matches_temperature(template: Dict[str, Any]) -> bool:
+        temperature_range = template.get("temperature_range_c")
+        if isinstance(temperature_range, dict):
+            return (
+                float(temperature_range.get("min", 100)) <= current_temperature
+                and float(temperature_range.get("max", -100)) >= current_temperature
+            )
+        return template.get("thermal_band") == constraints.thermal_band.value
+
     candidates = [
         template
         for template in system_ai_templates()
-        if template.get("thermal_band") == constraints.thermal_band.value
+        if matches_temperature(template)
         and template.get("audience") == audience
         and template.get("scene", "commute") == scene
+        and template.get("quality_status", "approved") == "approved"
         and template.get("id") not in excluded
     ]
     if not candidates:
@@ -388,13 +492,22 @@ def recommend_system_ai_outfit(
     template = candidates[0]
     items = _protect_dict_items(template.get("items") or [], constraints)
     return {
-        "source": "system_ai",
+        "source": "system",
         "template_id": template["id"],
         "label": template.get("label") or "系统推荐",
         "scene": scene,
         "audience": audience,
         "constraints": constraints.to_dict(),
         "items": items,
+        "outing_reminders": _outing_reminders(constraints),
+        "prompt_version": template.get("prompt_version"),
+        "season": template.get("season"),
+        "style_tags": template.get("style_tags", []),
+        "temperature_range_c": template.get("temperature_range_c"),
+        "outfit_dna": template.get("outfit_dna", {}),
+        "signature_features": template.get("signature_features", []),
+        "locked_features": template.get("locked_features", []),
+        "image_direction": template.get("image_direction", {}),
         "outfit_analysis": template.get("outfit_analysis"),
         "replication_guide": template.get("replication_guide") or _official_guide(items, constraints),
     }

@@ -40,7 +40,7 @@ class WeatherRuleTests(unittest.TestCase):
         self.assertIn("gloves", result.equipment)
         self.assertNotIn("umbrella", result.equipment)
         self.assertIn("sunscreen", result.equipment)
-        self.assertIn("sun_protection", result.equipment)
+        self.assertNotIn("sun_protection", result.equipment)
         self.assertIn("avoid_regular_umbrella", result.warnings)
         self.assertTrue(result.needs_strong_sun_protection)
 

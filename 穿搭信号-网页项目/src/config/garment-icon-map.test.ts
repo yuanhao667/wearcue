@@ -13,7 +13,7 @@ describe("garment icon vocabulary", () => {
   });
 
   it("contains fully separated mens, womens and accessory collections", () => {
-    expect(GARMENT_ICON_MAP).toHaveLength(42);
+    expect(GARMENT_ICON_MAP).toHaveLength(50);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "mens")).toBe(true);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "womens")).toBe(true);
     expect(GARMENT_ICON_MAP.some((item) => item.collection === "accessory")).toBe(true);
@@ -42,10 +42,17 @@ describe("garment icon vocabulary", () => {
     expect(byTerm("冲锋衣")?.baseIconKey).toBe("outer_shell");
     expect(byTerm("休闲短裤")?.baseIconKey).toBe("bottom_shorts");
     expect(byTerm("防晒霜")?.baseIconKey).toBe("acc_sunscreen");
+    expect(byTerm("双肩包")?.baseIconKey).toBe("acc_backpack");
+    expect(byTerm("墨镜")?.baseIconKey).toBe("acc_glasses");
   });
 
   it("maps a recognised sneaker name to the available sneaker SVG", () => {
     expect(resolveGarmentIcon({ slot: "shoes", functional_icon_key: "unknown", variant_type: "运动鞋", color_name: "", thickness: "regular", asset_key: "missing" }, "mens")?.baseIconKey).toBe("shoe_sneaker");
+  });
+
+  it("maps legacy boot and sandal keys to existing supplied icons", () => {
+    expect(resolveGarmentIcon({ slot: "shoes", functional_icon_key: "boot", variant_type: "厚底大黄靴", color_name: "驼色", thickness: "thick", asset_key: "shoe_boot_short" }, "mens")?.baseIconKey).toBe("shoe_sneaker_high_top");
+    expect(resolveGarmentIcon({ slot: "shoes", functional_icon_key: "shoe_sandal", variant_type: "凉鞋", color_name: "黑色", thickness: "thin", asset_key: "shoe_sandal" }, "mens")?.baseIconKey).toBe("shoe_sneaker");
   });
 
   it("maps a recognised pants name to the available pants SVG", () => {
@@ -58,5 +65,9 @@ describe("garment icon vocabulary", () => {
 
   it("keeps a recognised women skirt instead of replacing it with mens shorts", () => {
     expect(resolveGarmentIcon({ slot: "bottom", functional_icon_key: "short_bottom", variant_type: "短裙", color_name: "黑色", thickness: "thin", asset_key: "bottom_skirt_short" }, "mens")?.iconKey).toBe("womens_bottom_skirt_short");
+  });
+
+  it("keeps unsupported leg warmers iconless instead of forcing a scarf icon", () => {
+    expect(resolveGarmentIcon({ slot: "equipment", functional_icon_key: "leg_warmers", variant_type: "粗针织堆堆腿套", color_name: "浅灰色", thickness: "thick", asset_key: null }, "womens")).toBeUndefined();
   });
 });
