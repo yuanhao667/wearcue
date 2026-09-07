@@ -358,7 +358,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     async def fake_call(prompt, content, max_tokens, model, fallback_model, temperature=0.7):
         calls.append((prompt, content, max_tokens, model, fallback_model, temperature))
-        if prompt == service.prompt:
+        if prompt == service.items_prompt:
             return {
                 "label": "适合通勤场景的清爽休闲穿搭",
                 "items": [
@@ -388,7 +388,8 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
         )
     )
 
-    assert calls[0][2:] == (2000, "qwen3.8-flash", "qwen-turbo", 0.2)
+    assert calls[0][0] == service.items_prompt
+    assert calls[0][2:] == (1100, "qwen-turbo", "qwen3.8-flash", 0.45)
     assert calls[0][1]["scene_name"] == "通勤"
     assert calls[0][1]["scene_requirements"].startswith("中国语境下的男士通勤")
     assert "严禁主动生成" in calls[0][1]["scene_requirements"]
@@ -399,6 +400,8 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     }
     assert calls[1][3:5] == ("qwen-turbo", "qwen3.8-flash")
     assert items_result["label"] == "适合通勤场景的清"
+    assert items_result["replication_guide"] is None
+    assert items_result["outfit_analysis"] is None
     assert advice_result["replication_guide"]["styling_points"][:2] == [
         "保留完整纵向线条，衣袖和裤长避免偏短；采用合身但不紧绷的常规松量。",
         "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
@@ -406,6 +409,8 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
     assert "replication_guide.steps 必须逐件覆盖 items" in service.advice_prompt
     assert "outfit_dna" in service.advice_prompt
+    assert "不要生成详情页文案" in service.items_prompt
+    assert "中年商务男装目录" in service.items_prompt
     assert "必须消费同一份 outfit_dna" in service.prompt
     assert "locked_features" in service.prompt
 
@@ -539,12 +544,15 @@ def test_outfit_image_receives_scene_context(
             [_component()],
             {},
             {"height_group": "中等", "weight_group": "中等"},
+            style_tags=["sport"],
         )
     )
 
-    assert f"场景风格要求：{requirement_start}" in captured["prompt"]
+    assert f"场景约束：{requirement_start}" in captured["prompt"]
     assert keyword in captured["prompt"]
-    assert f'"风格侧重点": "{requirement_start}' in captured["prompt"]
+    assert "主风格：sport" in captured["prompt"]
+    assert "中年商务男装目录" in captured["prompt"]
+    assert "完整结构化输入" not in captured["prompt"]
 
 
 @pytest.mark.parametrize(
@@ -759,6 +767,29 @@ def test_ai_usage_quotas_are_independent_and_non_ai_swaps_remain_available(tmp_p
     )
     assert exhausted.status_code == 429
     assert client.get("/api/v1/ai-usage-quota").json()["vision"]["remaining"] == 30
+
+
+def test_live_swap_only_generates_icon_mapped_plan_not_detail_image(tmp_path, monkeypatch) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch)
+    image_calls = 0
+
+    async def unexpected_image(*args, **kwargs):
+        nonlocal image_calls
+        image_calls += 1
+        return await _fake_outfit_image(*args, **kwargs)
+
+    monkeypatch.setattr(OutfitAIService, "generate_items", _fake_ai_items)
+    monkeypatch.setattr(OutfitImageService, "generate", unexpected_image)
+    monkeypatch.setattr(recommendation_service, "system_ai_templates", lambda: [])
+    monkeypatch.setattr(system, "recommend_system_outfit", lambda **kwargs: None)
+
+    response = client.post("/api/v1/recommendations/swap", json=_recommendation_payload())
+
+    assert response.status_code == 200
+    assert response.json()["source"] == "ai"
+    assert response.json()["items"]
+    assert image_calls == 0
 
 
 def test_reopening_same_ai_detail_reuses_advice_without_charging_again(tmp_path, monkeypatch) -> None:

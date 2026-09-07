@@ -1,12 +1,16 @@
 import json
+import logging
 import os
 import re
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
 import httpx
 
 from app.domain.component_rules import normalize_component_thickness
+
+logger = logging.getLogger(__name__)
 
 # functional_icon_key -> 基础图标 key（与前端 functionalFallbacks 保持一致）
 FUNCTIONAL_TO_ASSET: Dict[str, str] = {
@@ -336,7 +340,13 @@ class OutfitAIService:
             ))
         return items
 
-    def _normalize(self, raw: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize(
+        self,
+        raw: Dict[str, Any],
+        context: Dict[str, Any],
+        *,
+        include_detail: bool = True,
+    ) -> Dict[str, Any]:
         items = self._normalize_items(raw.get("items"))
         if not items:
             raise OutfitAIServiceError("AI 推荐未返回可映射到图标的单品")
@@ -363,8 +373,12 @@ class OutfitAIService:
             "signature_features": (raw.get("signature_features") or [])[:8],
             "locked_features": (raw.get("locked_features") or [])[:8],
             "outing_reminders": raw.get("outing_reminders") or [],
-            "replication_guide": _normalize_guide(raw.get("replication_guide")),
-            "outfit_analysis": _normalize_analysis(raw.get("outfit_analysis")),
+            "replication_guide": (
+                _normalize_guide(raw.get("replication_guide")) if include_detail else None
+            ),
+            "outfit_analysis": (
+                _normalize_analysis(raw.get("outfit_analysis")) if include_detail else None
+            ),
             "image_direction": raw.get("image_direction") or {},
             "quality_check": raw.get("quality_check") or {},
         }
@@ -382,17 +396,22 @@ class OutfitAIService:
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """只生成首页展示需要的单品（快）。"""
         enriched_context = _with_scene_context(context)
+        started_at = time.perf_counter()
         raw = await self._call(
-            self.prompt,
+            self.items_prompt,
             enriched_context,
-            2000,
-            self.quality_model,
+            1100,
             self.fast_model,
-            temperature=0.2,
+            self.quality_model,
+            temperature=0.45,
+        )
+        logger.info(
+            "AI realtime outfit plan completed in %dms",
+            round((time.perf_counter() - started_at) * 1000),
         )
         _reject_business_commute(raw, enriched_context)
         _reject_audience_style(raw, enriched_context)
-        return self._normalize(raw, enriched_context)
+        return self._normalize(raw, enriched_context, include_detail=False)
 
     async def generate_advice(
         self,
@@ -416,12 +435,17 @@ class OutfitAIService:
                 "locked_features": locked_features or [],
             }
         )
+        started_at = time.perf_counter()
         raw = await self._call(
             self.advice_prompt,
             enriched_context,
             800,
             self.fast_model,
             self.quality_model,
+        )
+        logger.info(
+            "AI outfit advice completed in %dms",
+            round((time.perf_counter() - started_at) * 1000),
         )
         _reject_business_commute(raw, enriched_context)
         _reject_audience_style(raw, enriched_context)

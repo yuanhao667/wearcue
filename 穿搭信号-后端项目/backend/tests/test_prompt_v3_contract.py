@@ -16,12 +16,17 @@ def test_prompt_v3_shared_contract_and_accessory_policy() -> None:
     plan = (PROMPTS / "outfit_generation.txt").read_text(encoding="utf-8")
     vision = (PROMPTS / "vision_outfit.txt").read_text(encoding="utf-8")
     advice = (PROMPTS / "outfit_advice.txt").read_text(encoding="utf-8")
+    items = (PROMPTS / "outfit_items.txt").read_text(encoding="utf-8")
     image = (PROMPTS / "outfit_image.txt").read_text(encoding="utf-8")
 
     for document in (plan, vision, advice, image):
         assert "outfit_dna" in document
         assert "locked_features" in document
     assert "70%" in image and "30%" in image
+    assert "中年商务男装目录" in items and "中年商务男装目录" in image
+    assert "蓝灰衬衫配黑壳与修身灰裤" in image
+    assert "replication_guide" not in items
+    assert "outfit_analysis" not in items
     assert "不得擅自新增" in image
     assert "不自动重做" in plan
     assert "禁止在名称末尾添加 01、02、1、2 等编号" in plan

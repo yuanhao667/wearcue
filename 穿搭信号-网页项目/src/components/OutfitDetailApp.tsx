@@ -129,6 +129,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
         scene: recommendation?.scene ?? savedOutfit?.scene_ids[0] ?? "commute",
         items: targetItems,
         constraints: recommendation?.constraints ?? {},
+        style_tags: recommendation?.style_tags ?? savedOutfit?.style_tags ?? [],
         outfit_dna: recommendation?.outfit_dna ?? {},
         locked_features: recommendation?.locked_features ?? [],
         image_direction: recommendation?.image_direction ?? {},

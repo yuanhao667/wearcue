@@ -1,13 +1,9 @@
-# WearCue 人物生图 Prompt V3
+# WearCue 人物生图 Prompt V3.1
 
-生成一张 2:3 竖版、写实自然的完整全身 OOTD 照。只生成一位成年中国人，人物性别只由结构化输入“人物”决定。头部、衣物、配饰和鞋履必须完整入镜并保留安全边距。
+生成一张 2:3 竖版、写实自然的完整全身 OOTD。只出现一位中国人，性别以动态输入为准；头部、服装、配饰和鞋履完整入镜并保留安全边距。
 
-最高优先级：完整消费结构化输入中的 items、outfit_dna、locked_features 与 image_direction。每项 locked_features 都必须清楚呈现；品类、数量、配色、松量、肩线、衣长、腰线、裤型或裙型、结构细节、材质、层次、穿法、鞋型和关键配饰不得遗漏、普通化替换或只换颜色。outfit_dna 优先于通用审美修饰。
+这是“造型优先”的穿搭内容，不是单件商品广告。最高优先级是准确还原动态输入中的服装清单、廓形路线（outfit_dna）、比例、层次和锁定特征（locked_features）：衣长、肩线、腰线、裤型或裙型、松量、材质、穿法和鞋型必须肉眼可见，不能普通化替换。清单一条对应一件，数量不多不少；不得擅自新增、删除或替换衣物，未列出的外套、内搭、帽子、包、眼镜、围巾和手套一律不加。
 
-衣物清单一条记录对应一件可见单品，画面件数必须一致。不得擅自新增、删除或替换外套、内搭、帽子、包、围巾、手套和鞋；没有配饰输入时人物不戴帽、不背包、不系围巾。雨伞和防晒霜属于出门提醒，无论天气如何都禁止出现在人物衣物、手持物或背景道具中。UV 不得导致自动加帽。
+审美对标：高质量当代穿搭博主自然街拍 70%＋克制的日常时装编辑感 30%。造型要有明确比例关系、真实面料垂坠、细腻层次和一个克制视觉重点；像真实可复刻的优质 OOTD，而不是“穿得没错但毫无造型”。自然日光、真实肤质、准确缝线、干净生活场景、自然走动或轻微侧身，人物服务于服装展示。
 
-画面气质为“高质量穿搭博主真实分享感 70%＋高端日常时装编辑完成度 30%”：premium contemporary fashion editorial, elevated street-style lookbook, garment-first photography, realistic fabric drape, precise tailoring and seam details, natural skin texture, refined color grading, clean composition, high-end outfit creator content, authentic Chinese lifestyle street photography, aspirational yet attainable, candid full-body OOTD, natural daylight, clean everyday location, clear garment readability, polished but not commercial。
-
-minimal 使用克制配色与干净城市线条；sport 使用自然动作和轻量技术质感；outdoor 使用可信天气、地形与功能层次。场景只控制环境、活动量、姿态与正式度，不得覆盖衣物清单。人物可走路、轻微侧身、整理袖口或扶输入中已有的包，避免僵硬正面站立。
-
-禁止：人物或鞋履裁切、错误裤型或裙型、错误衣长与松量、锁定层次丢失、无故加配饰、肢体或手部异常、塑料面料、过度磨皮、廉价电商棚拍、夸张秀场姿势、奢侈品广告布景、过强景深、品牌、Logo、文字、水印、平台界面、贴纸、边框、拼图、商品卡片和额外人物。
+坚决避免：中年商务男装目录、保险销售或行政职业装、公司工装、普通功能服和户外装备广告、蓝灰衬衫配黑壳与修身灰裤的保守制服式组合、廉价电商棚拍、僵硬正面站姿、过强景深、塑料面料、过度磨皮、错误裤型、无故增减衣物、品牌、Logo、文字、水印、拼图、商品卡片、裁掉鞋履、肢体异常和额外人物。

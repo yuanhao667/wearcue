@@ -203,6 +203,7 @@ class RecommendationAdviceRequest(BaseModel):
     scene: SceneId
     items: List[OutfitComponent] = Field(min_length=1, max_length=12)
     constraints: dict = Field(default_factory=dict)
+    style_tags: List[StyleId] = Field(default_factory=list, max_length=2)
     outfit_dna: dict = Field(default_factory=dict)
     locked_features: List[str] = Field(default_factory=list, max_length=8)
     image_direction: dict = Field(default_factory=dict)

@@ -1,7 +1,8 @@
 import base64
 import ipaddress
-import json
+import logging
 import os
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 from urllib.parse import urlparse
@@ -9,6 +10,8 @@ from urllib.parse import urlparse
 import httpx
 
 from .outfit_ai_service import scene_context_for
+
+logger = logging.getLogger(__name__)
 
 
 class OutfitImageServiceError(RuntimeError):
@@ -51,6 +54,7 @@ class OutfitImageService:
         outfit_dna: Dict[str, Any] | None = None,
         locked_features: List[str] | None = None,
         image_direction: Dict[str, Any] | None = None,
+        style_tags: List[str] | None = None,
     ) -> bytes:
         if not self.configured:
             raise OutfitImageServiceError("AI 生图模型尚未配置")
@@ -65,77 +69,67 @@ class OutfitImageService:
             raise OutfitImageServiceError("没有可用于人物生图的穿搭单品")
         scene_context = scene_context_for(scene, audience)
         scene_requirements = scene_context["scene_requirements"]
-        context = {
-            "穿搭名称": label,
-            "人物": "成年男性" if audience == "mens" else "成年女性",
-            "场景": {
-                "代码": scene,
-                "名称": scene_context["scene_name"],
-                "风格侧重点": scene_requirements,
-            },
-            "衣物": [
-                {
-                    "品类": item.get("variant_type"),
-                    "配色": item.get("color_name"),
-                    "厚度": {"thin": "薄款", "regular": "常规", "thick": "厚款"}.get(
-                        str(item.get("thickness")), item.get("thickness")
-                    ),
-                    "位置": item.get("slot"),
-                    "版型": item.get("fit"),
-                    "肩线": item.get("shoulder"),
-                    "长度": item.get("length"),
-                    "腰线": item.get("waistline"),
-                    "裤型或裙型": item.get("bottom_shape"),
-                    "结构细节": item.get("structure_details"),
-                    "材质": item.get("material"),
-                    "穿法": item.get("wearing_method"),
-                }
-                for item in items
-            ],
-            "天气约束": constraints,
-            "穿搭DNA": outfit_dna or {},
-            "锁定特征": locked_features or [],
-            "图片方向": image_direction or {},
-            "人物信息": {
-                "身高段": person_profile["height_group"],
-                "体重段": person_profile["weight_group"],
-            },
-        }
         thickness_names = {"thin": "薄款", "regular": "常规", "thick": "厚款"}
-        garment_list = "\n".join(
-            f"{index}. {item.get('slot')}：{item.get('color_name')}、"
-            f"{thickness_names.get(str(item.get('thickness')), item.get('thickness'))}、"
-            f"{item.get('variant_type')}"
-            for index, item in enumerate(items, 1)
-        )
+        garment_lines = []
+        for index, item in enumerate(items, 1):
+            details = [
+                item.get("color_name"),
+                thickness_names.get(str(item.get("thickness")), item.get("thickness")),
+                item.get("variant_type"),
+                item.get("fit"),
+                item.get("shoulder"),
+                item.get("length"),
+                item.get("waistline"),
+                item.get("bottom_shape"),
+                item.get("material"),
+                item.get("wearing_method"),
+                "、".join(str(value) for value in item.get("structure_details") or []),
+            ]
+            garment_lines.append(
+                f"{index}. {item.get('slot')}："
+                + "；".join(str(value) for value in details if value and value != "不适用")
+            )
+        garment_list = "\n".join(garment_lines)
         slots = {str(item.get("slot")) for item in items}
         forbidden = []
         if "outerwear" not in slots:
             forbidden.append("输入没有 outerwear：禁止开衫、夹克、大衣及任何外套")
         if "equipment" not in slots:
             forbidden.append("输入没有 equipment：禁止帽子、包、手套、雨伞及其他配饰，双手空置")
+        dna_lines = "；".join(
+            f"{key}={value}" for key, value in (outfit_dna or {}).items() if value
+        )
+        direction = image_direction or {}
+        direction_lines = "；".join(
+            f"{key}={value}"
+            for key, value in direction.items()
+            if key not in {"must_show", "must_avoid"} and value
+        )
+        must_show = "；".join(str(value) for value in (locked_features or []))
+        style_names = "、".join(style_tags or []) or "由服装廓形自然决定"
+        prompt = (
+            self.prompt
+            + f"\n\n本次主题：{label}。人物："
+            + ("青年感中国男性" if audience == "mens" else "青年感中国女性")
+            + f"，{person_profile['height_group']}身高、{person_profile['weight_group']}体重段。"
+            + f"\n场景：{scene_context['scene_name']}。主风格：{style_names}。"
+            + f"\n场景约束：{scene_requirements}"
+            + f"\n\n唯一允许出现的 {len(items)} 件服装与配饰：\n{garment_list}"
+            + (f"\n\n廓形与造型DNA：{dna_lines}" if dna_lines else "")
+            + (f"\n必须清楚呈现：{must_show}" if must_show else "")
+            + (f"\n拍摄执行：{direction_lines}" if direction_lines else "")
+            + ("\n明确禁止：" + "；".join(forbidden) if forbidden else "")
+            + "\n场景仅控制背景、姿态与活动感，不能改动上述服装。"
+        )
         payload = {
             "model": self.model,
-            "prompt": (
-                self.prompt
-                + f"\n\n最高优先级服装清单：本次只能出现以下 {len(items)} 件衣物，"
-                + f"最终画面也必须恰好是 {len(items)} 件，不多不少。\n{garment_list}"
-                + ("\n明确禁止：\n" + "\n".join(forbidden) if forbidden else "")
-                + "\n人物信息：青年中国人，"
-                + f"{person_profile['height_group']}身高，体重{person_profile['weight_group']}。"
-                + "自然呈现相应年龄感和体态比例，禁止夸张或评价身材。"
-                + f"\n场景风格要求：{scene_requirements}"
-                + "场景要求只控制整体气质、姿态、背景及既有衣物的穿法，"
-                + "不得为此新增、删除或替换衣物。"
-                + "\n所有锁定特征必须逐项清楚呈现；穿搭DNA优先于通用审美修饰。"
-                + "\n\n完整结构化输入：\n"
-                + json.dumps(context, ensure_ascii=False)
-            ),
+            "prompt": prompt,
             "n": 1,
             "size": "1024x1536",
             "thinking_mode": True,
             "watermark": False,
         }
+        started_at = time.perf_counter()
         async with httpx.AsyncClient(timeout=180, follow_redirects=True) as client:
             try:
                 response = await client.post(
@@ -177,6 +171,10 @@ class OutfitImageService:
                         raise OutfitImageServiceError("AI 生图下载未授权")
                 if not image or len(image) > MAX_GENERATED_IMAGE_BYTES:
                     raise OutfitImageServiceError("AI 生图结果无效")
+                logger.info(
+                    "AI outfit image completed in %dms",
+                    round((time.perf_counter() - started_at) * 1000),
+                )
                 return image
             except OutfitImageServiceError:
                 raise

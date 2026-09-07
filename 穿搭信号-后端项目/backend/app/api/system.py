@@ -71,6 +71,7 @@ def _detail_cache_id(
         "scene": payload.scene,
         "items": [item.model_dump(mode="json") for item in payload.items],
         "constraints": payload.constraints,
+        "style_tags": payload.style_tags,
         "outfit_dna": payload.outfit_dna,
         "locked_features": payload.locked_features,
         "image_direction": payload.image_direction,
@@ -281,6 +282,7 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                     payload.outfit_dna,
                     payload.locked_features,
                     payload.image_direction,
+                    payload.style_tags,
                 )
                 if needs_image
                 else None
