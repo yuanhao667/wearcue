@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { OutfitIcon } from "./OutfitIcon";
+import { resolveGarmentIcon } from "@/config/garment-icon-map";
 import { apiAsset, apiJson } from "@/lib/backend-api";
 import type { AIQuota, BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
@@ -176,8 +177,10 @@ export function OutfitDetailApp({ id }: { id: string }) {
   // Once an outfit record has loaded, it is the source of truth for a
   // photo-bound detail page. A matching cached home recommendation may carry
   // weather-adapted placeholder items and must not override the photo data.
-  const items = [...(savedOutfit?.components ?? recommendation?.items ?? [])].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
   const audience = savedOutfit?.audience ?? recommendation?.audience ?? "mens";
+  const items = [...(savedOutfit?.components ?? recommendation?.items ?? [])]
+    .filter((item) => Boolean(resolveGarmentIcon(item, audience)))
+    .sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
   const label = savedOutfit?.label ?? recommendation?.label ?? "今日穿搭";
   const displayLabel = savedOutfit ? label : recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
   const rawAnalysis = savedOutfit?.outfit_analysis ?? recommendation?.outfit_analysis ?? aiAnalysis ?? null;

@@ -67,7 +67,7 @@
 - System detail manifest completeness: 46/46 passed; incomplete IDs: 0
 - Home entrance capture at 40 ms, 180 ms, and 740 ms: left-to-right stagger and settled final state, passed
 - Frontend Vitest: 16 files, 58 tests passed
-- Backend pytest: 96 tests passed (1 existing Starlette deprecation warning)
+- Backend pytest: 98 tests passed (1 existing Starlette deprecation warning)
 - Runtime asset review: 50 SVGs total; 11 accessories, including “双肩包” and “眼镜 / 墨镜”, passed
 - TypeScript: passed
 - ESLint: passed

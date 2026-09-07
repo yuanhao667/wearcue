@@ -55,18 +55,21 @@ def test_new_accessories_resolve_to_supplied_icons() -> None:
     assert normalized["components"][0]["thickness"] == "regular"
 
 
-def test_unknown_model_vocabulary_always_uses_a_library_icon() -> None:
+def test_unknown_model_vocabulary_is_dropped_instead_of_using_an_unrelated_icon() -> None:
     assert canonical_asset_key({
         "slot": "shoes", "variant_type": "未来感鞋款",
         "functional_icon_key": "unknown", "asset_key": "custom_icon",
-    }) == "shoe_sneaker"
+    }) is None
 
 
 def test_unknown_accessory_does_not_force_an_unrelated_icon() -> None:
-    assert canonical_asset_key({
+    component = {
         "slot": "equipment", "variant_type": "粗针织堆堆腿套",
         "functional_icon_key": "leg_warmers", "asset_key": "unknown",
-    }) is None
+    }
+    assert canonical_asset_key(component) is None
+    assert canonical_asset_key(component | {"asset_key": "acc_scarf"}) is None
+    assert normalize_vision_result({"components": [component]})["components"] == []
 
 
 def test_asset_key_repairs_legacy_slot_so_a_top_never_falls_back_to_a_hat() -> None:

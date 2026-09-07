@@ -6,7 +6,11 @@ from pathlib import Path
 
 import httpx
 
-from app.domain.component_rules import normalize_component_thickness
+from app.domain.component_rules import (
+    UNSUPPORTED_COMPONENT_TERMS,
+    normalize_component_list,
+    normalize_component_thickness,
+)
 from app.schemas import VisionResult
 
 
@@ -188,6 +192,9 @@ def coerce_vision_result(result: dict) -> dict:
 
 def canonical_asset_key(component: dict) -> str | None:
     """Convert provider vocabulary into the stable icon vocabulary used by the UI."""
+    variant = "".join(str(component.get("variant_type") or "").lower().split())
+    if any(term in variant for term in UNSUPPORTED_COMPONENT_TERMS):
+        return None
     raw_key = str(component.get("asset_key") or "").strip().lower()
     for prefix in ("mens_", "womens_", "accessories_"):
         if raw_key.startswith(prefix):
@@ -196,7 +203,6 @@ def canonical_asset_key(component: dict) -> str | None:
     key = ASSET_KEY_ALIASES.get(raw_key, raw_key)
     if key in VALID_ASSET_KEYS:
         return key
-    variant = "".join(str(component.get("variant_type") or "").lower().split())
     # Providers often return a descriptive variant (for example
     # “黑色大框墨镜”) instead of one of the exact vocabulary entries above.
     # Keep visible eyewear on the supplied glasses icon instead of falling
@@ -208,8 +214,7 @@ def canonical_asset_key(component: dict) -> str | None:
     )
     if matched:
         return matched
-    slot = str(component.get("slot") or "").strip().lower()
-    return None if slot == "equipment" else SLOT_ASSET_KEYS.get(slot, "top_tshirt_long")
+    return None
 
 
 def _normalize_audience_style_text(value, audience: str):
@@ -231,18 +236,23 @@ def normalize_vision_result(result: dict) -> dict:
             "acc_umbrella", "umbrella", "acc_sunscreen", "sunscreen", "sun_protection"
         }
     ]
+    mapped_components = []
     for component in result.get("components", []):
         component["asset_key"] = canonical_asset_key(component)
+        if component["asset_key"] is None:
+            continue
         component.update(normalize_component_thickness(component))
         asset_key = component["asset_key"]
         component["slot"] = (
-            "equipment" if not asset_key or asset_key.startswith("acc_")
+            "equipment" if asset_key.startswith("acc_")
             else "shoes" if asset_key.startswith("shoe_")
             else "bottom" if asset_key.startswith("bottom_")
             else "outerwear" if asset_key.startswith("outer_")
             else "onepiece" if asset_key.startswith("onepiece_")
             else "top"
         )
+        mapped_components.append(component)
+    result["components"] = normalize_component_list(mapped_components)
     asset_keys = {component.get("asset_key") for component in result.get("components", [])}
     if asset_keys & {"top_tshirt_short", "top_tank", "top_camisole"} and asset_keys & {
         "bottom_shorts", "bottom_skirt_short"

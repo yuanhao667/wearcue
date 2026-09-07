@@ -133,6 +133,8 @@ const legacyAssetFallbacks: Record<string, string> = {
   shoe_sandal: "shoe_sneaker",
 };
 
+const unsupportedIconTerms = ["袜", "腿套", "护腿", "腰带", "皮带", "耳环", "耳饰", "项链", "手链", "戒指"] as const;
+
 export function garmentIconsFor(slot: OutfitSlot, audience: Audience) {
   const collection: GarmentCollection = slot === "equipment" ? "accessory" : audience;
   const options = GARMENT_ICON_MAP.filter((item) => item.category === slotCategory[slot] && item.collection === collection && !["acc_umbrella", "acc_sunscreen"].includes(item.baseIconKey));
@@ -142,6 +144,7 @@ export function garmentIconsFor(slot: OutfitSlot, audience: Audience) {
 export function resolveGarmentIcon(item: OutfitComponent, audience: Audience) {
   const options = garmentIconsFor(item.slot, audience);
   const variant = item.variant_type.trim().toLocaleLowerCase();
+  if (unsupportedIconTerms.some((term) => variant.includes(term))) return undefined;
   const assetKey = legacyAssetFallbacks[item.asset_key ?? ""] ?? item.asset_key;
   return GARMENT_ICON_BY_KEY.get(item.asset_key ?? "")
     ?? options.find((option) => [option.label, ...option.aliases].some((term) => term.toLocaleLowerCase() === variant))

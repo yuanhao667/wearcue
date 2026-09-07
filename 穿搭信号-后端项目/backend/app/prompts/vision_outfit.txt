@@ -10,9 +10,9 @@
 5. suggested_season 按服装形态与整体厚度判断，不能用温度反推；suggested_scenes 只能 commute/date/travel；suggested_style_tags 只能 minimal/sport/outdoor，最多 2 个。无法可靠判断场景或风格时返回空数组，交给用户确认。
 6. garment_audience 只按服装版型判断 mens/womens/unisex，不按人物面孔或身体推断。
 
-asset_key 只能使用：top_tshirt_short、top_tshirt_long、top_tank、top_camisole、top_shirt、top_sweatshirt、top_knit、top_knit_vest、outer_light_jacket、outer_wool_coat、outer_down_short、outer_shell、bottom_shorts、bottom_casual_pants、bottom_sweatpants、bottom_skirt_short、bottom_skirt_long、onepiece_dress、shoe_sneaker、shoe_canvas、shoe_leather、shoe_pump、shoe_sneaker_high_top、acc_baseball_cap、acc_bucket_hat、acc_beanie、acc_gloves、acc_tote_bag、acc_crossbody_bag、acc_backpack、acc_glasses、acc_scarf。近似映射时保留真实 variant_type 并设 approximate=true，不得把服装改写成图标通用款。
+asset_key 只能使用：top_tshirt_short、top_tshirt_long、top_tank、top_camisole、top_shirt、top_sweatshirt、top_knit、top_knit_vest、outer_light_jacket、outer_wool_coat、outer_down_short、outer_shell、bottom_shorts、bottom_casual_pants、bottom_sweatpants、bottom_skirt_short、bottom_skirt_long、onepiece_dress、shoe_sneaker、shoe_canvas、shoe_leather、shoe_pump、shoe_sneaker_high_top、acc_baseball_cap、acc_bucket_hat、acc_beanie、acc_gloves、acc_tote_bag、acc_crossbody_bag、acc_backpack、acc_glasses、acc_scarf。只有能明确映射到上述现有图标的元素才能进入 components；无法映射的袜子、长袜、腿套及其他元素不得输出，也不得出现在 formula、steps、signature_features 或 locked_features 中。近似映射只允许同品类图标，保留真实 variant_type 并设 approximate=true；禁止为了保留元素而强行匹配围巾、帽子、上衣或其他无关图标。
 
 雨伞和防晒霜不是可见穿搭单品，禁止进入 components、formula、steps 和 locked_features。帽子、包、围巾、手套仅在图中真实可见时识别，不得补充。鞋、靴、凉鞋只要可见就必须 suggested=false。
 人物眼部、帽檐或头顶只要清晰可见眼镜/墨镜，就必须单独输出 equipment 组件：asset_key=acc_glasses，普通眼镜 functional_icon_key=glasses，墨镜 functional_icon_key=sunglasses，thickness 必须为 regular；不得只写进 analysis、signature_features 或 steps 而漏掉 components。眼镜、墨镜、防晒霜和雨伞没有薄厚区分，兼容数据中的 thickness 一律为 regular。
 
-formula、steps、analysis 必须与 components 一致；短裙不得映射短裤。输出前核对：可见项未标 suggested，结构字段具体，季节/场景/风格可靠，4～8 个标志特征与至少 3 个锁定特征一致，未出现品牌、价格、人物身份、身材评价或平台文字。
+formula、steps、analysis 必须与过滤后的 components 一致；短裙不得映射短裤。输出前核对：每个 component 都有上述有效 asset_key，任何无图标元素均已完全移除；可见项未标 suggested，结构字段具体，季节/场景/风格可靠，标志特征与锁定特征只引用保留的 components，未出现品牌、价格、人物身份、身材评价或平台文字。

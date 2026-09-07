@@ -312,6 +312,39 @@ class Store:
                     "INSERT INTO app_meta(key,value) VALUES ('regular_only_accessory_thickness_v1','1')"
                 )
 
+            icon_mapping_migrated = db.execute(
+                "SELECT 1 FROM app_meta WHERE key='supported_component_icons_v1'"
+            ).fetchone()
+            if not icon_mapping_migrated:
+                for row in db.execute("SELECT id,components_json FROM outfits").fetchall():
+                    try:
+                        components = json.loads(row["components_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    normalized = normalize_component_list(components)
+                    if normalized != components:
+                        db.execute(
+                            "UPDATE outfits SET components_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(normalized, ensure_ascii=False), _now(), row["id"]),
+                        )
+                for row in db.execute("SELECT id,result_json FROM inspirations").fetchall():
+                    try:
+                        result = json.loads(row["result_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    if not isinstance(result, dict) or not isinstance(result.get("components"), list):
+                        continue
+                    normalized = normalize_component_list(result["components"])
+                    if normalized != result["components"]:
+                        result["components"] = normalized
+                        db.execute(
+                            "UPDATE inspirations SET result_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(result, ensure_ascii=False), _now(), row["id"]),
+                        )
+                db.execute(
+                    "INSERT INTO app_meta(key,value) VALUES ('supported_component_icons_v1','1')"
+                )
+
     @staticmethod
     def _season_from_components(keys: set[str]) -> str:
         if keys & {"outer_down_short", "outer_wool_coat", "warm_outerwear", "warm_top"}:

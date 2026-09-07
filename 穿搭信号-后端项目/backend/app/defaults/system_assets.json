@@ -562,30 +562,6 @@
         },
         {
           "slot": "equipment",
-          "functional_icon_key": "socks",
-          "variant_type": "白色粗针织堆堆袜",
-          "color_type": "solid",
-          "color_name": "白色",
-          "color_value": "#FFFFFF",
-          "pattern_description": "纯色",
-          "thickness": "thick",
-          "confidence": 0.99,
-          "approximate": true,
-          "suggested": false,
-          "asset_key": null,
-          "fit": "宽松",
-          "shoulder": "不适用",
-          "length": "覆盖小腿下部",
-          "waistline": "不适用",
-          "bottom_shape": "圆柱形",
-          "structure_details": [
-            "竖条纹罗纹"
-          ],
-          "material": "羊毛或混纺针织",
-          "wearing_method": "堆叠在脚踝处"
-        },
-        {
-          "slot": "equipment",
           "functional_icon_key": "cap",
           "variant_type": "黑色棒球帽",
           "color_type": "solid",
@@ -613,26 +589,25 @@
       "manual_reviewed": true,
       "source_relative_path": "女/冬季/运动/warm winter🍂_1_韩好甜_AI原创重构.png",
       "outfit_analysis": {
-        "summary": "典型的Athleisure风格冬季穿搭。利用上宽下窄的廓形显瘦，通过卫衣和棒球帽的叠穿增加层次感，堆堆袜是点睛之笔，平衡",
+        "summary": "典型的运动休闲冬季穿搭。利用上宽下窄的廓形显瘦，通过卫衣和棒球帽叠穿增加层次感。",
         "structure_points": [
           "羽绒服敞开露出卫衣增加纵深",
           "紧身裤与宽松上衣形成强烈松紧对比",
-          "堆堆袜填补了九分裤与鞋子之间的空隙"
+          "银色厚底跑鞋提亮深色下装"
         ],
         "completion_advice": []
       },
       "replication_guide": {
-        "formula": "短款羽绒服＋连帽卫衣＋黑色紧身裤＋堆堆袜＋复古跑鞋",
+        "formula": "短款羽绒服＋连帽卫衣＋黑色紧身裤＋复古跑鞋＋棒球帽",
         "steps": [
           "先穿黑色紧身裤",
           "套上浅灰色连帽卫衣",
           "外搭深藏青色短款羽绒服",
-          "脚穿银色跑鞋并套上白色堆堆袜",
+          "脚穿银色复古跑鞋",
           "最后戴上棒球帽"
         ],
         "styling_points": [
           "务必将卫衣帽子翻在羽绒服外面",
-          "堆堆袜要拉出褶皱感",
           "保持裤子紧身利落"
         ],
         "weather_note": "适穿温度为 -5～8℃，按当天体感增减外层。",
@@ -642,7 +617,7 @@
         "proportion": "上宽下窄",
         "layering": "多层（外套+卫衣+打底）",
         "color_structure": "深色外搭与浅色内搭对比，下身全黑",
-        "footwear_shape": "银色厚底运动鞋配白色堆堆袜"
+        "footwear_shape": "银色厚底运动鞋"
       },
       "outfit_dna": {
         "silhouette_route": "上宽下窄",
@@ -650,20 +625,19 @@
         "layering": "三层叠穿（羽绒服-卫衣-紧身裤）",
         "material_contrast": "蓬松羽绒、柔软棉质卫衣与紧致弹力裤",
         "color_structure": "外深内浅，下装收缩视觉",
-        "accessory_role": "帽子增加层次，袜子强调运动感",
+        "accessory_role": "棒球帽增加运动层次",
         "footwear_shape": "复古跑鞋"
       },
       "signature_features": [
         "短款面包服叠穿连帽卫衣",
         "黑色紧身裤勾勒腿型",
-        "白色粗针织堆堆袜包裹脚踝",
         "银色复古跑鞋提亮整体",
         "棒球帽与卫衣帽子双重头部层次"
       ],
       "locked_features": [
         "短款面包服叠穿连帽卫衣",
         "黑色紧身裤",
-        "白色粗针织堆堆袜"
+        "银色复古跑鞋"
       ],
       "content_version": "wearcue-vision-v3"
     },
@@ -783,30 +757,6 @@
         },
         {
           "slot": "equipment",
-          "functional_icon_key": "leg_warmers",
-          "variant_type": "粗针织堆堆腿套",
-          "color_type": "solid",
-          "color_name": "米白色",
-          "color_value": "#F5F5DC",
-          "pattern_description": "纯色",
-          "thickness": "thick",
-          "confidence": 0.98,
-          "approximate": true,
-          "suggested": false,
-          "asset_key": null,
-          "fit": "宽松",
-          "shoulder": "不适用",
-          "length": "覆盖小腿",
-          "waistline": "不适用",
-          "bottom_shape": "筒状",
-          "structure_details": [
-            "竖条纹罗纹编织"
-          ],
-          "material": "毛线",
-          "wearing_method": "套在脚踝处形成堆叠感"
-        },
-        {
-          "slot": "equipment",
           "functional_icon_key": "cap",
           "variant_type": "棒球帽",
           "color_type": "solid",
@@ -859,28 +809,27 @@
       "manual_reviewed": true,
       "source_relative_path": "女/冬季/运动/“warm winter 谁说轻盈和保暖不可兼得”_1_HEIHEI_AI原创重构.png",
       "outfit_analysis": {
-        "summary": "利用亮面短款羽绒服与紧身瑜伽裤打造上宽下紧的运动廓形，通过腿套丰富下半身细节。",
+        "summary": "利用亮面短款羽绒服与紧身瑜伽裤打造上宽下紧的运动廓形，并以厚底鞋平衡下半身。",
         "structure_points": [
           "短款外套强调高腰线",
           "紧身裤勾勒腿部线条",
-          "腿套平衡鞋子体积感"
+          "厚底运动鞋平衡上装体积"
         ],
         "completion_advice": []
       },
       "replication_guide": {
-        "formula": "紧身U领背心＋亮面连帽短款羽绒服＋高腰紧身瑜伽裤＋粗针织堆堆腿套＋复古厚底运动鞋＋紫色棒球帽",
+        "formula": "紧身U领背心＋亮面连帽短款羽绒服＋高腰紧身瑜伽裤＋复古厚底运动鞋＋紫色棒球帽＋黑色运动墨镜",
         "steps": [
           "穿紧身U领背心",
           "外搭亮面连帽短款羽绒服并敞开",
           "穿高腰紧身瑜伽裤",
-          "小腿套上粗针织堆堆腿套",
           "穿复古厚底运动鞋",
           "戴紫色棒球帽",
           "佩戴黑色运动墨镜"
         ],
         "styling_points": [
           "保持外套敞开以展示高腰线",
-          "调整腿套形成自然堆叠感"
+          "让棒球帽与外套形成同色呼应"
         ],
         "weather_note": "适穿温度为 0～10℃，按当天体感增减外层。",
         "substitute": "替换时保留上宽下紧比例和亮面材质特征。"
@@ -895,15 +844,14 @@
         "silhouette_route": "上宽下紧",
         "proportion": "短外套配高腰紧身裤",
         "layering": "多层",
-        "material_contrast": "亮面羽绒与哑光弹力面料及粗针织",
+        "material_contrast": "亮面羽绒与哑光弹力面料",
         "color_structure": "紫色系呼应，灰色系过渡",
-        "accessory_role": "帽子呼应外套色彩，腿套增加层次",
+        "accessory_role": "帽子呼应外套色彩，墨镜强化运动感",
         "footwear_shape": "厚底运动鞋"
       },
       "signature_features": [
         "亮面紫色短款羽绒服",
         "高腰紧身瑜伽裤",
-        "粗针织堆堆腿套",
         "紫色棒球帽呼应外套",
         "复古厚底运动鞋",
         "外短内长露出腰线"
@@ -911,8 +859,8 @@
       "locked_features": [
         "亮面紫色短款羽绒服",
         "高腰紧身瑜伽裤",
-        "粗针织堆堆腿套",
-        "紫色棒球帽"
+        "紫色棒球帽",
+        "复古厚底运动鞋"
       ],
       "content_version": "wearcue-vision-v3"
     },
@@ -6517,30 +6465,6 @@
           "wearing_method": "自然穿着"
         },
         {
-          "slot": "equipment",
-          "functional_icon_key": "long_socks",
-          "variant_type": "黑色条纹及膝袜",
-          "color_type": "solid",
-          "color_name": "黑色",
-          "color_value": "#111111",
-          "pattern_description": "纯色带条纹",
-          "thickness": "regular",
-          "confidence": 0.99,
-          "approximate": true,
-          "suggested": false,
-          "asset_key": null,
-          "fit": "紧身",
-          "shoulder": "不适用",
-          "length": "及膝",
-          "waistline": "不适用",
-          "bottom_shape": "不适用",
-          "structure_details": [
-            "袜口三道白条纹"
-          ],
-          "material": "针织",
-          "wearing_method": "拉至膝盖下方"
-        },
-        {
           "slot": "shoes",
           "functional_icon_key": "sneaker",
           "variant_type": "复古德训鞋",
@@ -6571,26 +6495,25 @@
       "manual_reviewed": true,
       "source_relative_path": "男/夏季/运动/为王安宇拍摄adidasOriginals做的造型_4_Chi_AI原创重构.png",
       "outfit_analysis": {
-        "summary": "典型的日系City Boy或运动休闲风格，通过长短袖叠穿增加层次感，搭配及膝短裤和长袜拉长视觉比例。",
+        "summary": "运动休闲风格通过长短袖叠穿增加层次感，搭配及膝工装短裤和复古德训鞋保持利落比例。",
         "structure_points": [
           "衬衫下摆外露打破单调",
-          "及膝短裤与长袜之间留出绝对领域",
-          "色彩呼应（袜子条纹与衬衫条纹）"
+          "及膝工装短裤保留活动空间",
+          "德训鞋的灰绿拼色提亮深色下装"
         ],
         "completion_advice": []
       },
       "replication_guide": {
-        "formula": "插肩袖V领T恤＋蓝白条纹衬衫＋黑色工装短裤＋条纹及膝袜＋复古德训鞋",
+        "formula": "插肩袖V领T恤＋蓝白条纹衬衫＋黑色工装短裤＋复古德训鞋",
         "steps": [
           "先穿上蓝白条纹衬衫作为打底",
           "套上藏青色V领运动T恤，确保衬衫领口、袖口和下摆露出",
           "搭配黑色及膝工装短裤",
-          "穿上黑色三道杠及膝长袜",
           "最后穿上灰绿拼色德训鞋"
         ],
         "styling_points": [
           "注意保持衬衫下摆平整地露在T恤外面",
-          "袜子要拉直，不要堆叠"
+          "保持工装短裤裤腿宽松平整"
         ],
         "weather_note": "适穿温度为 20～28℃，按当天体感增减外层。",
         "substitute": "可将工装短裤替换为宽松牛仔裤，保留叠穿结构即可。"
@@ -6603,24 +6526,23 @@
       },
       "outfit_dna": {
         "silhouette_route": "运动休闲叠穿",
-        "proportion": "宽松上衣配及膝短裤，利用长袜修饰腿部比例",
+        "proportion": "宽松上衣配及膝工装短裤",
         "layering": "短袖T恤叠穿长袖衬衫",
         "material_contrast": "速干面料与棉质衬衫、斜纹布的对比",
         "color_structure": "藏青与黑色为主，辅以蓝白条纹和灰绿色提亮",
-        "accessory_role": "条纹长袜增加学院运动感",
+        "accessory_role": "无独立配饰",
         "footwear_shape": "复古德训鞋"
       },
       "signature_features": [
         "T恤叠穿衬衫露出领口袖口和下摆",
         "插肩袖运动T恤",
         "大口袋工装短裤",
-        "黑白条纹及膝长袜",
         "灰绿拼色复古德训鞋"
       ],
       "locked_features": [
         "T恤叠穿衬衫露出领口袖口和下摆",
         "插肩袖运动T恤",
-        "黑白条纹及膝长袜"
+        "大口袋工装短裤"
       ],
       "content_version": "wearcue-vision-v3"
     },

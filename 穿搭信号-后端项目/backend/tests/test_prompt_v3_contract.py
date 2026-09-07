@@ -94,10 +94,7 @@ def test_packaged_system_images_match_the_reviewed_metadata() -> None:
         assert item["locked_features"]
         for component in item["components"]:
             assert component["variant_type"]
-            if component["asset_key"] is None:
-                assert component["slot"] == "equipment"
-                assert component["functional_icon_key"] in {"socks", "long_socks", "leg_warmers"}
-                continue
+            assert component["asset_key"] is not None
             assert component["asset_key"] in VALID_ASSET_KEYS
             expected_slot = (
                 "equipment" if component["asset_key"].startswith("acc_")
@@ -143,6 +140,19 @@ def test_vision_prompt_requires_visible_glasses_as_components() -> None:
     assert "不得只写进 analysis" in prompt
 
 
+def test_vision_prompt_and_presets_exclude_components_without_icons() -> None:
+    prompt = (ROOT / "app" / "prompts" / "vision_outfit.txt").read_text()
+    payload = json.loads((ROOT / "app" / "defaults" / "system_assets.json").read_text())
+
+    assert "只有能明确映射到上述现有图标的元素才能进入 components" in prompt
+    assert "禁止为了保留元素而强行匹配" in prompt
+    assert all(
+        component.get("asset_key")
+        for item in payload["assets"]
+        for component in item["components"]
+    )
+
+
 def test_scarf_icon_is_never_reused_for_legwear() -> None:
     payload = json.loads((ROOT / "app" / "defaults" / "system_assets.json").read_text())
     scarf_components = [
@@ -160,5 +170,4 @@ def test_scarf_icon_is_never_reused_for_legwear() -> None:
         for component in item["components"]
         if component["functional_icon_key"] in {"socks", "long_socks", "leg_warmers"}
     ]
-    assert legwear
-    assert all(component.get("asset_key") is None for component in legwear)
+    assert legwear == []

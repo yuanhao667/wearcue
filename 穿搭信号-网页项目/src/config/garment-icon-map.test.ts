@@ -69,5 +69,6 @@ describe("garment icon vocabulary", () => {
 
   it("keeps unsupported leg warmers iconless instead of forcing a scarf icon", () => {
     expect(resolveGarmentIcon({ slot: "equipment", functional_icon_key: "leg_warmers", variant_type: "粗针织堆堆腿套", color_name: "浅灰色", thickness: "thick", asset_key: null }, "womens")).toBeUndefined();
+    expect(resolveGarmentIcon({ slot: "equipment", functional_icon_key: "leg_warmers", variant_type: "粗针织堆堆腿套", color_name: "浅灰色", thickness: "thick", asset_key: "acc_scarf" }, "womens")).toBeUndefined();
   });
 });
