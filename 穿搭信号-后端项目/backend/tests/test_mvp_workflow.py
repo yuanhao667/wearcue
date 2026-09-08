@@ -389,11 +389,8 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     )
 
     assert calls[0][0] == service.items_prompt
-    assert calls[0][2:] == (950, "qwen-turbo", "qwen3.8-flash", 0.45)
-    assert calls[0][1]["scene_name"] == "通勤"
-    assert calls[0][1]["scene_requirements"].startswith("中国语境下的男士通勤")
-    assert "严禁主动生成" in calls[0][1]["scene_requirements"]
-    assert "西装或西服、领带、西裤" in calls[0][1]["scene_requirements"]
+    assert calls[0][2:] == (650, "qwen-turbo", "qwen-turbo", 0.25)
+    assert calls[0][1] == {"scene": "commute", "audience": "mens"}
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
         "height_group": "偏高", "weight_group": "中等",
@@ -402,7 +399,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert items_result["label"] == "适合通勤场景的清"
     assert items_result["replication_guide"] is None
     assert items_result["outfit_analysis"] is None
-    assert items_result["prompt_version"] == "wearcue-realtime-plan-v3.1"
+    assert items_result["prompt_version"] == "wearcue-realtime-plan-v3.2"
     assert advice_result["replication_guide"]["styling_points"][:2] == [
         "保留完整纵向线条，衣袖和裤长避免偏短；采用合身但不紧绷的常规松量。",
         "细节可保持简洁轻快，同时兼顾当前场景的得体度。",
@@ -410,25 +407,39 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     assert advice_result["outfit_analysis"]["summary"] == "清爽基础搭配" * 20
     assert "replication_guide.steps 必须逐件覆盖 items" in service.advice_prompt
     assert "outfit_dna" in service.advice_prompt
-    assert "禁止调用或等待图片生成" in service.items_prompt
+    assert "思考过程、详情文案和图片" in service.items_prompt
     assert "中年商务男装目录" in service.items_prompt
     assert "必须消费同一份 outfit_dna" in service.prompt
     assert "locked_features" in service.prompt
 
 
+def test_realtime_items_have_a_hard_total_timeout(monkeypatch) -> None:
+    monkeypatch.setenv("AI_REALTIME_TIMEOUT_SECONDS", "0.01")
+    service = OutfitAIService()
+
+    async def slow_call(*args, **kwargs):
+        await asyncio.sleep(0.1)
+        return {"items": []}
+
+    monkeypatch.setattr(service, "_call", slow_call)
+
+    with pytest.raises(OutfitAIServiceError, match="响应超时"):
+        asyncio.run(service.generate_items({"scene": "commute", "audience": "mens"}))
+
+
 @pytest.mark.parametrize(
-    ("scene", "audience", "scene_name", "keyword"),
+    ("scene", "audience"),
     [
-        ("commute", "mens", "通勤", "男士通勤"),
-        ("commute", "womens", "通勤", "女士通勤"),
-        ("date", "mens", "约会", "男士约会"),
-        ("date", "womens", "约会", "女士约会"),
-        ("travel", "mens", "出行", "男士出行"),
-        ("travel", "womens", "出行", "女士出行"),
+        ("commute", "mens"),
+        ("commute", "womens"),
+        ("date", "mens"),
+        ("date", "womens"),
+        ("travel", "mens"),
+        ("travel", "womens"),
     ],
 )
-def test_all_user_selected_scenes_are_expanded_for_ai(
-    monkeypatch, scene: str, audience: str, scene_name: str, keyword: str
+def test_realtime_prompt_keeps_scene_and_audience_without_long_context(
+    monkeypatch, scene: str, audience: str
 ) -> None:
     service = OutfitAIService()
     captured = {}
@@ -444,8 +455,8 @@ def test_all_user_selected_scenes_are_expanded_for_ai(
     asyncio.run(service.generate_items({"scene": scene, "audience": audience}))
 
     assert captured["scene"] == scene
-    assert captured["scene_name"] == scene_name
-    assert keyword in captured["scene_requirements"]
+    assert captured["audience"] == audience
+    assert "scene_requirements" not in captured
 
 
 def test_all_scenes_have_distinct_mens_and_womens_requirements() -> None:
@@ -956,6 +967,40 @@ def test_failed_live_ai_swap_releases_quota(tmp_path, monkeypatch) -> None:
 
     assert response.status_code == 503
     assert client.get("/api/v1/ai-usage-quota").json()["swap"]["remaining"] == 4
+
+
+def test_failed_live_ai_swap_returns_immediate_template_when_available(
+    tmp_path, monkeypatch
+) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch)
+
+    async def fail_items(self, context):
+        raise OutfitAIServiceError("模型暂时不可用")
+
+    monkeypatch.setattr(OutfitAIService, "generate_items", fail_items)
+    monkeypatch.setattr(recommendation_service, "system_ai_templates", lambda: [])
+    monkeypatch.setattr(system, "recommend_system_outfit", lambda **kwargs: None)
+    monkeypatch.setattr(
+        system,
+        "_provider_failure_fallback",
+        lambda payload, weather, audience: {
+            "source": "system",
+            "template_id": "fast-local-fallback",
+            "label": "即时备用穿搭",
+            "scene": payload.scene,
+            "audience": audience,
+            "items": [_component()],
+            "ai_fallback_reason": "provider_failed",
+        },
+    )
+
+    response = client.post("/api/v1/recommendations/swap", json=_recommendation_payload())
+
+    assert response.status_code == 200
+    assert response.json()["template_id"] == "fast-local-fallback"
+    assert response.json()["ai_fallback_reason"] == "provider_failed"
+    assert response.json()["ai_quota"]["remaining"] == 4
 
 
 def test_ai_quota_reservation_is_atomic(tmp_path) -> None:

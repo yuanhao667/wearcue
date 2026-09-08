@@ -98,6 +98,22 @@ def _non_ai_recommendation(
     )
 
 
+def _provider_failure_fallback(
+    payload: RecommendationRequest,
+    weather: WeatherInput,
+    audience: str,
+) -> dict:
+    """Provider 超时或格式错误时立即复用一套安全模板，不再让首页等待。"""
+    return recommend_system_ai_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        city_id=payload.city_id,
+        local_date=payload.local_date,
+        excluded_template_ids=[],
+    ) | {"ai_fallback_reason": "provider_failed"}
+
+
 def _weather_input(payload: WeatherRuleRequest) -> WeatherInput:
     return WeatherInput(
         apparent_min=payload.apparent_min,
@@ -164,7 +180,12 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
         )
     except Exception as exc:
         store.release_ai_usage(reservation_id)
-        raise HTTPException(503, "暂无可用穿搭方案") from exc
+        logger.exception("Realtime AI preview failed; returning immediate local fallback")
+        try:
+            fallback = _provider_failure_fallback(payload, weather, audience)
+        except NoRecommendationError:
+            raise HTTPException(503, "暂无可用穿搭方案") from exc
+        return fallback | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
     return recommendation | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
 
 
@@ -226,10 +247,14 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
                 "weather_code": payload.weather_code,
             },
         )
-    except Exception:
+    except Exception as exc:
         store.release_ai_usage(reservation_id)
         logger.exception("AI recommendation failed after personal and system layers were exhausted")
-        raise HTTPException(503, "AI 穿搭生成失败，请稍后重试")
+        try:
+            fallback = _provider_failure_fallback(payload, weather, audience)
+        except NoRecommendationError:
+            raise HTTPException(503, "AI 穿搭生成失败，请稍后重试") from exc
+        return fallback | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
     return recommendation | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
 
 

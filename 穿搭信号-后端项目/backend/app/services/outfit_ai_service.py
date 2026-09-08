@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -11,7 +12,13 @@ import httpx
 from app.domain.component_rules import normalize_component_thickness
 
 logger = logging.getLogger(__name__)
-REALTIME_PLAN_PROMPT_VERSION = "wearcue-realtime-plan-v3.1"
+REALTIME_PLAN_PROMPT_VERSION = "wearcue-realtime-plan-v3.2"
+REALTIME_CONTEXT_KEYS = {
+    "scene", "audience", "season", "current_apparent_temperature",
+    "apparent_min", "apparent_max", "thermal_band", "needs_waterproof",
+    "needs_windproof", "required_top", "required_bottom",
+    "required_outerwear", "required_shoes", "available_assets",
+}
 
 # functional_icon_key -> 基础图标 key（与前端 functionalFallbacks 保持一致）
 FUNCTIONAL_TO_ASSET: Dict[str, str] = {
@@ -236,6 +243,11 @@ class OutfitAIService:
         self.model = os.getenv("AI_MODEL") or os.getenv("VISION_MODEL") or ""
         self.fast_model = os.getenv("AI_FAST_MODEL") or self.model
         self.quality_model = os.getenv("AI_QUALITY_MODEL") or self.model
+        try:
+            configured_timeout = float(os.getenv("AI_REALTIME_TIMEOUT_SECONDS", "6"))
+        except ValueError:
+            configured_timeout = 6
+        self.realtime_timeout_seconds = min(10, max(0.01, configured_timeout))
         base = Path(__file__).resolve().parents[1] / "prompts"
         self.prompt = (base / "outfit_generation.txt").read_text()
         self.items_prompt = (base / "outfit_items.txt").read_text()
@@ -333,7 +345,7 @@ class OutfitAIService:
                     "structure_details": [
                         _first_str(detail) for detail in item.get("structure_details") or []
                         if _first_str(detail)
-                    ][:6],
+                    ][:6] or ([_first_str(item.get("design"))] if _first_str(item.get("design")) else []),
                     "material": _first_str(item.get("material")) or None,
                     "pattern_description": _first_str(item.get("pattern_description")) or None,
                     "wearing_method": _first_str(item.get("wearing_method")) or None,
@@ -399,17 +411,38 @@ class OutfitAIService:
         return self._normalize(raw, enriched_context)
 
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """只生成首页展示需要的单品（快）。"""
+        """只用小模型生成首页图标方案；整条调用强制秒级结束。"""
         enriched_context = _with_scene_context(context)
+        realtime_context = {
+            key: value for key, value in enriched_context.items()
+            if key in REALTIME_CONTEXT_KEYS and value is not None
+        }
         started_at = time.perf_counter()
-        raw = await self._call(
-            self.items_prompt,
-            enriched_context,
-            950,
+        logger.info(
+            "AI realtime outfit plan %s started with small model=%s thinking=false timeout=%.1fs",
+            REALTIME_PLAN_PROMPT_VERSION,
             self.fast_model,
-            self.quality_model,
-            temperature=0.45,
+            self.realtime_timeout_seconds,
         )
+        try:
+            raw = await asyncio.wait_for(
+                self._call(
+                    self.items_prompt,
+                    realtime_context,
+                    650,
+                    self.fast_model,
+                    self.fast_model,
+                    temperature=0.25,
+                ),
+                timeout=self.realtime_timeout_seconds,
+            )
+        except TimeoutError as error:
+            logger.warning(
+                "AI realtime outfit plan %s timed out after %.1fs",
+                REALTIME_PLAN_PROMPT_VERSION,
+                self.realtime_timeout_seconds,
+            )
+            raise OutfitAIServiceError("AI 实时穿搭方案响应超时") from error
         logger.info(
             "AI realtime outfit plan %s completed in %dms",
             REALTIME_PLAN_PROMPT_VERSION,
