@@ -176,7 +176,7 @@ export function LibraryApp() {
       <div className="discovery-tabs-sticky-inner">
         <div className="discovery-tabs" role="tablist" aria-label="穿搭范围">
           <button role="tab" aria-selected={tab === "all"} className={tab === "all" ? "active" : ""} onClick={() => setTab("all")}><span>全部穿搭</span><small>{tabCounts.all ?? "—"}套</small></button>
-          <button role="tab" aria-selected={tab === "mine"} className={tab === "mine" ? "active" : ""} onClick={() => setTab("mine")}><span>我的穿搭</span><small>{tabCounts.mine ?? "—"}套</small></button>
+          <button role="tab" aria-selected={tab === "mine"} className={tab === "mine" ? "active" : ""} onClick={() => setTab("mine")}><span>收藏穿搭</span><small>{tabCounts.mine ?? "—"}套</small></button>
         </div>
       </div>
     </div>
