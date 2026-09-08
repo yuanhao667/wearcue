@@ -39,7 +39,11 @@ LEGACY_ICON_ONLY_LABELS = {
 
 def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
     if outfit.get("inspiration_id"):
-        return outfit | {"image_key": f"inspiration:{outfit['inspiration_id']}"}
+        inspiration = store.get_inspiration(outfit["inspiration_id"], user_id)
+        image_identity = (
+            inspiration.get("content_hash") if inspiration else None
+        ) or outfit["inspiration_id"]
+        return outfit | {"image_key": f"inspiration-content:{image_identity}"}
     image_owner_id = outfit.get("recommendation_id") or outfit["id"]
     cached = store.get_latest_outfit_image(user_id, image_owner_id)
     if cached:
@@ -48,32 +52,35 @@ def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
             "image_url": f"/recommendations/{cached['recommendation_id']}/image",
         }
     audience = outfit.get("audience", "mens")
-    if outfit.get("label") not in LEGACY_ICON_ONLY_LABELS.get(audience, set()):
-        return outfit
-    example = store.get_inspiration_by_key(
-        f"system-ai-example-v1-{audience}", user_id
-    )
-    example_outfit = store.get_user_example_outfit(
-        user_id, audience
-    )
-    if example and example_outfit:
-        # Legacy cards that had only garment icons now reuse the complete example
-        # record behind the detail photo. Keep the user's id/state, while merging
-        # the photo-bound content so image, season and copy cannot contradict.
-        return outfit | {
-            "label": example_outfit["label"],
-            "components": example_outfit["components"],
-            "scene_ids": example_outfit["scene_ids"],
-            "season": example_outfit["season"],
-            "style_tags": example_outfit["style_tags"],
-            "suitable_min": example_outfit["suitable_min"],
-            "suitable_max": example_outfit["suitable_max"],
-            "outfit_analysis": example_outfit["outfit_analysis"],
-            "replication_guide": example_outfit["replication_guide"],
-            "image_key": f"inspiration:{example['id']}",
-            "image_url": f"/inspirations/{example['id']}/image?size=medium",
-        }
-    return outfit
+    if outfit.get("label") in LEGACY_ICON_ONLY_LABELS.get(audience, set()):
+        example = store.get_inspiration_by_key(
+            f"system-ai-example-v1-{audience}", user_id
+        )
+        example_outfit = store.get_user_example_outfit(
+            user_id, audience
+        )
+        if example and example_outfit:
+            # Legacy cards that had only garment icons now reuse the complete example
+            # record behind the detail photo. Keep the user's id/state, while merging
+            # the photo-bound content so image, season and copy cannot contradict.
+            image_identity = example.get("content_hash") or example["id"]
+            return outfit | {
+                "label": example_outfit["label"],
+                "components": example_outfit["components"],
+                "scene_ids": example_outfit["scene_ids"],
+                "season": example_outfit["season"],
+                "style_tags": example_outfit["style_tags"],
+                "suitable_min": example_outfit["suitable_min"],
+                "suitable_max": example_outfit["suitable_max"],
+                "outfit_analysis": example_outfit["outfit_analysis"],
+                "replication_guide": example_outfit["replication_guide"],
+                "image_key": f"inspiration-content:{image_identity}",
+                "image_url": f"/inspirations/{example['id']}/image?size=medium",
+            }
+    # Legacy plans without their own photo all render the same audience fallback
+    # in the discovery grid. Treat that rendered photo as the identity as well,
+    # otherwise several different stale records become visibly duplicated cards.
+    return outfit | {"image_key": f"audience-fallback:{audience}"}
 
 
 def _deduplicate_outfits(outfits: list[dict]) -> list[dict]:

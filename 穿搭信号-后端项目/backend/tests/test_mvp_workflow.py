@@ -1202,15 +1202,26 @@ def test_saving_same_recommendation_is_idempotent_and_discovery_deduplicates_his
 
     user_id = test_store.login("TEST-INVITE")["user"]["id"]
     test_store.save_outfit(
-        {key: value for key, value in payload.items() if key != "recommendation_id"} | {"source": "manual"},
+        {key: value for key, value in payload.items() if key != "recommendation_id"}
+        | {"label": "旧版无图通勤", "source": "manual"},
         user_id=user_id,
     )
     test_store.save_outfit(
-        {key: value for key, value in payload.items() if key != "recommendation_id"} | {"source": "manual"},
+        {key: value for key, value in payload.items() if key != "recommendation_id"}
+        | {
+            "label": "旧版无图出行",
+            "source": "manual",
+            "scene_ids": ["travel"],
+            "style_tags": ["outdoor"],
+        },
         user_id=user_id,
     )
-    matches = [item for item in client.get("/api/v1/outfits").json() if item["label"] == "轻便通勤"]
-    assert len(matches) == 1
+    visible = client.get("/api/v1/outfits").json()
+    fallback_cards = [
+        item for item in visible
+        if item.get("image_key") == "audience-fallback:mens"
+    ]
+    assert len(fallback_cards) == 1
 
 
 def test_confirmed_upload_enters_personal_home_pool(tmp_path, monkeypatch) -> None:
