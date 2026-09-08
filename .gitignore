@@ -39,5 +39,6 @@ __pycache__/
 
 # ===== 系统 / 日志 =====
 .DS_Store
+.tmp_prd_updates/
 pnpm-debug.log*
 *.log

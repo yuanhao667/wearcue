@@ -12,7 +12,7 @@ import httpx
 from .outfit_ai_service import scene_context_for
 
 logger = logging.getLogger(__name__)
-DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.1"
+DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.2"
 
 
 class OutfitImageServiceError(RuntimeError):
