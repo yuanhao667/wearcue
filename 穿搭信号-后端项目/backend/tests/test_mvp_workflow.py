@@ -1019,20 +1019,15 @@ def test_ai_quota_reservation_is_atomic(tmp_path) -> None:
     assert test_store.get_ai_quota("concurrent-user", local_date, "swap")["remaining"] == 0
 
 
-def test_new_account_library_starts_with_matching_ai_example(tmp_path, monkeypatch) -> None:
+def test_new_account_library_excludes_legacy_duplicate_examples(tmp_path, monkeypatch) -> None:
     test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)
 
     mens = client.get("/api/v1/outfits").json()
-    assert len(mens) == 25
-    sample = next(item for item in mens if item["label"] == "都市层次出行")
-    assert sample["source"] == "system"
-    assert sample["audience"] == "mens"
-    assert sample["season"] == "winter"
-    assert sample["style_tags"] == ["outdoor", "minimal"]
-    assert sample["in_pool"] is False
+    assert len(mens) == 24
+    assert not any(item["id"].startswith("example_mens_") for item in mens)
+    assert not any(item["label"] == "都市层次出行" for item in mens)
     assert len(client.get("/api/v1/inspirations").json()) == 1
-    assert client.get(f"/api/v1/inspirations/{sample['inspiration_id']}/image").status_code == 200
     padded = next(item for item in mens if item["id"] == "system-042-6c4d312c")
     assert padded["label"] == "灰调飞行夹克通勤"
     assert padded["season"] == "winter"
@@ -1051,14 +1046,11 @@ def test_new_account_library_starts_with_matching_ai_example(tmp_path, monkeypat
 
     client.post("/api/v1/settings", json={"audience": "womens"})
     womens = client.get("/api/v1/outfits").json()
-    assert len(womens) == 23
+    assert len(womens) == 22
     assert old_mens["id"] not in {item["id"] for item in womens}
     assert all(item["audience"] == "womens" for item in womens)
-    sample = next(item for item in womens if item["label"] == "条纹休闲出行")
-    assert sample["source"] == "system"
-    assert sample["audience"] == "womens"
-    assert sample["season"] == "summer"
-    assert sample["style_tags"] == ["sport"]
+    assert not any(item["id"].startswith("example_womens_") for item in womens)
+    assert not any(item["label"] == "条纹休闲出行" for item in womens)
     light_date = next(item for item in womens if item["id"] == "system-017-f6b839c6")
     assert light_date["label"] == "白衬衫松弛约会"
     assert light_date["season"] == "summer"
@@ -1219,9 +1211,10 @@ def test_saving_same_recommendation_is_idempotent_and_discovery_deduplicates_his
     visible = client.get("/api/v1/outfits").json()
     fallback_cards = [
         item for item in visible
-        if item.get("image_key") == "audience-fallback:mens"
+        if item.get("image_key") == "audience-example:mens"
     ]
     assert len(fallback_cards) == 1
+    assert fallback_cards[0]["source"] == "manual"
 
 
 def test_confirmed_upload_enters_personal_home_pool(tmp_path, monkeypatch) -> None:

@@ -453,7 +453,16 @@ class Store:
 
     def _ensure_user_example(self, user_id: str, audience: str) -> None:
         version_key = f"default_example_v2:{user_id}:{audience}"
+        outfit_id = f"example_{audience}_{_hash(user_id)[:12]}"
         with self.connect() as db:
+            # Always run the cleanup, including for users whose example asset was
+            # seeded by an older release before this migration existed.
+            db.execute("DELETE FROM outfit_states WHERE outfit_id=?", (outfit_id,))
+            db.execute("DELETE FROM user_skip_events WHERE outfit_id=?", (outfit_id,))
+            db.execute(
+                "DELETE FROM outfits WHERE id=? AND owner_user_id=?",
+                (outfit_id, user_id),
+            )
             if db.execute("SELECT 1 FROM app_meta WHERE key=?", (version_key,)).fetchone():
                 return
         defaults_dir = Path(__file__).resolve().parents[1] / "defaults"
@@ -491,17 +500,25 @@ class Store:
                 },
                 user_id,
             )
-        outfit_id = f"example_{audience}_{_hash(user_id)[:12]}"
-        self.save_outfit(
-            outfit | {"audience": audience, "source": "system", "inspiration_id": inspiration["id"]},
-            outfit_id,
-            user_id,
-        )
+        # The example image remains available to backfill old icon-only cards,
+        # but it must not also appear as an independent discovery outfit. The
+        # reviewed system library already contains the canonical mens/womens
+        # looks, so remove the obsolete seeded card for existing users as well.
         with self.connect() as db:
             db.execute("INSERT OR REPLACE INTO app_meta VALUES (?,?)", (version_key, "1"))
 
     def get_user_example_outfit(self, user_id: str, audience: str) -> Optional[Dict[str, Any]]:
-        return self.get_outfit(f"example_{audience}_{_hash(user_id)[:12]}", user_id)
+        del user_id  # The payload is packaged and shared; only its image is user-scoped.
+        manifest_path = Path(__file__).resolve().parents[1] / "defaults" / "outfits.json"
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            entry = next(
+                item for item in manifest["examples"]
+                if item["audience"] == audience
+            )
+        except (OSError, json.JSONDecodeError, KeyError, StopIteration):
+            return None
+        return entry["outfit"]
 
     @staticmethod
     def _settings(row: sqlite3.Row) -> Dict[str, Any]:

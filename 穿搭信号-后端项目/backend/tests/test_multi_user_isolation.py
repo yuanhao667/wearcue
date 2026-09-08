@@ -51,8 +51,8 @@ def test_two_users_cannot_read_or_change_each_others_data(tmp_path, monkeypatch)
     assert client.get("/api/v1/outfits").status_code == 401
     outfits_a = client.get("/api/v1/outfits", headers=_headers(token_a)).json()
     outfits_b = client.get("/api/v1/outfits", headers=_headers(token_b)).json()
-    assert len(outfits_a) == 25
-    assert len(outfits_b) == 23
+    assert len(outfits_a) == 24
+    assert len(outfits_b) == 22
     assert all(item["source"] == "system" for item in outfits_a + outfits_b)
     assert all(item["audience"] == "mens" for item in outfits_a)
     assert all(item["audience"] == "womens" for item in outfits_b)

@@ -40,6 +40,8 @@ LEGACY_ICON_ONLY_LABELS = {
 def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
     if outfit.get("inspiration_id"):
         inspiration = store.get_inspiration(outfit["inspiration_id"], user_id)
+        if inspiration and inspiration.get("provider") == "system-ai-example":
+            return outfit | {"image_key": f"audience-example:{outfit.get('audience', 'mens')}"}
         image_identity = (
             inspiration.get("content_hash") if inspiration else None
         ) or outfit["inspiration_id"]
@@ -63,7 +65,6 @@ def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
             # Legacy cards that had only garment icons now reuse the complete example
             # record behind the detail photo. Keep the user's id/state, while merging
             # the photo-bound content so image, season and copy cannot contradict.
-            image_identity = example.get("content_hash") or example["id"]
             return outfit | {
                 "label": example_outfit["label"],
                 "components": example_outfit["components"],
@@ -74,18 +75,26 @@ def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
                 "suitable_max": example_outfit["suitable_max"],
                 "outfit_analysis": example_outfit["outfit_analysis"],
                 "replication_guide": example_outfit["replication_guide"],
-                "image_key": f"inspiration-content:{image_identity}",
+                "image_key": f"audience-example:{audience}",
                 "image_url": f"/inspirations/{example['id']}/image?size=medium",
             }
     # Legacy plans without their own photo all render the same audience fallback
     # in the discovery grid. Treat that rendered photo as the identity as well,
     # otherwise several different stale records become visibly duplicated cards.
-    return outfit | {"image_key": f"audience-fallback:{audience}"}
+    return outfit | {"image_key": f"audience-example:{audience}"}
 
 
 def _deduplicate_outfits(outfits: list[dict]) -> list[dict]:
     result: list[dict] = []
-    seen_keys: set[str] = set()
+    identity_indexes: dict[str, int] = {}
+
+    def priority(outfit: dict) -> tuple[bool, bool, str]:
+        # A real upload/system asset wins over the old visual-only fallback.
+        # Within equally real records, keep personal/favorited and newer items.
+        has_bound_image = bool(outfit.get("inspiration_id") or outfit.get("image_url"))
+        is_personal = outfit.get("source") != "system" or bool(outfit.get("favorite"))
+        return has_bound_image, is_personal, str(outfit.get("updated_at") or "")
+
     for outfit in outfits:
         image_key = outfit.get("image_key")
         if image_key:
@@ -111,10 +120,12 @@ def _deduplicate_outfits(outfits: list[dict]) -> list[dict]:
             }
             encoded = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             identity = f"content:{hashlib.sha256(encoded.encode('utf-8')).hexdigest()}"
-        if identity in seen_keys:
-            continue
-        seen_keys.add(identity)
-        result.append(outfit)
+        existing_index = identity_indexes.get(identity)
+        if existing_index is None:
+            identity_indexes[identity] = len(result)
+            result.append(outfit)
+        elif priority(outfit) > priority(result[existing_index]):
+            result[existing_index] = outfit
     return result
 
 
