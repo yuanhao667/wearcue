@@ -389,7 +389,7 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
     )
 
     assert calls[0][0] == service.items_prompt
-    assert calls[0][2:] == (650, "qwen-turbo", "qwen-turbo", 0.25)
+    assert calls[0][2:] == (480, "qwen-turbo", "qwen-turbo", 0.25)
     assert calls[0][1] == {"scene": "commute", "audience": "mens"}
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
