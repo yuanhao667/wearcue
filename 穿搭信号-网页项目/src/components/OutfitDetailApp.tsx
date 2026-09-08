@@ -219,7 +219,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
         outfit = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify({ in_pool: !outfit.in_pool }) });
       }
       setSavedOutfit(outfit);
-      setSaveMessage(inPool ? "" : "已保存到穿搭灵感");
+      setSaveMessage("");
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : "保存失败，请稍后重试");
     } finally {
@@ -239,7 +239,10 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
             {isDefaultRecommendation
               ? <span className="outfit-save-primary is-saved is-default" role="status">已在首页推荐</span>
               : <button className={`outfit-save-primary${savedOutfit?.in_pool ? " is-saved" : ""}`} type="button" aria-pressed={Boolean(savedOutfit?.in_pool)} aria-label={savedOutfit?.in_pool ? "移出个人首页推荐" : "加入个人首页推荐"} disabled={Boolean(saveAction)} onClick={() => void saveRecommendation(true)}>{saveAction === "pool" ? savedOutfit?.in_pool ? "正在移出…" : "正在加入…" : savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button>}
-            <button className="outfit-save-secondary" type="button" disabled={Boolean(saveAction || savedOutfit)} onClick={() => void saveRecommendation(false)}>{saveAction === "library" ? "正在保存…" : savedOutfit ? "已保存" : "保存到穿搭灵感"}</button>
+            <span className="outfit-save-tooltip-wrap">
+              {!savedOutfit && <span className="outfit-save-tooltip" id="outfit-save-tooltip" role="tooltip">保存后可在「穿搭灵感」中查看</span>}
+              <button className="outfit-save-secondary" type="button" aria-describedby={!savedOutfit ? "outfit-save-tooltip" : undefined} disabled={Boolean(saveAction || savedOutfit)} onClick={() => void saveRecommendation(false)}>{saveAction === "library" ? "正在保存…" : savedOutfit ? "已保存" : "保存到穿搭灵感"}</button>
+            </span>
             {saveMessage && <p role="status">{saveMessage}</p>}
           </div>}
         </section>}

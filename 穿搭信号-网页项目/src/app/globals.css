@@ -1992,6 +1992,12 @@ body:has(.upload-paper)::before { display: none; }
 .outfit-save-primary { border: 1px solid var(--sunshine); background: var(--sunshine); color: #111315; }
 .outfit-save-primary.is-saved { border-color: #dfe3e6; background: #eef0f2; color: #596067; }
 .outfit-save-primary.is-saved:hover { background: #e5e8ea; }
+.outfit-save-tooltip-wrap { position: relative; display: block; min-width: 0; }
+.outfit-save-tooltip-wrap .outfit-save-secondary { width: 100%; }
+.outfit-save-tooltip { position: absolute; z-index: 3; left: 50%; bottom: calc(100% + 10px); width: max-content; max-width: min(240px, calc(100vw - 32px)); transform: translate(-50%, 4px); border-radius: 9px; background: #183f31; padding: 8px 11px; color: #f7f9f8; font-size: 11px; font-weight: 650; line-height: 1.35; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .16s ease, transform .16s ease, visibility .16s ease; }
+.outfit-save-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #183f31; }
+.outfit-save-tooltip-wrap:hover .outfit-save-tooltip,
+.outfit-save-tooltip-wrap:focus-within .outfit-save-tooltip { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 .outfit-save-secondary { border: 1px solid #183f31; background: #fff; color: #183f31; }
 .outfit-detail-photo-actions p { grid-column: 1 / -1; margin: 0; color: #596067; font-size: 12px; text-align: center; }
 .outfit-detail-items, .replication-card { min-width: 0; box-sizing: border-box; border: 1px solid #dfe3e6; border-radius: 24px; background: #fff; padding: 26px; }
