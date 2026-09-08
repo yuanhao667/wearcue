@@ -164,7 +164,7 @@ export function LibraryApp() {
           {outfit.source === "system"
             ? <button type="button" aria-label={outfit.favorite ? "取消喜欢" : "喜欢"} aria-pressed={outfit.favorite} className={`library-toggle-button is-favorite${outfit.favorite ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { favorite: !outfit.favorite })}><HeartIcon /></button>
             : <button type="button" aria-label={outfit.in_pool ? "移出首页推荐" : "加入首页推荐"} aria-pressed={outfit.in_pool} className={`library-toggle-button is-home${outfit.in_pool ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { in_pool: !outfit.in_pool })}><HeartIcon /></button>}
-          <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`}>查看详情 →</Link></div>
+          <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`} aria-label={`查看${displayLabel}详情`}><span className="library-detail-label">查看详情</span><span className="library-detail-icon" aria-hidden="true">→</span></Link></div>
         </div>
       </div>
     </article>;

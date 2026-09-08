@@ -2342,6 +2342,8 @@ body:has(.upload-paper)::before { display: none; }
   width: 100%;
   gap: 8px;
   margin-left: 0;
+  container-name: discovery-primary-actions;
+  container-type: inline-size;
 }
 .library-paper.discovery-paper .discovery-card-actions:has(.library-toggle-button.is-favorite) {
   --discovery-aux-action-size: 38px;
@@ -2359,10 +2361,26 @@ body:has(.upload-paper)::before { display: none; }
   border-radius: 50%;
 }
 .library-paper.discovery-paper .discovery-card-actions .library-detail-button {
+  min-width: 64px;
+  overflow: hidden;
   border-color: #fff;
   background: #fff;
   color: var(--deep-green);
   padding-inline: 13px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.library-paper.discovery-paper .discovery-card-actions .library-detail-label {
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.library-paper.discovery-paper .discovery-card-actions .library-detail-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  font-size: 16px;
+  line-height: 1;
 }
 .library-paper.discovery-paper .discovery-card-actions .library-detail-button:hover {
   border-color: var(--discovery-accent);
@@ -2443,6 +2461,7 @@ body:has(.upload-paper)::before { display: none; }
   }
   .library-paper.discovery-paper .discovery-card-actions .library-detail-button {
     width: 100%;
+    min-width: 64px;
     padding-inline: 5px;
     font-size: 10px;
   }
@@ -2456,6 +2475,36 @@ body:has(.upload-paper)::before { display: none; }
   }
   .library-paper.discovery-paper .library-outfit-item strong {
     font-size: 9px;
+  }
+}
+
+@container discovery-primary-actions (max-width: 138px) {
+  .library-paper.discovery-paper .discovery-card-actions .library-detail-label {
+    display: none;
+  }
+  .library-paper.discovery-paper .discovery-card-actions .library-detail-button {
+    gap: 0;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .library-paper.discovery-paper .discovery-card-actions {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 4px;
+    padding-inline: 8px;
+  }
+  .library-paper.discovery-paper .discovery-card-actions .library-card-primary-actions,
+  .library-paper.discovery-paper .discovery-card-actions:has(.library-toggle-button.is-favorite) .library-card-primary-actions {
+    grid-template-columns: 32px minmax(56px, 1fr);
+    gap: 4px;
+  }
+  .library-paper.discovery-paper .discovery-card-actions .library-toggle-button,
+  .library-paper.discovery-paper .discovery-card-actions .library-delete-button {
+    width: 32px;
+  }
+  .library-paper.discovery-paper .discovery-card-actions .library-detail-button {
+    min-width: 56px;
   }
 }
 
