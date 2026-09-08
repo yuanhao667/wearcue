@@ -164,13 +164,14 @@ export function LibraryApp() {
           {outfit.source === "system"
             ? <button type="button" aria-label={outfit.favorite ? "取消喜欢" : "喜欢"} aria-pressed={outfit.favorite} className={`library-toggle-button is-favorite${outfit.favorite ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { favorite: !outfit.favorite })}><HeartIcon /></button>
             : <button type="button" aria-label={outfit.in_pool ? "移出首页推荐" : "加入首页推荐"} aria-pressed={outfit.in_pool} className={`library-toggle-button is-home${outfit.in_pool ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { in_pool: !outfit.in_pool })}><HeartIcon /></button>}
-          <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`} aria-label={`查看${displayLabel}详情`}><span className="library-detail-label">查看详情</span><span className="library-detail-icon" aria-hidden="true">→</span></Link></div>
+          <button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button>
+          <Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`} aria-label={`查看${displayLabel}详情`}><span className="library-detail-label">查看详情</span><span className="library-detail-icon" aria-hidden="true">→</span></Link>
         </div>
       </div>
     </article>;
   }
 
-  return <main className="paper-page library-paper discovery-paper">
+  return <><main className="paper-page library-paper discovery-paper">
     <h1 className="sr-only">穿搭灵感</h1>
     <div className="discovery-tabs-sticky">
       <div className="discovery-tabs-sticky-inner">
@@ -197,10 +198,8 @@ export function LibraryApp() {
     {status === "error" && <section className="paper-state"><h2>穿搭灵感暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section>}
     {status === "success" && <section className="library-section">{outfits.length ? <div className="library-grid">{outfits.map(outfitCard)}</div> : tab === "mine" ? <div className="discovery-empty"><h2>还没有符合筛选条件的穿搭</h2><p>上传自己的穿搭，或去全部穿搭标记喜欢。</p><div><Link className="sunshine-button" href="/inspiration">上传穿搭</Link><button className="ghost-button" type="button" onClick={() => setTab("all")}>去全部穿搭看看</button></div></div> : <div className="discovery-empty"><h2>当前筛选暂无穿搭</h2><p>可以调整筛选条件，或上传一套自己的穿搭。</p><Link className="sunshine-button" href="/inspiration">上传穿搭</Link></div>}</section>}
     {message && status === "success" && <p className="inline-message">{message}</p>}
-    <Link className="discovery-upload-fab" href="/inspiration" aria-label="上传穿搭灵感"><span className="discovery-upload-fab-tip">上传穿搭灵感</span><span className="discovery-upload-fab-plus" aria-hidden="true">＋</span></Link>
-
     {deleteTarget && <div className="library-delete-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setDeleteTarget(null); }}><section className="library-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="library-delete-title" aria-describedby="library-delete-description"><button className="library-delete-close" type="button" aria-label="关闭删除确认" disabled={deleting} onClick={() => setDeleteTarget(null)}>×</button><h2 id="library-delete-title">确认删除这套穿搭？</h2><p id="library-delete-description">{deleteTarget.source === "system" ? `“${deleteTarget.label}”会从你的穿搭库中移除，不影响其他用户。` : `删除“${deleteTarget.label}”后无法恢复。`}</p><div className="library-delete-actions"><button type="button" className="library-delete-cancel" disabled={deleting} autoFocus onClick={() => setDeleteTarget(null)}>取消</button><button type="button" className="library-delete-confirm" disabled={deleting} onClick={() => void remove(deleteTarget)}>{deleting ? "正在删除…" : "确认删除"}</button></div></section></div>}
-  </main>;
+  </main><Link className="discovery-upload-fab" href="/inspiration" aria-label="上传穿搭灵感"><span className="discovery-upload-fab-tip">上传穿搭灵感</span><span className="discovery-upload-fab-plus" aria-hidden="true">＋</span></Link></>;
 }
 
 function HeartIcon() { return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.2 3.8 10A3.8 3.8 0 0 1 9.2 4.6l.8.8.8-.8A3.8 3.8 0 0 1 16.2 10L10 16.2Z" /></svg>; }

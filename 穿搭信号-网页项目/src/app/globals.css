@@ -2336,9 +2336,6 @@ body:has(.upload-paper)::before { display: none; }
   padding: 0;
   border-radius: 50%;
 }
-.library-paper.discovery-paper .discovery-card-actions .library-card-primary-actions {
-  display: contents;
-}
 .library-paper.discovery-paper .discovery-card-actions .library-delete-button,
 .library-paper.discovery-paper .discovery-card-actions .library-detail-button {
   width: 100%;
@@ -2426,9 +2423,6 @@ body:has(.upload-paper)::before { display: none; }
     grid-template-columns: 38px 38px minmax(64px, 1fr);
     gap: 6px;
     padding-inline: 11px;
-  }
-  .library-paper.discovery-paper .discovery-card-actions .library-card-primary-actions {
-    display: contents;
   }
   .library-paper.discovery-paper .discovery-card-actions .library-toggle-button,
   .library-paper.discovery-paper .discovery-card-actions .library-delete-button {
@@ -2540,6 +2534,13 @@ body:not(:has(.login-page)) .paper-header {
   transition: top .24s cubic-bezier(.2, .8, .2, 1);
 }
 body:has(.library-paper) .discovery-upload-fab { right: clamp(18px, 2vw, 32px); }
+@media (max-width: 640px) {
+  body:has(.library-paper) .discovery-upload-fab {
+    z-index: 90;
+    right: 18px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
 body:has(.paper-header.is-collapsed) .library-paper.discovery-paper .discovery-tabs-sticky { top: 0; }
 .library-paper.discovery-paper .discovery-tabs-sticky-inner {
   display: flex;
