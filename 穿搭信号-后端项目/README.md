@@ -58,7 +58,7 @@ PYTHONPATH=. python -m unittest discover -s tests -v
 
 微信登录和自定义场景已按产品决策移除。每个邀请码对应一个独立账号，同一邀请码可以在其他设备登录同一账号；邀请码只以摘要形式存储。视觉模型未配置时，识别接口明确返回不可用；配置后，只有用户主动点击识别时，图片才会发送给第三方视觉 Provider。
 
-AI 模型按任务分流：视觉识别使用 `VISION_MODEL`；首页实时换一套固定以 `AI_FAST_MODEL` 作为第一跳和唯一模型，只返回紧凑的图标映射与后续生图输入，关闭思考模式并由 `AI_REALTIME_TIMEOUT_SECONDS`（默认 6 秒）限制整条调用，禁止切换到 `AI_QUALITY_MODEL`；AI 命名与详情建议使用 `AI_FAST_MODEL`；系统推荐预生成使用 `AI_QUALITY_MODEL`。人物图片只在用户进入详情页后生成，不在“换一套”阶段提前生成。当前生产依赖 qwen3.8-flash、qwen-turbo 与 `AI_IMAGE_MODEL`。AIHubMix 主域名在本地网络不可达时，使用其官方同能力备用接口 `https://api.inferera.com/v1`。
+AI 模型按任务分流：视觉识别使用 `VISION_MODEL`；首页实时换一套固定以 `AI_FAST_MODEL` 作为第一跳和唯一模型，只返回紧凑的图标映射与后续生图输入，关闭思考模式并由 `AI_REALTIME_TIMEOUT_SECONDS`（默认 3 秒）限制整条调用，禁止切换到 `AI_QUALITY_MODEL`；AI 命名与详情建议使用 `AI_FAST_MODEL`；系统推荐预生成使用 `AI_QUALITY_MODEL`。人物图片只在用户进入详情页后生成，不在“换一套”阶段提前生成。当前生产依赖 qwen3.8-flash、qwen-turbo 与 `AI_IMAGE_MODEL`。AIHubMix 主域名在本地网络不可达时，使用其官方同能力备用接口 `https://api.inferera.com/v1`。
 
 业务接口集中在 `/api/v1`：`auth`、`settings`、`outfits`、`inspirations`、`notifications`、`feedback`、`recommendations`、`weather` 和 `garment-assets`。除健康检查与公开 SVG 素材目录外，业务 API 都要求 Bearer 会话；旧的运行状态、能力声明、独立规则评估和单素材详情路由已移除。
 

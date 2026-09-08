@@ -244,9 +244,9 @@ class OutfitAIService:
         self.fast_model = os.getenv("AI_FAST_MODEL") or self.model
         self.quality_model = os.getenv("AI_QUALITY_MODEL") or self.model
         try:
-            configured_timeout = float(os.getenv("AI_REALTIME_TIMEOUT_SECONDS", "6"))
+            configured_timeout = float(os.getenv("AI_REALTIME_TIMEOUT_SECONDS", "3"))
         except ValueError:
-            configured_timeout = 6
+            configured_timeout = 3
         self.realtime_timeout_seconds = min(10, max(0.01, configured_timeout))
         base = Path(__file__).resolve().parents[1] / "prompts"
         self.prompt = (base / "outfit_generation.txt").read_text()
