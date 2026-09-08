@@ -1180,6 +1180,39 @@ def test_discovery_filters_mine_favorite_and_user_scoped_system_delete(tmp_path,
     assert [item["id"] for item in result] == [manual["id"]]
 
 
+def test_saving_same_recommendation_is_idempotent_and_discovery_deduplicates_history(tmp_path, monkeypatch) -> None:
+    test_store = Store(tmp_path)
+    client = _client(test_store, monkeypatch)
+    payload = {
+        "recommendation_id": "ai-repeatable-look",
+        "label": "轻便通勤",
+        "audience": "mens",
+        "components": [_component()],
+        "scene_ids": ["commute"],
+        "season": "spring-autumn",
+        "style_tags": ["minimal"],
+        "suitable_min": 15,
+        "suitable_max": 24,
+    }
+
+    first = client.post("/api/v1/outfits", json=payload).json()
+    second = client.post("/api/v1/outfits", json=payload).json()
+    assert second["id"] == first["id"]
+    assert client.get("/api/v1/outfits/ai-repeatable-look").json()["id"] == first["id"]
+
+    user_id = test_store.login("TEST-INVITE")["user"]["id"]
+    test_store.save_outfit(
+        {key: value for key, value in payload.items() if key != "recommendation_id"} | {"source": "manual"},
+        user_id=user_id,
+    )
+    test_store.save_outfit(
+        {key: value for key, value in payload.items() if key != "recommendation_id"} | {"source": "manual"},
+        user_id=user_id,
+    )
+    matches = [item for item in client.get("/api/v1/outfits").json() if item["label"] == "轻便通勤"]
+    assert len(matches) == 1
+
+
 def test_confirmed_upload_enters_personal_home_pool(tmp_path, monkeypatch) -> None:
     test_store = Store(tmp_path)
     client = _client(test_store, monkeypatch)

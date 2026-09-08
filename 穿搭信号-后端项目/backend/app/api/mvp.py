@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 from pathlib import Path
 from typing import Literal, Optional
@@ -39,7 +40,8 @@ LEGACY_ICON_ONLY_LABELS = {
 def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
     if outfit.get("inspiration_id"):
         return outfit | {"image_key": f"inspiration:{outfit['inspiration_id']}"}
-    cached = store.get_latest_outfit_image(user_id, outfit["id"])
+    image_owner_id = outfit.get("recommendation_id") or outfit["id"]
+    cached = store.get_latest_outfit_image(user_id, image_owner_id)
     if cached:
         return outfit | {
             "image_key": f"recommendation:{cached['recommendation_id']}",
@@ -76,13 +78,35 @@ def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
 
 def _deduplicate_outfits(outfits: list[dict]) -> list[dict]:
     result: list[dict] = []
-    seen_images: set[str] = set()
+    seen_keys: set[str] = set()
     for outfit in outfits:
         image_key = outfit.get("image_key")
-        if image_key and image_key in seen_images:
-            continue
         if image_key:
-            seen_images.add(image_key)
+            identity = f"image:{image_key}"
+        else:
+            components = [
+                {
+                    key: component.get(key)
+                    for key in (
+                        "slot", "functional_icon_key", "asset_key", "variant_type",
+                        "color_name", "color_value", "thickness",
+                    )
+                }
+                for component in outfit.get("components", [])
+            ]
+            content = {
+                "label": outfit.get("label"),
+                "audience": outfit.get("audience"),
+                "components": components,
+                "scene_ids": outfit.get("scene_ids", []),
+                "season": outfit.get("season"),
+                "style_tags": outfit.get("style_tags", []),
+            }
+            encoded = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            identity = f"content:{hashlib.sha256(encoded.encode('utf-8')).hexdigest()}"
+        if identity in seen_keys:
+            continue
+        seen_keys.add(identity)
         result.append(outfit)
     return result
 
@@ -152,13 +176,29 @@ async def list_outfits(
 async def create_outfit(payload: OutfitSaveRequest, user: CurrentUser) -> dict:
     if payload.suitable_min > payload.suitable_max:
         raise HTTPException(422, "适用最低温不能高于最高温")
-    outfit = store.save_outfit(payload.model_dump() | {"source": "manual"}, user_id=user["id"])
+    existing = (
+        store.get_outfit_by_recommendation(payload.recommendation_id, user["id"])
+        if payload.recommendation_id else None
+    )
+    outfit_id = existing["id"] if existing else (
+        "outfit_" + hashlib.sha256(
+            f"{user['id']}:{payload.recommendation_id}".encode("utf-8")
+        ).hexdigest()[:12]
+        if payload.recommendation_id else None
+    )
+    outfit = store.save_outfit(
+        payload.model_dump() | {"source": "manual"},
+        outfit_id=outfit_id,
+        user_id=user["id"],
+    )
     return _with_existing_detail_image(outfit, user["id"])
 
 
 @router.get("/outfits/{outfit_id}", tags=["outfits"])
 async def get_outfit(outfit_id: str, user: CurrentUser) -> dict:
-    outfit = store.get_outfit(outfit_id, user["id"])
+    outfit = store.get_outfit(outfit_id, user["id"]) or store.get_outfit_by_recommendation(
+        outfit_id, user["id"]
+    )
     if not outfit:
         raise HTTPException(404, "穿搭不存在")
     return _with_existing_detail_image(outfit, user["id"])

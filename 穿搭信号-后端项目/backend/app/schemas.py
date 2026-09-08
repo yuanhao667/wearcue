@@ -128,6 +128,7 @@ class OutfitAnalysis(BaseModel):
 class OutfitSaveRequest(BaseModel):
     label: str = Field(default="我的穿搭", min_length=1, max_length=30)
     audience: Literal["mens", "womens"] = "mens"
+    recommendation_id: Optional[str] = Field(default=None, min_length=1, max_length=80, pattern="^[A-Za-z0-9_-]+$")
     components: List[OutfitComponent] = Field(min_length=1, max_length=8)
     scene_ids: List[SceneId] = Field(default_factory=lambda: ["commute"], min_length=1, max_length=3)
     season: SeasonId = "spring-autumn"

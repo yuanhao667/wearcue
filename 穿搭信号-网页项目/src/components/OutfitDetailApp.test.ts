@@ -88,7 +88,7 @@ describe("recommendation save payload", () => {
     const guide = { formula: "短袖", steps: ["穿短袖"], styling_points: [], weather_note: "注意温差", substitute: "同版型即可" } as ReplicationGuide;
 
     expect(recommendationSavePayload(recommendation, guide, null, true)).toMatchObject({
-      label: "清爽通勤风", scene_ids: ["commute"], season: "summer", style_tags: ["minimal", "sport"], suitable_min: 19, suitable_max: 32, in_pool: true, replication_guide: guide,
+      recommendation_id: recommendation.template_id, label: "清爽通勤风", scene_ids: ["commute"], season: "summer", style_tags: ["minimal", "sport"], suitable_min: 19, suitable_max: 32, in_pool: true, replication_guide: guide,
     });
   });
 });

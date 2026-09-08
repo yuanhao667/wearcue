@@ -210,6 +210,7 @@ class Store:
             self._add_column(db, "outfits", "season TEXT NOT NULL DEFAULT 'spring-autumn'")
             self._add_column(db, "outfits", "style_tags_json TEXT NOT NULL DEFAULT '[\"minimal\"]'")
             self._add_column(db, "outfits", "system_ready INTEGER NOT NULL DEFAULT 0")
+            self._add_column(db, "outfits", "recommendation_id TEXT")
             self._add_column(db, "inspirations", "owner_user_id TEXT")
             for table in ("settings", "user_settings"):
                 self._add_column(db, table, "height_group TEXT NOT NULL DEFAULT '中等'")
@@ -226,6 +227,8 @@ class Store:
                 CREATE INDEX IF NOT EXISTS idx_outfits_owner ON outfits(owner_user_id);
                 CREATE INDEX IF NOT EXISTS idx_outfits_discovery
                 ON outfits(audience,source,season,suitable_min,suitable_max);
+                CREATE INDEX IF NOT EXISTS idx_outfits_recommendation
+                ON outfits(owner_user_id,recommendation_id);
                 CREATE INDEX IF NOT EXISTS idx_inspirations_owner ON inspirations(owner_user_id);
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_user_date ON analysis_events(user_id, local_date);
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_quota
@@ -776,6 +779,17 @@ class Store:
             row = db.execute(query, values).fetchone()
             return self._apply_state(db, self._outfit(row), user_id) if row else None
 
+    def get_outfit_by_recommendation(
+        self, recommendation_id: str, user_id: str
+    ) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            row = db.execute(
+                """SELECT * FROM outfits WHERE recommendation_id=? AND owner_user_id=?
+                ORDER BY updated_at DESC LIMIT 1""",
+                (recommendation_id, user_id),
+            ).fetchone()
+            return self._apply_state(db, self._outfit(row), user_id) if row else None
+
     @staticmethod
     def _upsert_state(
         db: sqlite3.Connection, user_id: str, outfit_id: str, changes: Dict[str, Any]
@@ -856,6 +870,7 @@ class Store:
                 ensure_ascii=False,
             ),
             "system_ready": int(payload.get("system_ready", existing.get("system_ready", False) if existing else False)),
+            "recommendation_id": payload.get("recommendation_id", existing.get("recommendation_id") if existing else None),
             "inspiration_id": payload.get("inspiration_id", existing["inspiration_id"] if existing else None),
             "skip_count": existing["skip_count"] if existing else 0,
             "created_at": existing["created_at"] if existing else now,
@@ -875,10 +890,11 @@ class Store:
                 """INSERT OR REPLACE INTO outfits
                 (id,label,audience,source,components_json,scene_ids_json,suitable_min,suitable_max,
                  favorite,in_pool,inspiration_id,skip_count,created_at,updated_at,replication_json,
-                 analysis_json,owner_user_id,season,style_tags_json,system_ready)
+                 analysis_json,owner_user_id,season,style_tags_json,system_ready,recommendation_id)
                 VALUES (:id,:label,:audience,:source,:components_json,:scene_ids_json,:suitable_min,
                  :suitable_max,:favorite,:in_pool,:inspiration_id,:skip_count,:created_at,:updated_at,
-                 :replication_json,:analysis_json,:owner_user_id,:season,:style_tags_json,:system_ready)""",
+                 :replication_json,:analysis_json,:owner_user_id,:season,:style_tags_json,:system_ready,
+                 :recommendation_id)""",
                 values,
             )
         return self.get_outfit(identifier, user_id)

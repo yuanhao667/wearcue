@@ -163,7 +163,7 @@ export function LibraryApp() {
         <div className="library-actions discovery-card-actions">
           {outfit.source === "system"
             ? <button type="button" aria-label={outfit.favorite ? "取消喜欢" : "喜欢"} aria-pressed={outfit.favorite} className={`library-toggle-button is-favorite${outfit.favorite ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { favorite: !outfit.favorite })}><HeartIcon /></button>
-            : <button type="button" aria-label={outfit.in_pool ? "移出首页推荐" : "加入首页推荐"} aria-pressed={outfit.in_pool} className={`library-toggle-button is-home${outfit.in_pool ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { in_pool: !outfit.in_pool })}><HomeIcon /></button>}
+            : <button type="button" aria-label={outfit.in_pool ? "移出首页推荐" : "加入首页推荐"} aria-pressed={outfit.in_pool} className={`library-toggle-button is-home${outfit.in_pool ? " is-active" : ""}`} onClick={() => void updateStatus(outfit, { in_pool: !outfit.in_pool })}><HeartIcon /></button>}
           <div className="library-card-primary-actions"><button className="library-delete-button" type="button" aria-label={`删除${displayLabel}`} onClick={() => setDeleteTarget(outfit)}><TrashIcon /></button><Link className="library-detail-button" href={`/outfit/${outfit.id}?from=closet`}>查看详情 →</Link></div>
         </div>
       </div>
@@ -204,7 +204,6 @@ export function LibraryApp() {
 }
 
 function HeartIcon() { return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.2 3.8 10A3.8 3.8 0 0 1 9.2 4.6l.8.8.8-.8A3.8 3.8 0 0 1 16.2 10L10 16.2Z" /></svg>; }
-function HomeIcon() { return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m3.5 9 6.5-5 6.5 5v7H12v-4H8v4H3.5V9Z" /></svg>; }
 function TrashIcon() { return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 6.2h11M8 3.8h4l.7 2.4H7.3L8 3.8Zm-2 2.4.7 10h6.6l.7-10M8.4 8.7v4.8m3.2-4.8v4.8" /></svg>; }
 function DiscoverySelect({ label, value, options, open, onToggle, onChange }: { label: string; value: string; options: Array<{ value: string; label: string }>; open: boolean; onToggle: () => void; onChange: (value: string) => void }) {
   const selected = options.find((option) => option.value === value) ?? options[0];

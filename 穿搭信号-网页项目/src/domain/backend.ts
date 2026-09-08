@@ -179,6 +179,7 @@ export interface BackendRecommendation {
 
 export interface Outfit {
   id: string;
+  recommendation_id?: string | null;
   label: string;
   audience: Audience;
   source: "manual" | "inspiration" | "system";
