@@ -1414,6 +1414,14 @@ body:has(.login-page) #main-content { min-height: 100dvh; }
 .recommendation-card-wrap { position: relative; isolation: isolate; min-width: 0; }
 .recommendation-card-wrap .recommendation-copy-card { position: relative; z-index: 1; width: 100%; }
 .recommendation-mascot { position: absolute; z-index: 3; right: 28px; bottom: 100%; width: clamp(310px, 35vw, 430px); height: auto; transform: translateY(12%); pointer-events: none; user-select: none; }
+.recommendation-mascot-still { display: block; width: 100%; height: auto; }
+.recommendation-mascot-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.recommendation-mascot[data-tracking="true"] .recommendation-mascot-still { visibility: hidden; }
+.recommendation-mascot[data-tracking="true"] .recommendation-mascot-canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .recommendation-mascot[data-tracking="true"] .recommendation-mascot-still { visibility: visible; }
+  .recommendation-mascot[data-tracking="true"] .recommendation-mascot-canvas { opacity: 0; }
+}
 .today-paper .temperature-range { margin: 24px 0 16px; }
 .today-paper .temperature-range strong { font-size: clamp(58px, 6vw, 78px); }
 .today-paper .weather-summary { padding-bottom: 14px; }
