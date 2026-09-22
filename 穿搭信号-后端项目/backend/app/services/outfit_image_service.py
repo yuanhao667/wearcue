@@ -32,11 +32,32 @@ def safe_image_url(value: str) -> bool:
         return parsed.hostname.lower() != "localhost"
 
 
+def first_image_output(body: Dict[str, Any], style: str) -> Dict[str, Any]:
+    """按供应商的返回结构取出第一张图（DashScope 原生 / OpenAI images 兼容）。"""
+    if style == "dashscope":
+        choices = (body.get("output") or {}).get("choices") or []
+        for choice in choices:
+            content = (choice.get("message") or {}).get("content") or []
+            for part in content:
+                if isinstance(part, dict) and part.get("image"):
+                    return {"url": part["image"], "b64_json": part.get("b64_json")}
+        raise OutfitImageServiceError("AI 生图未返回图片")
+    outputs = body.get("data") or body.get("output") or []
+    return outputs[0]
+
+
 class OutfitImageService:
     def __init__(self) -> None:
         self.url = (os.getenv("AI_IMAGE_API_URL") or os.getenv("AI_API_URL") or "").rstrip("/")
-        self.key = os.getenv("AI_API_KEY") or os.getenv("VISION_API_KEY") or ""
+        self.key = (
+            os.getenv("AI_IMAGE_API_KEY")
+            or os.getenv("AI_API_KEY")
+            or os.getenv("VISION_API_KEY")
+            or ""
+        )
         self.model = os.getenv("AI_IMAGE_MODEL", "wan2.7-image")
+        # "openai"：POST /images/generations；"dashscope"：千问平台原生生图接口。
+        self.style = (os.getenv("AI_IMAGE_API_STYLE") or "openai").strip().lower()
         prompt_path = Path(__file__).resolve().parents[1] / "prompts" / "outfit_image.txt"
         self.prompt = prompt_path.read_text(encoding="utf-8")
 
@@ -122,26 +143,34 @@ class OutfitImageService:
             + ("\n明确禁止：" + "；".join(forbidden) if forbidden else "")
             + "\n场景仅控制背景、姿态与活动感，不能改动上述服装。"
         )
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "n": 1,
-            "size": "1024x1536",
-            "thinking_mode": True,
-            "watermark": False,
-        }
+        if self.style == "dashscope":
+            request_url = self.url + "/services/aigc/multimodal-generation/generation"
+            payload = {
+                "model": self.model,
+                "input": {"messages": [{"role": "user", "content": [{"text": prompt}]}]},
+                "parameters": {"size": "1024*1536", "n": 1, "watermark": False},
+            }
+        else:
+            request_url = self.url + "/images/generations"
+            payload = {
+                "model": self.model,
+                "prompt": prompt,
+                "n": 1,
+                "size": "1024x1536",
+                "thinking_mode": True,
+                "watermark": False,
+            }
         started_at = time.perf_counter()
         async with httpx.AsyncClient(timeout=180, follow_redirects=True) as client:
             try:
                 response = await client.post(
-                    self.url + "/images/generations",
+                    request_url,
                     headers={"Authorization": "Bearer " + self.key},
                     json=payload,
                 )
                 response.raise_for_status()
                 body = response.json()
-                outputs = body.get("data") or body.get("output") or []
-                output = outputs[0]
+                output = first_image_output(body, self.style)
                 if output.get("b64_json"):
                     image = base64.b64decode(output["b64_json"], validate=True)
                 else:

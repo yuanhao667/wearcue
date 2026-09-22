@@ -12,9 +12,48 @@ StyleId = Literal["minimal", "sport", "outdoor"]
 
 class LoginRequest(BaseModel):
     mode: Literal["login", "register"]
-    nickname: Optional[str] = Field(default=None, min_length=1, max_length=5)
-    audience: Optional[Literal["mens", "womens"]] = None
-    invite_code: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=8, max_length=128)
+    invite_code: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    verification_code: Optional[str] = Field(default=None, pattern="^\\d{6}$")
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        email = value.strip()
+        if email.count("@") != 1:
+            raise ValueError("邮箱格式不正确")
+        local, domain = email.rsplit("@", 1)
+        if not local or "." not in domain or domain.startswith(".") or domain.endswith("."):
+            raise ValueError("邮箱格式不正确")
+        return email
+
+
+class EmailCodeRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    purpose: Literal["register", "reset"]
+    invite_code: Optional[str] = Field(default=None, min_length=1, max_length=120)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        return LoginRequest.email_must_be_valid(value)
+
+
+class PasswordResetRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    verification_code: str = Field(pattern="^\\d{6}$")
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        return LoginRequest.email_must_be_valid(value)
+
+
+class OnboardingRequest(BaseModel):
+    nickname: str = Field(min_length=1, max_length=5)
+    audience: Literal["mens", "womens"]
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -153,6 +192,10 @@ class InspirationConfirmRequest(OutfitSaveRequest):
 class VisionResult(BaseModel):
     model_version: str
     garment_audience: Literal["mens", "womens", "unisex"] = "unisex"
+    multi_audience: bool = False
+    multi_person: bool = False
+    # 无关图片（动物、风景、食物、截图等），没有任何可识别穿搭。
+    no_outfit: bool = False
     image_coverage: Literal["full_body", "partial", "unknown"] = "unknown"
     requires_user_confirmation: bool = True
     suggested_scenes: List[Literal["commute", "date", "travel"]] = Field(default_factory=list)

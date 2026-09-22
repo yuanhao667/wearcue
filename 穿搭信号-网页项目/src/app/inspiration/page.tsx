@@ -1,4 +1,7 @@
 import { InspirationApp } from "@/components/InspirationApp";
+import { requireSession } from "@/lib/server-auth";
 
-export default function InspirationPage() { return <InspirationApp />; }
-
+export default async function InspirationPage() {
+  await requireSession();
+  return <InspirationApp />;
+}

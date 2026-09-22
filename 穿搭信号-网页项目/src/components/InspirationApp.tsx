@@ -54,6 +54,9 @@ function applySuggestions(result: Inspiration["result"], setScenes: (value: Scen
   setStyles(result.suggested_style_tags?.slice(0, 2) ?? []);
 }
 
+/** 进度条匀速走到 90% 的时长；走完之后继续从 90% 慢慢渗到 99%，不会停下。 */
+const SCAN_RAMP_MS = 3600;
+
 export function InspirationApp() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -68,10 +71,13 @@ export function InspirationApp() {
   const [styles, setStyles] = useState<StyleId[]>([]);
   const [suitableRange, setSuitableRange] = useState({ minimum: 10, maximum: 30 });
   const [season, setSeason] = useState<(typeof seasonOptions)[number]["value"]>("spring-autumn");
-  const [stage, setStage] = useState<"idle" | "uploading" | "analysing" | "review" | "saving" | "error">("idle");
+  const [stage, setStage] = useState<"idle" | "uploading" | "analysing" | "review" | "saving" | "error" | "no_outfit">("idle");
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const [recognitionStep, setRecognitionStep] = useState(0);
+  /** 0-100：预览图上的扫描进度，从上往下只走一遍，到底即识别完成。 */
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanVisible, setScanVisible] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [styleMenuOpen, setStyleMenuOpen] = useState(false);
   const [crossAudienceAcknowledged, setCrossAudienceAcknowledged] = useState(false);
@@ -94,6 +100,18 @@ export function InspirationApp() {
       .catch(() => undefined);
     return () => { active = false; };
   }, [inspiration]);
+
+  // 固定节奏：前 3.6 秒匀速走到 90%，之后从 90% 慢慢渗到 99%。
+  useEffect(() => {
+    if (!scanVisible) return;
+    const startedAt = performance.now();
+    const timer = window.setInterval(() => {
+      const ratio = (performance.now() - startedAt) / SCAN_RAMP_MS;
+      const target = ratio <= 1 ? ratio * 90 : Math.min(99, 90 + (ratio - 1) * 9);
+      setScanProgress((current) => Math.max(current, target));
+    }, 80);
+    return () => window.clearInterval(timer);
+  }, [scanVisible]);
 
   useEffect(() => {
     if (stage !== "analysing") return;
@@ -136,10 +154,18 @@ export function InspirationApp() {
     setCrossAudienceAcknowledged(false);
   }
 
+  /** 扫描到底后先停住一下，让用户看到“扫完”，再收起覆盖层。 */
+  function finishScan() {
+    setScanProgress(100);
+    window.setTimeout(() => setScanVisible(false), 320);
+  }
+
   async function analyse(force = false) {
     if (!file) return;
     setMessage("");
     setRecognitionStep(0);
+    setScanProgress(0);
+    setScanVisible(true);
     try {
       setStage("uploading");
       const form = new FormData();
@@ -154,11 +180,20 @@ export function InspirationApp() {
         setLabel(recognitionOutfitName(uploaded.result, detectedAudience));
         applySuggestions(uploaded.result, setScenes, setSuitableRange, setSeason, setStyles);
         setStage("review");
+        finishScan();
         return;
       }
       setStage("analysing");
-      const analysed = await apiJson<Inspiration & { remaining_analyses?: number }>(`/inspirations/${uploaded.id}/analyze`, { method: "POST" });
+      const analysed = await apiJson<Inspiration & { remaining_analyses?: number }>(`/inspirations/${uploaded.id}/analyze`, { method: "POST", timeoutMs: 45000 });
       if (typeof analysed.remaining_analyses === "number") setRemainingAnalyses(analysed.remaining_analyses);
+      if (analysed.result.no_outfit || !(analysed.result.components ?? []).length) {
+        setScanVisible(false);
+        setInspiration(analysed);
+        setComponents([]);
+        setMessage("");
+        setStage("no_outfit");
+        return;
+      }
       const detectedAudience = recognitionAudience(analysed.result, audience);
       const nextComponents = (analysed.result.components ?? []).map((item) => normalizeComponent(item, detectedAudience));
       setGarmentAudience(detectedAudience);
@@ -167,8 +202,10 @@ export function InspirationApp() {
       setLabel(recognitionOutfitName(analysed.result, detectedAudience));
       applySuggestions(analysed.result, setScenes, setSuitableRange, setSeason, setStyles);
       setStage("review");
+      finishScan();
     } catch (error) {
       if (error instanceof ApiError && error.status === 429) setRemainingAnalyses(0);
+      setScanVisible(false);
       setMessage(error instanceof Error ? error.message : "图片识别失败");
       setStage("error");
     }
@@ -242,13 +279,27 @@ export function InspirationApp() {
   const crossAudienceLabels = crossAudienceGarmentLabels(components, audience);
   const crossAudienceGate = crossAudienceLabels.length > 0 && !crossAudienceAcknowledged;
   const crossAudienceNotice = crossAudienceLabels.length > 0 ? <p className="cross-audience-notice" role="status"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">当前为{audience === "mens" ? "男装" : "女装"}账号，识别到 <strong>{garmentAudience === "womens" ? "女士服装" : "男士服装"}</strong></span></p> : null;
+  /** 多人照片的识别说明：合影按账号性别取一侧；同性别多人只取服装最完整的一位。 */
+  const recognitionNotice = (() => {
+    if (!inspiration) return null;
+    const gender = garmentAudience === "womens" ? "女士" : "男士";
+    const mixed = Boolean(inspiration.result.multi_audience);
+    const many = Boolean(inspiration.result.multi_person);
+    if (!mixed && !many) return null;
+    const body = mixed && many
+      ? <>照片中有多人，已按你的账号只识别其中一位<strong>{gender}服装</strong>，其他人和另一方的衣物都未计入。</>
+      : mixed
+        ? <>照片中有多人，已按你的账号只识别<strong>{gender}服装</strong>，另一方的衣物未计入。</>
+        : <>照片中有多位{gender}，已只识别<strong>服装最完整的一位</strong>。如果不是你要的那位，把照片裁成单人照后重新上传即可。</>;
+    return <p className="mixed-audience-notice" role="status"><span className="mixed-audience-notice-icon" aria-hidden="true">i</span><span>{body}</span></p>;
+  })();
 
   return <main className="paper-page upload-paper">
     <div className="upload-layout">
       <nav className="upload-breadcrumb" aria-label="面包屑"><Link href="/closet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m11.5 5-5 5 5 5" /></svg><span>穿搭灵感</span></Link></nav>
       <section className="upload-source-card">
         <div className="card-caption">穿搭照片</div>
-        {!preview ? <button className="paper-dropzone" onClick={chooseAnotherImage}><b>＋</b><strong>选择一张穿搭照片</strong><span className="photo-guidance">建议上传单人全身穿搭照，衣物和鞋子尽量完整入镜</span><span>JPEG · PNG · WEBP / 最大 5MB</span></button> : <div className="upload-preview"><img src={preview} alt="待识别穿搭" width={800} height={800} /><button className="upload-clear-image" type="button" aria-label="移除已选图片" title="移除图片" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={clearSelectedImage}><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14" /></svg></button></div>}
+        {!preview ? <button className="paper-dropzone" onClick={chooseAnotherImage}><b>＋</b><strong>选择一张穿搭照片</strong><span className="photo-guidance">建议上传单人全身穿搭照，衣物和鞋子尽量完整入镜</span><span>JPEG · PNG · WEBP / 最大 5MB</span></button> : <div className="upload-preview"><img src={preview} alt="待识别穿搭" width={800} height={800} />{scanVisible && <span className="preview-scan" aria-hidden="true"><b style={{ height: `${scanProgress}%` }} /><i style={{ top: `${scanProgress}%` }} /></span>}<button className="upload-clear-image" type="button" aria-label="移除已选图片" title="移除图片" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={clearSelectedImage}><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14" /></svg></button></div>}
         <input hidden ref={inputRef} name="outfit-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => chooseFile(event.target.files?.[0])} />
         {components.length ? <div className="source-actions">
           <button className="source-regenerate-button" type="button" aria-label="重新生成识别结果" title="重新生成识别结果" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={() => void analyse(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 5v6h-6" /></svg></button>
@@ -260,7 +311,10 @@ export function InspirationApp() {
       <section className="review-card">
         <div className="section-title-row"><div className="card-caption">识别结果</div>{components.length > 0 && !crossAudienceGate && <span className="mint-chip">{components.length} 件</span>}</div>
         {!components.length ? <div className={`review-empty${stage === "idle" ? " is-idle" : stage === "uploading" || stage === "analysing" ? " is-loading" : ""}`}>
-          {stage === "idle" ? <>
+          {stage === "no_outfit" ? <>
+            <p className="cross-audience-notice" role="status"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">这看起来不是穿搭照片，请换一张单人全身穿搭照</span></p>
+            <button className="sunshine-button" type="button" onClick={chooseAnotherImage}>重新上传穿搭照片</button>
+          </> : stage === "idle" ? <>
             <div className="review-empty-bear" aria-hidden="true"><img src="/illustrations/inspiration-bear.png" alt="" /></div>
             <h3>等待图片识别</h3>
             <p>一张照片，变成可复用穿搭。</p>
@@ -277,6 +331,7 @@ export function InspirationApp() {
           </div>
         </div> : <>
           {crossAudienceNotice}
+          {recognitionNotice}
           <div className="outfit-name-row">
             <label className="paper-field"><span>这套穿搭叫什么？（最多30字）</span><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /></label>
             <button className="ai-name-button" type="button" disabled={generatingName} onClick={() => void generateName()}>{generatingName ? "生成中…" : "AI生成"}</button>

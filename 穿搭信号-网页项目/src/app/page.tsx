@@ -1,5 +1,7 @@
 import { TodayApp } from "@/components/TodayApp";
+import { requireSession } from "@/lib/server-auth";
 
-export default function HomePage() {
+export default async function HomePage() {
+  await requireSession();
   return <TodayApp />;
 }

@@ -318,7 +318,8 @@ async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
     if medium_path and medium_path.is_file():
         path = medium_path
     try:
-        result = await VisionService().analyze(path)
+        settings = store.get_settings(user["id"])
+        result = await VisionService().analyze(path, settings.get("audience"))
     except VisionServiceError as exc:
         store.release_ai_usage(reservation_id)
         raise HTTPException(503, str(exc)) from exc
@@ -326,6 +327,15 @@ async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
         store.release_ai_usage(reservation_id)
         raise
     remaining = store.get_ai_quota(user["id"], local_date, "vision")["remaining"]
+    if result.get("no_outfit") or not result.get("components"):
+        # 无关图片：识别已经真实发生，照常计入当日次数，只额外标记结果供前端提示。
+        result = store.set_analysis(
+            inspiration_id,
+            {**result, "no_outfit": True, "components": []},
+            "external",
+            user["id"],
+        )
+        return result | {"remaining_analyses": remaining}
     result = store.set_analysis(inspiration_id, result, "external", user["id"])
     return result | {"remaining_analyses": remaining}
 

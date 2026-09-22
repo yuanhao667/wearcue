@@ -133,6 +133,22 @@ def coerce_vision_result(result: dict) -> dict:
         value for value in result.get("suggested_style_tags", [])
         if value in {"minimal", "sport", "outdoor"}
     ][:2]
+    # 无关图片（no_outfit）或模型少给了字段时，先补齐必填项，
+    # 否则一次空 steps / 空 formula 就会让整次识别判为失败并重试。
+    guide = dict(result.get("replication_guide") or {})
+    steps = [str(step).strip() for step in (guide.get("steps") or []) if str(step).strip()][:6]
+    while len(steps) < 2:
+        steps.append("换一张单人全身穿搭照重新识别")
+    guide["steps"] = steps
+    if not str(guide.get("formula") or "").strip():
+        guide["formula"] = "暂无可复刻的穿搭"
+    result["replication_guide"] = guide
+    analysis = dict(result.get("outfit_analysis") or {})
+    if not str(analysis.get("summary") or "").strip():
+        analysis["summary"] = "没有识别到可用的穿搭单品。"
+    result["outfit_analysis"] = analysis
+    if result.get("no_outfit"):
+        result["components"] = []
 
     components = []
     for raw_component in result.get("components", [])[:8]:
@@ -305,12 +321,19 @@ class VisionService:
     def configured(self) -> bool:
         return bool(self.url and self.key and self.model)
 
-    async def analyze(self, image_path: Path) -> dict:
+    async def analyze(self, image_path: Path, target_audience: str | None = None) -> dict:
         if not self.configured:
             raise VisionServiceError("生产视觉模型尚未配置")
         encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
         models = list(dict.fromkeys(filter(None, [self.model, self.fallback_model])))
-        async with httpx.AsyncClient(timeout=45) as client:
+        target = target_audience if target_audience in {"mens", "womens"} else ""
+        instruction = "识别并分析这张穿搭照片，只返回系统要求的 JSON。"
+        if target:
+            instruction += (
+                "目标性别：%s（mens=男士服装，womens=女士服装）。"
+                "照片中若同时出现男性和女性，只识别与目标性别一致的那一方，另一方不得混入。" % target
+            )
+        async with httpx.AsyncClient(timeout=35) as client:
             for index, selected_model in enumerate(models):
                 payload = {
                     "model": selected_model,
@@ -325,7 +348,7 @@ class VisionService:
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "识别并分析这张穿搭照片，只返回系统要求的 JSON。",
+                                    "text": instruction,
                                 },
                                 {
                                     "type": "image_url",
@@ -347,7 +370,11 @@ class VisionService:
                         content = "".join(part.get("text", "") for part in content)
                     raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
                     result = VisionResult.model_validate(coerce_vision_result(json.loads(raw)))
-                    return normalize_vision_result(result.model_dump())
+                    payload = result.model_dump()
+                    # 合影照片：按账号性别锁定识别结果，避免被另一方带入跨性别拦截。
+                    if target and payload.get("multi_audience"):
+                        payload["garment_audience"] = target
+                    return normalize_vision_result(payload)
                 except httpx.HTTPStatusError as caught:
                     error = caught
                     retryable = caught.response.status_code == 429 or caught.response.status_code >= 500

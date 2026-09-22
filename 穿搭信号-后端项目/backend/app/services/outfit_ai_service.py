@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 import httpx
 
 from app.domain.component_rules import normalize_component_thickness
+from app.services.jev_service import JevClient, JevServiceError, plan_with_jev
 
 logger = logging.getLogger(__name__)
 REALTIME_PLAN_PROMPT_VERSION = "wearcue-realtime-plan-v3.2"
@@ -248,9 +249,11 @@ class OutfitAIService:
         except ValueError:
             configured_timeout = 30
         self.realtime_timeout_seconds = min(60, max(0.01, configured_timeout))
+        self.jev = JevClient()
         base = Path(__file__).resolve().parents[1] / "prompts"
         self.prompt = (base / "outfit_generation.txt").read_text()
         self.items_prompt = (base / "outfit_items.txt").read_text()
+        self.plan_text_prompt = (base / "outfit_plan_text.txt").read_text()
         self.advice_prompt = (base / "outfit_advice.txt").read_text()
         self.naming_prompt = (base / "outfit_naming.txt").read_text()
 
@@ -411,12 +414,78 @@ class OutfitAIService:
         return self._normalize(raw, enriched_context)
 
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """只用小模型生成首页图标方案；整条调用强制秒级结束。"""
+        """生成首页图标方案：JEV 判断优先，文字模型兜底。"""
         enriched_context = _with_scene_context(context)
         realtime_context = {
             key: value for key, value in enriched_context.items()
             if key in REALTIME_CONTEXT_KEYS and value is not None
         }
+        if self.jev.configured:
+            try:
+                raw = await plan_with_jev(self.jev, realtime_context)
+                raw = await self._attach_plan_text(raw, enriched_context)
+                _reject_business_commute(raw, enriched_context)
+                _reject_audience_style(raw, enriched_context)
+                return self._normalize(raw, enriched_context, include_detail=False)
+            except (JevServiceError, OutfitAIServiceError) as error:
+                logger.warning(
+                    "JEV homepage plan unavailable (%s); falling back to text model=%s",
+                    error,
+                    self.fast_model,
+                )
+        return await self._generate_items_with_text_model(
+            enriched_context, realtime_context
+        )
+
+    async def _attach_plan_text(
+        self, jev_plan: Dict[str, Any], enriched_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """JEV 只做选择，label 与 outfit_dna 等自由文本由文字模型补充。
+
+        文案补不成不影响图标方案：拿不到就沿用 JEV 路径的稳定词表文案。
+        """
+        payload = {
+            key: value
+            for key, value in enriched_context.items()
+            if key in REALTIME_CONTEXT_KEYS and value is not None
+        }
+        payload["items"] = jev_plan.get("items") or []
+        started_at = time.perf_counter()
+        try:
+            raw_text = await asyncio.wait_for(
+                self._call(
+                    self.plan_text_prompt,
+                    payload,
+                    300,
+                    self.fast_model,
+                    self.fast_model,
+                    temperature=0.4,
+                ),
+                timeout=self.realtime_timeout_seconds,
+            )
+            _reject_business_commute(raw_text, enriched_context)
+            _reject_audience_style(raw_text, enriched_context)
+        except (TimeoutError, OutfitAIServiceError, httpx.HTTPError, ValueError, KeyError) as error:
+            logger.warning(
+                "AI plan text supplement failed (%s); keeping vocabulary copy", error
+            )
+            return jev_plan
+        logger.info(
+            "AI plan text supplement completed in %dms with model=%s",
+            round((time.perf_counter() - started_at) * 1000),
+            self.fast_model,
+        )
+        merged = dict(jev_plan)
+        for field_name in ("label", "outfit_dna", "locked_features", "signature_features"):
+            value = raw_text.get(field_name)
+            if value:
+                merged[field_name] = value
+        return merged
+
+    async def _generate_items_with_text_model(
+        self, enriched_context: Dict[str, Any], realtime_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """兜底路径：只用小模型生成首页图标方案；整条调用强制秒级结束。"""
         started_at = time.perf_counter()
         logger.info(
             "AI realtime outfit plan %s started with small model=%s thinking=false timeout=%.1fs",

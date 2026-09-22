@@ -45,8 +45,16 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const accept = request.headers.get("accept");
   if (contentType) headers.set("content-type", contentType);
   if (accept) headers.set("accept", accept);
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token) return Response.json({ error: { message: "请先登录" } }, { status: 401 });
+  const cookieStore = await cookies();
+  const clearSession = () => {
+    cookieStore.delete(SESSION_COOKIE);
+    cookieStore.delete("wearcue_profile_pending");
+  };
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) {
+    clearSession();
+    return Response.json({ error: { message: "请先登录" } }, { status: 401 });
+  }
   headers.set("authorization", `Bearer ${token}`);
   const body = request.method === "GET" || request.method === "HEAD" ? undefined : await limitedBody(request);
   if (body === null) return Response.json({ error: { message: "请求内容过大" } }, { status: 413 });
@@ -58,11 +66,13 @@ async function proxy(request: NextRequest, context: RouteContext) {
       body,
       cache: "no-store",
     });
+    if (upstream.status === 401) clearSession();
     const responseHeaders = new Headers();
     const upstreamContentType = upstream.headers.get("content-type");
     if (upstreamContentType) responseHeaders.set("content-type", upstreamContentType);
     const cacheControl = upstream.headers.get("cache-control");
     if (cacheControl) responseHeaders.set("cache-control", cacheControl);
+    if (upstream.status === 401) responseHeaders.set("cache-control", "no-store");
     return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
   } catch {
     return Response.json({ detail: "后端服务暂时不可用，请稍后重试" }, { status: 502 });

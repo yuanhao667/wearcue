@@ -111,9 +111,9 @@ export function AppNav() {
         <div className="account-menu">
           <button
             className="account-avatar"
-            onClick={() => router.push(loggedIn ? "/settings" : "/login")}
-            aria-label={loggedIn ? "设置" : "登录"}
-            title={loggedIn ? "设置" : "登录"}
+            onClick={() => router.push("/settings")}
+            aria-label="设置"
+            title="设置"
           >
             {profile.avatar ? <span className="avatar-photo" style={{ backgroundImage: `url(${profile.avatar})` }} /> : avatarLetter}
           </button>

@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -16,7 +18,7 @@ from app.domain.component_rules import normalize_component_list
 from .image_service import ImageService
 
 
-AI_USAGE_LIMITS = {"vision": 30, "swap": 4, "advice": 4}
+AI_USAGE_LIMITS = {"vision": 30, "swap": 6, "advice": 6}
 
 
 def _now() -> str:
@@ -29,6 +31,36 @@ def _id(prefix: str) -> str:
 
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _normalize_email(value: str) -> str:
+    return value.strip().casefold()
+
+
+def _password_hash(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(
+        password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1, dklen=32,
+    )
+    return "scrypt$16384$8$1$%s$%s" % (
+        base64.urlsafe_b64encode(salt).decode("ascii"),
+        base64.urlsafe_b64encode(digest).decode("ascii"),
+    )
+
+
+def _password_matches(password: str, encoded: str) -> bool:
+    try:
+        algorithm, n, r, p, salt, expected = encoded.split("$")
+        if algorithm != "scrypt":
+            return False
+        actual = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=base64.urlsafe_b64decode(salt),
+            n=int(n), r=int(r), p=int(p), dklen=32,
+        )
+        return hmac.compare_digest(actual, base64.urlsafe_b64decode(expected))
+    except (ValueError, TypeError):
+        return False
 
 
 def user_local_date(tz_name: Optional[str]) -> str:
@@ -164,6 +196,12 @@ class Store:
                     nickname TEXT NOT NULL, audience TEXT NOT NULL,
                     created_at TEXT NOT NULL, updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS email_verification_codes (
+                    id TEXT PRIMARY KEY, email_normalized TEXT NOT NULL,
+                    purpose TEXT NOT NULL, code_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+                    consumed_at TEXT, created_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS sessions (
                     token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL,
                     expires_at TEXT NOT NULL, created_at TEXT NOT NULL,
@@ -220,6 +258,10 @@ class Store:
             for table in ("push_subscriptions", "notification_deliveries", "feedback"):
                 self._add_column(db, table, "user_id TEXT")
             self._add_column(db, "analysis_events", "usage_type TEXT NOT NULL DEFAULT 'vision'")
+            self._add_column(db, "users", "email TEXT")
+            self._add_column(db, "users", "email_normalized TEXT")
+            self._add_column(db, "users", "password_hash TEXT")
+            self._add_column(db, "users", "profile_completed INTEGER NOT NULL DEFAULT 1")
             db.executescript(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
@@ -233,6 +275,10 @@ class Store:
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_user_date ON analysis_events(user_id, local_date);
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_quota
                 ON analysis_events(user_id, local_date, usage_type);
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_normalized
+                ON users(email_normalized) WHERE email_normalized IS NOT NULL;
+                CREATE INDEX IF NOT EXISTS idx_email_codes_lookup
+                ON email_verification_codes(email_normalized,purpose,created_at);
                 """
             )
             db.execute(
@@ -530,7 +576,13 @@ class Store:
 
     @staticmethod
     def _user(row: sqlite3.Row) -> Dict[str, Any]:
-        return {"id": row["id"], "nickname": row["nickname"], "audience": row["audience"]}
+        return {
+            "id": row["id"],
+            "email": row["email"],
+            "nickname": row["nickname"],
+            "audience": row["audience"],
+            "profile_completed": bool(row["profile_completed"]),
+        }
 
     def _create_user_settings(
         self, db: sqlite3.Connection, user_id: str, audience: str, legacy: bool
@@ -570,26 +622,122 @@ class Store:
         )
         return {"token": token, "expires_at": expires_at, "user": Store._user(user)}
 
-    def register(self, invite_code: str, nickname: str, audience: str) -> Optional[Dict[str, Any]]:
+    def email_exists(self, email: str) -> bool:
+        with self.connect() as db:
+            return db.execute(
+                "SELECT 1 FROM users WHERE email_normalized=?", (_normalize_email(email),)
+            ).fetchone() is not None
+
+    def invite_is_claimed(self, invite_code: str) -> bool:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT email_normalized FROM users WHERE invite_code_hash=?", (_hash(invite_code),)
+            ).fetchone()
+        return bool(row and row["email_normalized"])
+
+    def issue_email_code(
+        self, email: str, purpose: str, code_hash: str, expires_at: str,
+    ) -> tuple[bool, int]:
+        normalized = _normalize_email(email)
+        now = datetime.now(timezone.utc)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            latest = db.execute(
+                """SELECT created_at FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? ORDER BY created_at DESC LIMIT 1""",
+                (normalized, purpose),
+            ).fetchone()
+            if latest:
+                elapsed = (now - datetime.fromisoformat(latest["created_at"])).total_seconds()
+                if elapsed < 60:
+                    return False, max(1, 60 - int(elapsed))
+            db.execute(
+                """UPDATE email_verification_codes SET consumed_at=?
+                WHERE email_normalized=? AND purpose=? AND consumed_at IS NULL""",
+                (_now(), normalized, purpose),
+            )
+            db.execute(
+                """INSERT INTO email_verification_codes
+                (id,email_normalized,purpose,code_hash,expires_at,attempts,consumed_at,created_at)
+                VALUES (?,?,?,?,?,0,NULL,?)""",
+                (_id("mail"), normalized, purpose, code_hash, expires_at, now.isoformat()),
+            )
+        return True, 0
+
+    def consume_email_code(self, email: str, purpose: str, code_hash: str) -> bool:
+        normalized = _normalize_email(email)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                """SELECT * FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? AND consumed_at IS NULL
+                ORDER BY created_at DESC LIMIT 1""",
+                (normalized, purpose),
+            ).fetchone()
+            if not row or row["expires_at"] <= _now() or row["attempts"] >= 5:
+                return False
+            if not hmac.compare_digest(row["code_hash"], code_hash):
+                db.execute(
+                    "UPDATE email_verification_codes SET attempts=attempts+1 WHERE id=?",
+                    (row["id"],),
+                )
+                return False
+            db.execute(
+                "UPDATE email_verification_codes SET consumed_at=? WHERE id=?",
+                (_now(), row["id"]),
+            )
+        return True
+
+    def discard_email_code(self, email: str, purpose: str, code_hash: str) -> None:
+        with self.connect() as db:
+            db.execute(
+                """DELETE FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? AND code_hash=? AND consumed_at IS NULL""",
+                (_normalize_email(email), purpose, code_hash),
+            )
+
+    def register(
+        self, email: str, password: str, invite_code: str,
+    ) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+        normalized_email = _normalize_email(email)
         code_hash = _hash(invite_code)
         now = _now()
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            if db.execute(
+                "SELECT 1 FROM users WHERE email_normalized=?", (normalized_email,)
+            ).fetchone():
+                return None, "email"
             user = db.execute(
                 "SELECT * FROM users WHERE invite_code_hash=?", (code_hash,)
             ).fetchone()
+            if user and user["email_normalized"]:
+                return None, "invite"
             if user:
-                return None
+                db.execute(
+                    """UPDATE users SET email=?,email_normalized=?,password_hash=?,updated_at=?
+                    WHERE id=?""",
+                    (email.strip(), normalized_email, _password_hash(password), now, user["id"]),
+                )
+                user = db.execute("SELECT * FROM users WHERE id=?", (user["id"],)).fetchone()
+                return self._create_session(db, user), None
             user_id = _id("user")
+            placeholder = normalized_email.split("@", 1)[0][:5] or "新用户"
             db.execute(
-                "INSERT INTO users VALUES (?,?,?,?,?,?)",
-                (user_id, code_hash, nickname[:5], audience, now, now),
+                """INSERT INTO users
+                (id,invite_code_hash,nickname,audience,created_at,updated_at,email,
+                 email_normalized,password_hash,profile_completed)
+                VALUES (?,?,?,?,?,?,?,?,?,0)""",
+                (
+                    user_id, code_hash, placeholder, "mens", now, now, email.strip(),
+                    normalized_email, _password_hash(password),
+                ),
             )
             claimed = db.execute(
                 "SELECT value FROM app_meta WHERE key='legacy_data_claimed'"
             ).fetchone()
             is_first_user = not claimed
-            self._create_user_settings(db, user_id, audience, is_first_user)
+            self._create_user_settings(db, user_id, "mens", is_first_user)
             if is_first_user:
                 db.execute(
                     """UPDATE outfits SET owner_user_id=? WHERE owner_user_id IS NULL
@@ -611,20 +759,49 @@ class Store:
             user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
             session = self._create_session(db, user)
         self._ensure_user_example(user["id"], user["audience"])
-        return session
+        return session, None
 
-    def login(self, invite_code: str) -> Optional[Dict[str, Any]]:
-        code_hash = _hash(invite_code)
+    def login(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             user = db.execute(
-                "SELECT * FROM users WHERE invite_code_hash=?", (code_hash,)
+                "SELECT * FROM users WHERE email_normalized=?", (_normalize_email(email),)
             ).fetchone()
-            if not user:
+            if not user or not user["password_hash"] or not _password_matches(password, user["password_hash"]):
                 return None
             session = self._create_session(db, user)
         self._ensure_user_example(user["id"], user["audience"])
         return session
+
+    def complete_profile(self, user_id: str, nickname: str, audience: str) -> Dict[str, Any]:
+        with self.connect() as db:
+            db.execute(
+                """UPDATE users SET nickname=?,audience=?,profile_completed=1,updated_at=?
+                WHERE id=?""",
+                (nickname[:5], audience, _now(), user_id),
+            )
+            db.execute(
+                "UPDATE user_settings SET audience=?,updated_at=? WHERE user_id=?",
+                (audience, _now(), user_id),
+            )
+            row = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+        self._ensure_user_example(user_id, audience)
+        return self._user(row)
+
+    def reset_password(self, email: str, password: str) -> bool:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            user = db.execute(
+                "SELECT id FROM users WHERE email_normalized=?", (_normalize_email(email),)
+            ).fetchone()
+            if not user:
+                return False
+            db.execute(
+                "UPDATE users SET password_hash=?,updated_at=? WHERE id=?",
+                (_password_hash(password), _now(), user["id"]),
+            )
+            db.execute("DELETE FROM sessions WHERE user_id=?", (user["id"],))
+        return True
 
     def user_for_token(self, token: str) -> Optional[Dict[str, Any]]:
         with self.connect() as db:

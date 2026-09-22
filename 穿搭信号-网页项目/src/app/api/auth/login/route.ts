@@ -2,23 +2,33 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { BACKEND_URL, SESSION_COOKIE } from "@/lib/server-auth";
 
+const PROFILE_PENDING_COOKIE = "wearcue_profile_pending";
+
 const loginSchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("login"),
-    inviteCode: z.string().trim().min(1),
+    email: z.email().max(254),
+    password: z.string().min(8).max(128),
   }),
   z.object({
     mode: z.literal("register"),
-    nickname: z.string().trim().min(1).max(5),
-    gender: z.enum(["mens", "womens"]),
+    email: z.email().max(254),
+    password: z.string().min(8).max(128),
     inviteCode: z.string().trim().min(1),
+    verificationCode: z.string().regex(/^\d{6}$/),
   }),
 ]);
 
 type BackendLogin = {
   token: string;
   expires_at: string;
-  user: { id: string; nickname: string; audience: "mens" | "womens" };
+  user: {
+    id: string;
+    email: string;
+    nickname: string;
+    audience: "mens" | "womens";
+    profile_completed: boolean;
+  };
 };
 
 async function errorMessage(response: Response, fallback: string) {
@@ -37,11 +47,12 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         mode: parsed.data.mode,
+        email: parsed.data.email,
+        password: parsed.data.password,
         ...(parsed.data.mode === "register" ? {
-          nickname: parsed.data.nickname,
-          audience: parsed.data.gender,
+          invite_code: parsed.data.inviteCode,
+          verification_code: parsed.data.verificationCode,
         } : {}),
-        invite_code: parsed.data.inviteCode,
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
@@ -59,7 +70,8 @@ export async function POST(request: Request) {
 
   const result = await response.json() as BackendLogin;
   const expires = new Date(result.expires_at);
-  (await cookies()).set(SESSION_COOKIE, result.token, {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, result.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -67,8 +79,20 @@ export async function POST(request: Request) {
     expires,
     priority: "high",
   });
+  cookieStore.set(PROFILE_PENDING_COOKIE, result.user.profile_completed ? "" : "1", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    ...(result.user.profile_completed ? { maxAge: 0 } : { expires }),
+  });
   return Response.json({
     ok: true,
-    user: { id: result.user.id, nickname: result.user.nickname, gender: result.user.audience },
+    user: {
+      id: result.user.id,
+      nickname: result.user.nickname,
+      gender: result.user.audience,
+      profileCompleted: result.user.profile_completed,
+    },
   });
 }

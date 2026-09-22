@@ -205,6 +205,12 @@ export interface Outfit {
 export interface VisionResult {
   model_version: string;
   garment_audience: Audience | "unisex";
+  /** 照片中同时出现男女服装时，已按账号性别只识别一侧。 */
+  multi_audience?: boolean;
+  /** 照片中同性别有多人时，已只识别服装最完整的一位。 */
+  multi_person?: boolean;
+  /** 动物、风景、食物、截图等无关图片：没有任何可识别穿搭。 */
+  no_outfit?: boolean;
   image_coverage: "full_body" | "partial" | "unknown";
   requires_user_confirmation: boolean;
   suggested_scenes: SceneId[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
+import { TrackingBear } from "./TrackingBear";
 import { useRouter } from "next/navigation";
 import { CityPicker } from "./CityPicker";
 import { profileSnapshot, subscribeProfile } from "./AppNav";
@@ -388,7 +388,7 @@ export function TodayApp() {
             </div>
           </article>
           <div className="recommendation-card-wrap">
-            <Image className="recommendation-mascot" src="/brand/wearcue-bear.png" alt="" width={1536} height={1024} priority />
+            <TrackingBear />
             <article className="recommendation-copy-card">
             <div className="recommendation-card-head">
               <div className="card-caption"><span className="status-dot mint" />今日推荐 <small className="recommendation-source">{recommendation.source === "personal" ? "来自个人首页推荐" : recommendation.source === "system_ai" ? "系统推荐" : "AI推荐方案"}</small></div>

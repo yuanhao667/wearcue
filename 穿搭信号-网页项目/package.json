@@ -18,6 +18,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@testing-library/react": "16.3.2",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.10.0",
