@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import httpx
 
 from app.domain.component_rules import FUNCTIONAL_ASSET_KEYS, SUPPORTED_COMPONENT_ASSET_KEYS
+from app.services.style_guidance import PLANNING_STYLE_RULES, style_guidance
 
 logger = logging.getLogger(__name__)
 
@@ -116,10 +117,12 @@ THICKNESS_LABELS: Dict[str, str] = {
     "thick": "加厚，适合偏冷体感",
 }
 
-STYLE_OPTIONS: List[str] = ["minimal", "sport", "outdoor"]
+STYLE_OPTIONS: List[str] = ["minimal", "casual", "street", "sport", "outdoor"]
 STYLE_LABELS: Dict[str, str] = {
     "minimal": "简约干净，基础款为主",
-    "sport": "运动感，休闲且有活力",
+    "casual": "日常休闲，卫衣牛仔和舒适松量，避免夸张廓形",
+    "street": "潮流街头，明显宽腿比例、短上衣或图案焦点",
+    "sport": "运动剪裁、活动空间与技术面料，不能只靠运动鞋",
     "outdoor": "户外感，功能性面料和轮廓",
 }
 
@@ -327,6 +330,9 @@ def _state_text(context: Dict[str, Any], blocks: Sequence[str]) -> str:
             "季节": SEASON_NAMES.get(str(context.get("season") or ""), ""),
             "体感温度": temperature,
             "天气要求": weather_requirements or ["无特殊要求"],
+            "用户喜欢的风格": context.get("preferred_style_tags", []),
+            "风格优先规则": "在满足天气、温度、人群和场景条件后，优先从喜欢的风格中选择主风格，单品与廓形保持一致；空列表表示不限风格。",
+            "风格穿搭指引": PLANNING_STYLE_RULES + style_guidance(context.get("audience", "")),
             "天气规则已确定": list(blocks),
         },
         ensure_ascii=False,

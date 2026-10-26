@@ -131,7 +131,7 @@ def coerce_vision_result(result: dict) -> dict:
     }.get(season, season if season in {"spring-autumn", "summer", "winter"} else "spring-autumn")
     result["suggested_style_tags"] = [
         value for value in result.get("suggested_style_tags", [])
-        if value in {"minimal", "sport", "outdoor"}
+        if value in {"minimal", "casual", "street", "sport", "outdoor"}
     ][:2]
     # 无关图片（no_outfit）或模型少给了字段时，先补齐必填项，
     # 否则一次空 steps / 空 formula 就会让整次识别判为失败并重试。

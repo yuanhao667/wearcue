@@ -13,7 +13,7 @@ const sceneOptions: Array<{ id: SceneId; label: string }> = [
   { id: "commute", label: "通勤" }, { id: "date", label: "约会" }, { id: "travel", label: "出行" },
 ];
 const outfitStyleOptions: Array<{ id: StyleId; label: string }> = [
-  { id: "minimal", label: "简约" }, { id: "sport", label: "运动" }, { id: "outdoor", label: "户外" },
+  { id: "minimal", label: "简约" }, { id: "casual", label: "休闲" }, { id: "street", label: "潮流" }, { id: "sport", label: "运动" }, { id: "outdoor", label: "户外" },
 ];
 const thicknessOptions = [{ value: "thin", label: "薄款" }, { value: "regular", label: "常规" }, { value: "thick", label: "厚款" }] as const;
 const seasonOptions = [

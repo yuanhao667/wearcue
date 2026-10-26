@@ -1,6 +1,6 @@
 {
   "schema_version": "wearcue-system-assets-v1",
-  "count": 46,
+  "count": 63,
   "note": "Images and discovery labels are packaged; components and usage-rights evidence still require manual approval.",
   "assets": [
     {
@@ -12,7 +12,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "street"
       ],
       "suitable_min": -5,
       "suitable_max": 8,
@@ -259,7 +259,7 @@
       "season": "winter",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 2,
       "suitable_max": 12,
@@ -454,7 +454,7 @@
       "season": "winter",
       "scene": "travel",
       "style_tags": [
-        "sport"
+        "casual"
       ],
       "suitable_min": -5,
       "suitable_max": 8,
@@ -873,7 +873,7 @@
       "season": "summer",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 23,
       "suitable_max": 32,
@@ -1046,7 +1046,7 @@
       "season": "summer",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 24,
       "suitable_max": 33,
@@ -1412,7 +1412,7 @@
       "season": "summer",
       "scene": "travel",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 22,
       "suitable_max": 30,
@@ -1607,7 +1607,7 @@
       "season": "summer",
       "scene": "travel",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 25,
       "suitable_max": 34,
@@ -2031,7 +2031,7 @@
       "season": "summer",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 24,
       "suitable_max": 33,
@@ -3245,7 +3245,7 @@
       "season": "summer",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 22,
       "suitable_max": 30,
@@ -3783,7 +3783,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "sport"
+        "street"
       ],
       "suitable_min": -2,
       "suitable_max": 8,
@@ -4180,7 +4180,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "sport"
+        "casual"
       ],
       "suitable_min": 12,
       "suitable_max": 22,
@@ -4326,7 +4326,7 @@
       "season": "winter",
       "scene": "travel",
       "style_tags": [
-        "outdoor"
+        "casual"
       ],
       "suitable_min": -10,
       "suitable_max": 5,
@@ -4548,7 +4548,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "street"
       ],
       "suitable_min": -5,
       "suitable_max": 8,
@@ -4817,7 +4817,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": -5,
       "suitable_max": 8,
@@ -5040,7 +5040,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 0,
       "suitable_max": 10,
@@ -5266,7 +5266,7 @@
       "season": "winter",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": -5,
       "suitable_max": 6,
@@ -5490,7 +5490,7 @@
       "season": "summer",
       "scene": "travel",
       "style_tags": [
-        "sport"
+        "casual"
       ],
       "suitable_min": 24,
       "suitable_max": 34,
@@ -5834,7 +5834,7 @@
       "season": "summer",
       "scene": "travel",
       "style_tags": [
-        "minimal"
+        "street"
       ],
       "suitable_min": 22,
       "suitable_max": 30,
@@ -6183,7 +6183,7 @@
       "season": "summer",
       "scene": "date",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 22,
       "suitable_max": 31,
@@ -7102,7 +7102,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 12,
       "suitable_max": 22,
@@ -7272,7 +7272,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 12,
       "suitable_max": 22,
@@ -7769,7 +7769,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "casual"
       ],
       "suitable_min": 10,
       "suitable_max": 20,
@@ -7967,7 +7967,7 @@
       "season": "winter",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "street"
       ],
       "suitable_min": 0,
       "suitable_max": 10,
@@ -8169,7 +8169,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "minimal"
+        "street"
       ],
       "suitable_min": 17,
       "suitable_max": 26,
@@ -8743,7 +8743,7 @@
       "season": "spring-autumn",
       "scene": "commute",
       "style_tags": [
-        "sport"
+        "street"
       ],
       "suitable_min": 14,
       "suitable_max": 24,
@@ -8956,6 +8956,3289 @@
         "蓝白配色全身呼应"
       ],
       "content_version": "wearcue-vision-v3"
+    },
+    {
+      "asset_id": "system-047-feae4134",
+      "label": "紫调轻户外",
+      "image": "system_assets/system-047-feae4134.jpg",
+      "sha256": "feae4134e81c71ddbc9ec56214b1b6da967da933017390c5429b9186140ee9d7",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "travel",
+      "style_tags": [
+        "outdoor"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/01-户外男-紫色硬壳.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "variant_type": "基础款短袖T恤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_tshirt_short",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "棉质",
+          "wearing_method": "作为内搭，下摆自然露出"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "jacket",
+          "variant_type": "连帽冲锋衣外套",
+          "color_type": "solid",
+          "color_name": "灰紫色",
+          "color_value": "#7A6B75",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_shell",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "短至腰际",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "立领连帽",
+            "前中拉链",
+            "胸前口袋",
+            "抽绳调节"
+          ],
+          "material": "防风防水面料",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "多袋工装裤",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "长裤，堆叠于鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "直筒",
+          "structure_details": [
+            "大腿两侧大贴袋",
+            "膝盖处拼接结构"
+          ],
+          "material": "斜纹布或尼龙",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "sneaker",
+          "variant_type": "低帮板鞋",
+          "color_type": "pattern",
+          "color_name": "黑白拼色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.94,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "标准",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "平底",
+            "系带"
+          ],
+          "material": "皮革与橡胶",
+          "wearing_method": "正常穿着"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "sunglasses",
+          "variant_type": "方框墨镜",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.99,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_glasses",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "粗框"
+          ],
+          "material": "板材",
+          "wearing_method": "佩戴于眼部"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用灰紫色冲锋衣与黑色工装裤构建典型的Gorpcore风格，通过敞开外套露出白T来打破深色沉闷并丰富层次。",
+        "structure_points": [
+          "多袋设计强化机能属性",
+          "宽松版型保证活动空间",
+          "色彩过渡自然"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "白T + 灰紫冲锋衣 + 黑色工装裤 + 黑白板鞋",
+        "steps": [
+          "穿着白色圆领T恤打底",
+          "外搭灰紫色连帽冲锋衣并保持敞开",
+          "下身选择黑色宽松多袋工装裤",
+          "搭配黑白拼色低帮板鞋",
+          "佩戴黑色方框墨镜"
+        ],
+        "styling_points": [
+          "保持外套敞开以展示内搭",
+          "裤脚自然堆叠在鞋面上",
+          "注意整体色调的冷暖平衡"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "冲锋衣可替换为其他颜色风衣，工装裤可替换为降落伞裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "三层（内搭+外套）",
+        "color_structure": "外深内浅",
+        "footwear_shape": "低帮板鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "户外机能风",
+        "proportion": "宽松廓形搭配",
+        "layering": "敞开式叠穿",
+        "material_contrast": "硬挺功能面料与柔软棉质",
+        "color_structure": "莫兰迪色系与黑白基础色",
+        "accessory_role": "墨镜增加街头感",
+        "footwear_shape": "经典板鞋"
+      },
+      "signature_features": [
+        "灰紫色连帽冲锋衣",
+        "黑色多袋工装裤",
+        "敞开式叠穿露出白T",
+        "裤脚堆叠感",
+        "黑框墨镜"
+      ],
+      "locked_features": [
+        "灰紫色连帽冲锋衣",
+        "黑色多袋工装裤",
+        "敞开式叠穿露出白T"
+      ]
+    },
+    {
+      "asset_id": "system-048-1a7b976e",
+      "label": "黑衬衫利落通勤",
+      "image": "system_assets/system-048-1a7b976e.jpg",
+      "sha256": "1a7b976e14bfbefd2efc88e72fd20e8b715fa690e6821badbb0a72d0c96ac09a",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "minimal"
+      ],
+      "suitable_min": 18,
+      "suitable_max": 26,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/02-简约男-黑衬衫长裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "variant_type": "黑色长袖衬衫",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_shirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "盖过腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "翻领",
+            "左胸口袋",
+            "袖口挽起"
+          ],
+          "material": "棉质或混纺",
+          "wearing_method": "下摆扎进裤腰"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "黑色高腰宽直筒长裤",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "裤脚覆盖部分鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "前中压褶"
+          ],
+          "material": "垂坠西装料",
+          "wearing_method": "完整露出高腰线"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "closed_toe",
+          "variant_type": "黑色编织皮凉鞋",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_leather",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "包头",
+            "编织镂空"
+          ],
+          "material": "皮革",
+          "wearing_method": "单穿"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "通过全黑同色系和上下均宽松的剪裁，营造出极简且高级的松弛感。",
+        "structure_points": [
+          "高腰线拉长下身比例",
+          "宽裤腿形成垂坠感",
+          "袖口挽起增加层次细节"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "黑色长袖衬衫＋黑色高腰宽直筒长裤＋黑色编织皮凉鞋",
+        "steps": [
+          "穿黑色长袖衬衫并扎进裤腰",
+          "搭配黑色高腰宽直筒长裤",
+          "穿黑色编织皮凉鞋"
+        ],
+        "styling_points": [
+          "将衬衫袖口挽起至小臂处",
+          "保留裤脚自然堆叠在鞋面上的效果"
+        ],
+        "weather_note": "建议体感温度 18～26℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "替换时请保持全黑配色及上松下宽的垂坠廓形。"
+      },
+      "reference_outfit": {
+        "proportion": "上长下长",
+        "layering": "单层",
+        "color_structure": "全黑同色系",
+        "footwear_shape": "编织皮凉鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型",
+        "proportion": "合身偏宽松上衣配高腰宽直筒裤",
+        "layering": "单层",
+        "material_contrast": "挺括衬衫与垂坠西裤",
+        "color_structure": "全黑同色系",
+        "accessory_role": "无",
+        "footwear_shape": "编织皮凉鞋"
+      },
+      "signature_features": [
+        "全黑同色系穿搭",
+        "高腰宽直筒裤",
+        "裤脚覆盖部分鞋面",
+        "编织皮凉鞋",
+        "衬衫袖口挽起"
+      ],
+      "locked_features": [
+        "全黑同色系穿搭",
+        "高腰宽直筒裤",
+        "裤脚覆盖部分鞋面"
+      ]
+    },
+    {
+      "asset_id": "system-049-7b3c3442",
+      "label": "灰卫衣浅蓝日常",
+      "image": "system_assets/system-049-7b3c3442.jpg",
+      "sha256": "7b3c3442641aece0409274824f5c4023aa1ad978a970fdf358d3cf4ed27fd204",
+      "audience": "womens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "casual"
+      ],
+      "suitable_min": 15,
+      "suitable_max": 24,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/03-休闲女-灰卫衣牛仔裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "variant_type": "深灰色圆领卫衣",
+          "color_type": "solid",
+          "color_name": "深灰色",
+          "color_value": "#5A5D60",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领",
+            "罗纹袖口",
+            "罗纹下摆"
+          ],
+          "material": "棉质毛圈布",
+          "wearing_method": "自然垂放"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "浅蓝色直筒牛仔裤",
+          "color_type": "solid",
+          "color_name": "浅蓝色",
+          "color_value": "#BBD7E8",
+          "pattern_description": "纯色水洗",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "裤脚覆盖部分鞋面",
+          "waistline": "中腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "前插袋",
+            "五袋款"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂放"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "low_top",
+          "variant_type": "蓝色低帮休闲鞋",
+          "color_type": "solid",
+          "color_name": "宝蓝色",
+          "color_value": "#2C5CC5",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_canvas",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "白色鞋带",
+            "侧面条纹装饰",
+            "生胶色鞋底"
+          ],
+          "material": "帆布与皮革拼接",
+          "wearing_method": "系带穿着"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "tote_bag",
+          "variant_type": "棕色单肩托特包",
+          "color_type": "solid",
+          "color_name": "棕色",
+          "color_value": "#9C6B42",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_tote_bag",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "软皮材质",
+            "长肩带"
+          ],
+          "material": "皮革",
+          "wearing_method": "单肩背"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "整体呈现舒适随性的日常风格，利用宽松的版型打造慵懒感。",
+        "structure_points": [
+          "落肩设计增加上半身量感",
+          "直筒阔腿裤修饰腿型并拉长比例",
+          "蓝色鞋子作为全身亮点提气色"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "深灰色圆领卫衣＋浅蓝色直筒牛仔裤＋蓝色德训风休闲鞋＋棕色单肩托特包",
+        "steps": [
+          "穿深灰色圆领卫衣",
+          "搭配浅蓝色直筒牛仔裤",
+          "穿蓝色德训风休闲鞋",
+          "背棕色单肩托特包"
+        ],
+        "styling_points": [
+          "保留裤脚盖鞋面的堆叠感",
+          "利用亮色鞋子打破基础色的沉闷"
+        ],
+        "weather_note": "建议体感温度 15～24℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "替换时保持上下皆宽的松弛廓形。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "单层",
+        "color_structure": "深灰配浅蓝点缀亮色",
+        "footwear_shape": "低帮板鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型",
+        "proportion": "宽松上衣配宽松直筒裤",
+        "layering": "单层",
+        "material_contrast": "柔软棉质与硬挺牛仔",
+        "color_structure": "中性色基底加局部亮色",
+        "accessory_role": "棕色包袋呼应整体色调",
+        "footwear_shape": "低帮板鞋"
+      },
+      "signature_features": [
+        "深灰落肩卫衣",
+        "浅蓝宽直筒牛仔裤",
+        "裤脚盖住部分鞋面",
+        "蓝色德训鞋撞色",
+        "棕色大托特包"
+      ],
+      "locked_features": [
+        "深灰落肩卫衣",
+        "浅蓝宽直筒牛仔裤",
+        "裤脚盖住部分鞋面"
+      ]
+    },
+    {
+      "asset_id": "system-050-7ac3acf8",
+      "label": "格纹短衫街头",
+      "image": "system_assets/system-050-7ac3acf8.jpg",
+      "sha256": "7ac3acf8a3f0e90bbc593ec38be2c6efea0e7f4bd0319014b5ad594c70793bd0",
+      "audience": "womens",
+      "season": "summer",
+      "scene": "travel",
+      "style_tags": [
+        "street"
+      ],
+      "suitable_min": 22,
+      "suitable_max": 30,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/04-潮流女-短背心工装裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "camisole",
+          "variant_type": "白色短款抹胸背心",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_camisole",
+          "fit": "紧身",
+          "shoulder": "无肩带",
+          "length": "露脐",
+          "waistline": "不适用",
+          "bottom_shape": "平直",
+          "structure_details": [
+            "罗纹面料"
+          ],
+          "material": "弹力棉质",
+          "wearing_method": "内搭"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve_shirt",
+          "variant_type": "宽松短袖格子衬衫",
+          "color_type": "pattern",
+          "color_name": "卡其色格纹",
+          "color_value": "#A69B7D",
+          "pattern_description": "格纹",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_shirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "盖过腰线",
+          "waistline": "不适用",
+          "bottom_shape": "平直",
+          "structure_details": [
+            "敞开穿着"
+          ],
+          "material": "棉麻混纺",
+          "wearing_method": "外搭敞开"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "高腰阔腿工装裤",
+          "color_type": "solid",
+          "color_name": "米色",
+          "color_value": "#E8E4D9",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "堆叠至鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "阔腿",
+          "structure_details": [
+            "多口袋设计",
+            "腰部抽绳"
+          ],
+          "material": "斜纹帆布",
+          "wearing_method": "搭配腰带"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "boots",
+          "variant_type": "大黄靴",
+          "color_type": "solid",
+          "color_name": "姜黄色",
+          "color_value": "#C18A42",
+          "pattern_description": "纯色",
+          "thickness": "thick",
+          "confidence": 0.99,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "shoe_sneaker_high_top",
+          "fit": "正常",
+          "shoulder": "不适用",
+          "length": "中帮",
+          "waistline": "不适用",
+          "bottom_shape": "厚底",
+          "structure_details": [
+            "系带设计"
+          ],
+          "material": "磨砂皮",
+          "wearing_method": "穿在裤脚下"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "baseball_cap",
+          "variant_type": "深棕色棒球帽",
+          "color_type": "solid",
+          "color_name": "深棕色",
+          "color_value": "#5C4033",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "弯檐"
+          ],
+          "material": "帆布",
+          "wearing_method": "佩戴"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "bag",
+          "variant_type": "酒红色单肩包",
+          "color_type": "solid",
+          "color_name": "酒红色",
+          "color_value": "#800020",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_crossbody_bag",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "hobo",
+          "structure_details": [
+            "挂饰"
+          ],
+          "material": "尼龙",
+          "wearing_method": "手提/单肩"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的街头休闲风穿搭，利用短上衣和阔腿裤打造黄金比例，格纹衬衫增加层次感。",
+        "structure_points": [
+          "露肤度平衡了上下装的厚重感",
+          "裤脚堆叠在鞋面上增强随性氛围"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "白色短款抹胸＋卡其色格纹短袖衬衫＋米色高腰阔腿工装裤＋姜黄色厚底靴",
+        "steps": [
+          "穿着白色短款抹胸作为内搭",
+          "外搭一件宽松的卡其色格纹短袖衬衫，保持敞开",
+          "搭配米色高腰阔腿工装裤，系上深色皮带",
+          "脚踩姜黄色厚底工装靴，让裤脚自然堆叠"
+        ],
+        "styling_points": [
+          "保留露腰设计以优化身材比例",
+          "衬衫选择大一号版型营造慵懒感"
+        ],
+        "weather_note": "建议体感温度 22～30℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用其他颜色格纹衬衫替换，但需保持大地色系协调。"
+      },
+      "reference_outfit": {
+        "proportion": "上短下长，外宽内紧",
+        "layering": "三层（背心+衬衫+裤子）",
+        "color_structure": "大地色系为主，亮色点缀",
+        "footwear_shape": "厚底工装靴"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型偏O型",
+        "proportion": "露腰提升视觉重心",
+        "layering": "开衫式叠穿",
+        "material_contrast": "柔软针织与硬挺帆布对比",
+        "color_structure": "同色系深浅过渡",
+        "accessory_role": "帽子呼应色调，包包提亮",
+        "footwear_shape": "粗犷厚底"
+      },
+      "signature_features": [
+        "短款抹胸露腰",
+        "宽松格纹衬衫外搭",
+        "高腰阔腿堆叠裤脚",
+        "姜黄色厚底靴",
+        "深色皮带装饰"
+      ],
+      "locked_features": [
+        "短款抹胸露腰",
+        "高腰阔腿堆叠裤脚",
+        "姜黄色厚底靴"
+      ]
+    },
+    {
+      "asset_id": "system-051-6571e0d9",
+      "label": "格纹中裤潮流",
+      "image": "system_assets/system-051-6571e0d9.jpg",
+      "sha256": "6571e0d99a5999f8659e20ea2491177486a403005fbb75a375c8efdb1d237d07",
+      "audience": "womens",
+      "season": "summer",
+      "scene": "travel",
+      "style_tags": [
+        "street"
+      ],
+      "suitable_min": 22,
+      "suitable_max": 30,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/05-潮流女-格纹宽腿短裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "camisole",
+          "variant_type": "短款吊带背心",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_camisole",
+          "fit": "合身",
+          "shoulder": "不适用",
+          "length": "短至胸下",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "细肩带",
+            "罗纹面料"
+          ],
+          "material": "弹力针织",
+          "wearing_method": "自然外穿"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "variant_type": "格纹阔腿中裤",
+          "color_type": "pattern",
+          "color_name": "棕色系格纹",
+          "color_value": "#8B5A2B",
+          "pattern_description": "格纹",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_shorts",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "及膝",
+          "waistline": "低腰",
+          "bottom_shape": "阔腿",
+          "structure_details": [
+            "前侧抽绳",
+            "大贴袋"
+          ],
+          "material": "毛呢质感",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "leather_shoe",
+          "variant_type": "工装靴",
+          "color_type": "solid",
+          "color_name": "黄褐色",
+          "color_value": "#D2B48C",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "shoe_sneaker_high_top",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "短筒",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "系带",
+            "厚底"
+          ],
+          "material": "磨砂皮",
+          "wearing_method": "搭配白袜"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "bucket_hat",
+          "variant_type": "豹纹渔夫帽",
+          "color_type": "pattern",
+          "color_name": "豹纹",
+          "color_value": "#8B4513",
+          "pattern_description": "豹纹",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_bucket_hat",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "宽檐"
+          ],
+          "material": "毛绒",
+          "wearing_method": "佩戴于头部"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "crossbody_bag",
+          "variant_type": "单肩包",
+          "color_type": "solid",
+          "color_name": "卡其色",
+          "color_value": "#C3B091",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_crossbody_bag",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "菱格纹"
+          ],
+          "material": "皮革",
+          "wearing_method": "单肩背"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用极短上衣与低腰阔腿裤制造高露肤度，结合秋冬材质单品形成季节反差。",
+        "structure_points": [
+          "低腰设计强调腰线位置",
+          "阔腿裤型平衡上半身量感",
+          "厚重靴子增加下半身分量"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "短款吊带背心＋格纹阔腿中裤＋工装靴＋豹纹渔夫帽",
+        "steps": [
+          "穿着短款白色吊带背心",
+          "搭配低腰格纹阔腿中裤",
+          "脚踩黄褐色工装靴",
+          "头戴豹纹毛绒渔夫帽"
+        ],
+        "styling_points": [
+          "保持腰部大面积留白",
+          "利用帽子呼应复古氛围"
+        ],
+        "weather_note": "建议体感温度 22～30℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用其他图案的短上衣替换，但需保留露腰比例。"
+      },
+      "reference_outfit": {
+        "proportion": "上短下长",
+        "layering": "单层",
+        "color_structure": "浅上深下",
+        "footwear_shape": "短筒靴"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上短下长",
+        "proportion": "露脐上衣配阔腿中裤",
+        "layering": "单层",
+        "material_contrast": "轻薄针织与厚实毛呢",
+        "color_structure": "浅上深下",
+        "accessory_role": "豹纹帽增加视觉焦点",
+        "footwear_shape": "短筒靴"
+      },
+      "signature_features": [
+        "短款露脐吊带",
+        "低腰格纹阔腿中裤",
+        "裤身前侧抽绳设计",
+        "豹纹毛绒渔夫帽",
+        "黄褐色工装靴"
+      ],
+      "locked_features": [
+        "短款露脐吊带",
+        "低腰格纹阔腿中裤",
+        "裤身前侧抽绳设计",
+        "豹纹毛绒渔夫帽"
+      ]
+    },
+    {
+      "asset_id": "system-052-4edfd099",
+      "label": "黑白跑步轻装",
+      "image": "system_assets/system-052-4edfd099.jpg",
+      "sha256": "4edfd09998a162d2b567636fb88692baec22e637a00d3f13a81563777d2171ca",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "travel",
+      "style_tags": [
+        "sport"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/06-运动男-跑步夹克短裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "long_sleeve",
+          "variant_type": "运动防风夹克",
+          "color_type": "pattern",
+          "color_name": "黑白拼色",
+          "color_value": "#000000",
+          "pattern_description": "几何拼色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_shell",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "立领",
+            "前中拉链",
+            "胸前白色宽条纹拼接",
+            "袖口收紧"
+          ],
+          "material": "防风化纤面料",
+          "wearing_method": "拉链拉至领口"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "variant_type": "紧身骑行裤",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_shorts",
+          "fit": "紧身",
+          "shoulder": "不适用",
+          "length": "大腿中部",
+          "waistline": "高腰",
+          "bottom_shape": "平直裤脚",
+          "structure_details": [
+            "无缝剪裁"
+          ],
+          "material": "弹力运动面料",
+          "wearing_method": "自然穿着"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "shoe",
+          "variant_type": "厚底运动鞋",
+          "color_type": "pattern",
+          "color_name": "白红拼色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "正常",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "鞋面红色条纹装饰",
+            "厚底设计"
+          ],
+          "material": "网布与合成革",
+          "wearing_method": "系带穿着"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "cap",
+          "variant_type": "棒球帽",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "弯檐",
+            "无图案"
+          ],
+          "material": "棉质或混纺",
+          "wearing_method": "佩戴"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的运动机能风穿搭，利用紧身骑行裤展现腿部线条，搭配防风夹克和厚底鞋增加层次感。",
+        "structure_points": [
+          "上装合身不紧绷",
+          "下装极致贴合",
+          "鞋款厚重感平衡整体视觉"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "黑白拼色防风夹克＋黑色紧身骑行裤＋白红拼色厚底运动鞋＋黑色棒球帽",
+        "steps": [
+          "穿上黑白拼色防风夹克并拉好拉链",
+          "搭配黑色紧身骑行裤",
+          "穿白红拼色厚底运动鞋",
+          "戴上黑色棒球帽"
+        ],
+        "styling_points": [
+          "保持上衣合身度",
+          "突出腿部线条",
+          "利用帽子增加街头感"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可将防风夹克替换为普通运动卫衣，骑行裤可替换为宽松运动短裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上长下短",
+        "layering": "单层",
+        "color_structure": "黑白主调，局部亮色点缀",
+        "footwear_shape": "厚底运动鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上宽下紧",
+        "proportion": "合身夹克配紧身短裤",
+        "layering": "单层",
+        "material_contrast": "防风硬挺面料与贴身弹力面料",
+        "color_structure": "黑白主调，局部亮色点缀",
+        "accessory_role": "头部遮挡",
+        "footwear_shape": "厚底运动鞋"
+      },
+      "signature_features": [
+        "胸前白色宽条纹拼接",
+        "紧身骑行裤",
+        "厚底运动鞋",
+        "黑色棒球帽"
+      ],
+      "locked_features": [
+        "胸前白色宽条纹拼接",
+        "紧身骑行裤",
+        "厚底运动鞋"
+      ]
+    },
+    {
+      "asset_id": "system-053-fb13113f",
+      "label": "黑白针织简约",
+      "image": "system_assets/system-053-fb13113f.jpg",
+      "sha256": "fb13113fb5aecc5b484181e0b24007b689cf97fa1af5aaeb7e84fd4a86a1359c",
+      "audience": "womens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "minimal"
+      ],
+      "suitable_min": 15,
+      "suitable_max": 24,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/07-简约女-黑开衫白长裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "knit_cardigan",
+          "variant_type": "黑色长袖针织开衫",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_light_jacket",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "短至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "V领",
+            "前排扣",
+            "罗纹收口"
+          ],
+          "material": "针织",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "variant_type": "白色圆领短袖T恤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_tshirt_short",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "常规",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "棉质",
+          "wearing_method": "内搭"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "高腰超宽直筒裤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#F5F5F5",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "长裤，裤脚覆盖部分鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "前中压褶",
+            "搭配黑色皮带"
+          ],
+          "material": "垂坠西装料",
+          "wearing_method": "完整露出高腰线"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "sneaker",
+          "variant_type": "灰色复古运动鞋",
+          "color_type": "solid",
+          "color_name": "灰色",
+          "color_value": "#808080",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "正常",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "厚底",
+            "系带"
+          ],
+          "material": "皮革与网布拼接",
+          "wearing_method": "日常穿着"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "bag",
+          "variant_type": "黑色菱格链条包",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "菱格纹",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_crossbody_bag",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "菱格纹",
+            "金属链条肩带"
+          ],
+          "material": "皮革",
+          "wearing_method": "单肩背"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用短款开衫和高腰阔腿裤打造显高比例，黑白配色经典耐看。",
+        "structure_points": [
+          "高腰线拉长腿部线条",
+          "阔腿裤型修饰腿型",
+          "短款上衣优化身材比例"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "黑色短款针织开衫＋白色圆领T恤＋高腰米白色阔腿裤＋灰色厚底运动鞋＋黑色菱格链条包",
+        "steps": [
+          "内搭白色圆领T恤",
+          "外穿黑色短款针织开衫",
+          "搭配高腰米白色阔腿裤并系上黑色皮带",
+          "穿上灰色厚底运动鞋",
+          "斜挎或单肩背黑色菱格链条包"
+        ],
+        "styling_points": [
+          "保持上衣短款以突出高腰线",
+          "选择垂坠感好的面料让阔腿裤更显利落",
+          "用黑色配饰呼应上衣颜色"
+        ],
+        "weather_note": "建议体感温度 15～24℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可将开衫替换为其他短款外套，阔腿裤可换成同色系长裙。"
+      },
+      "reference_outfit": {
+        "proportion": "上短下长",
+        "layering": "双层",
+        "color_structure": "黑白经典配色",
+        "footwear_shape": "厚底运动鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上短下长",
+        "proportion": "短款开衫配高腰阔腿裤",
+        "layering": "内搭T恤外穿开衫",
+        "material_contrast": "柔软针织与垂坠西装料",
+        "color_structure": "黑白对比",
+        "accessory_role": "黑色包包呼应上衣",
+        "footwear_shape": "厚底运动鞋增加休闲感"
+      },
+      "signature_features": [
+        "短款黑色针织开衫",
+        "高腰米白色阔腿裤",
+        "黑色细皮带强调腰线",
+        "灰色厚底运动鞋",
+        "黑色菱格链条包"
+      ],
+      "locked_features": [
+        "短款黑色针织开衫",
+        "高腰米白色阔腿裤",
+        "黑色细皮带强调腰线"
+      ]
+    },
+    {
+      "asset_id": "system-054-28fbdaf5",
+      "label": "灰帽侧影休闲",
+      "image": "system_assets/system-054-28fbdaf5.jpg",
+      "sha256": "28fbdaf52cef01b362c92e89d999c89297754b40e5a51aa34531411f1323ef8d",
+      "audience": "womens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "casual"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/08-休闲女-灰连帽卫衣侧姿.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "equipment",
+          "functional_icon_key": "beanie",
+          "variant_type": "针织冷帽",
+          "color_type": "solid",
+          "color_name": "深灰色",
+          "color_value": "#666666",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_beanie",
+          "fit": "贴合",
+          "shoulder": "不适用",
+          "length": "覆盖头顶及耳朵",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "罗纹收口"
+          ],
+          "material": "针织毛线",
+          "wearing_method": "正常佩戴"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "hoodie",
+          "variant_type": "连帽卫衣",
+          "color_type": "pattern",
+          "color_name": "浅花灰",
+          "color_value": "#C0C0C0",
+          "pattern_description": "混色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "盖过臀部上方",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "袋鼠兜",
+            "抽绳"
+          ],
+          "material": "棉质毛圈布",
+          "wearing_method": "外穿，下摆露出白色内搭边"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "阔腿牛仔裤",
+          "color_type": "solid",
+          "color_name": "浅蓝色",
+          "color_value": "#AEC6CF",
+          "pattern_description": "纯色水洗",
+          "thickness": "thick",
+          "confidence": 0.94,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠在鞋面",
+          "waistline": "中腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "水洗纹理",
+            "侧缝口袋"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "shoe_canvas",
+          "variant_type": "麂皮包头拖鞋",
+          "color_type": "solid",
+          "color_name": "酒红色",
+          "color_value": "#800000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.9,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "shoe_canvas",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "圆头",
+          "structure_details": [
+            "厚底",
+            "麂皮材质"
+          ],
+          "material": "麂皮",
+          "wearing_method": "单穿"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "backpack",
+          "variant_type": "黑色双肩包",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_backpack",
+          "fit": "标准",
+          "shoulder": "双肩",
+          "length": "中等大小",
+          "waistline": "不适用",
+          "bottom_shape": "圆润",
+          "structure_details": [
+            "拉链",
+            "调节扣"
+          ],
+          "material": "尼龙/帆布",
+          "wearing_method": "背负"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的日系/City Boy风格穿搭，强调舒适与层次感。",
+        "structure_points": [
+          "利用冷帽平衡上半身量感",
+          "阔腿裤修饰腿型并营造松弛感",
+          "露出的白T恤边增加了视觉细节"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "针织冷帽＋浅花灰连帽卫衣＋浅蓝阔腿牛仔裤＋酒红厚底鞋",
+        "steps": [
+          "戴上深灰色针织冷帽",
+          "穿着浅花灰连帽卫衣，确保下摆有白色内搭露出",
+          "搭配浅蓝色水洗阔腿牛仔裤",
+          "脚踩酒红色厚底鞋",
+          "背黑色双肩包"
+        ],
+        "styling_points": [
+          "保持整体宽松廓形",
+          "注意卫衣下摆的层次感",
+          "鞋子颜色作为全身亮点"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "卫衣可替换为宽松毛衣，牛仔裤可替换为工装裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "双层（卫衣+内搭）",
+        "color_structure": "灰蓝主色调点缀深色",
+        "footwear_shape": "圆头厚底"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型慵懒",
+        "proportion": "宽松上衣配阔腿裤",
+        "layering": "假两件或露白边",
+        "material_contrast": "棉质卫衣与硬挺牛仔",
+        "color_structure": "同色系深浅过渡",
+        "accessory_role": "帽子增加层次，背包实用",
+        "footwear_shape": "复古休闲"
+      },
+      "signature_features": [
+        "浅花灰连帽卫衣",
+        "浅蓝水洗阔腿牛仔裤",
+        "深灰针织冷帽",
+        "酒红厚底鞋",
+        "卫衣下摆露白边",
+        "裤脚堆叠感"
+      ],
+      "locked_features": [
+        "浅花灰连帽卫衣",
+        "浅蓝水洗阔腿牛仔裤",
+        "深灰针织冷帽"
+      ]
+    },
+    {
+      "asset_id": "system-055-3b349e18",
+      "label": "灰帽牛仔日常",
+      "image": "system_assets/system-055-3b349e18.jpg",
+      "sha256": "3b349e18b17c8e760308430df67930e70a537e1a75ec155014c96eff2a326e58",
+      "audience": "womens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "casual"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/09-休闲女-灰连帽卫衣正姿.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "equipment",
+          "functional_icon_key": "beanie",
+          "variant_type": "深灰色针织冷帽",
+          "color_type": "solid",
+          "color_name": "深灰色",
+          "color_value": "#5A5A5A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_beanie",
+          "fit": "贴合",
+          "shoulder": "不适用",
+          "length": "覆盖头顶及耳朵",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "翻边设计"
+          ],
+          "material": "针织毛线",
+          "wearing_method": "正常佩戴"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "hooded_sweatshirt",
+          "variant_type": "浅灰色宽松连帽卫衣",
+          "color_type": "solid",
+          "color_name": "浅灰色",
+          "color_value": "#D3D3D3",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "盖至胯部",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "连帽",
+            "袋鼠兜",
+            "罗纹袖口"
+          ],
+          "material": "棉质毛圈布",
+          "wearing_method": "自然穿着，内搭白T露出下摆"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "浅蓝色水洗阔腿牛仔裤",
+          "color_type": "solid",
+          "color_name": "浅蓝色",
+          "color_value": "#AEC6CF",
+          "pattern_description": "纯色水洗",
+          "thickness": "thick",
+          "confidence": 0.94,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠在鞋面",
+          "waistline": "中腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "五袋款",
+            "前侧猫须洗水纹理"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "shoe_canvas",
+          "variant_type": "棕色麂皮拼色休闲鞋",
+          "color_type": "pattern",
+          "color_name": "棕色/酒红色",
+          "color_value": "#8B4513",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.9,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_canvas",
+          "fit": "合脚",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "圆头",
+          "structure_details": [
+            "白色厚底",
+            "系带"
+          ],
+          "material": "麂皮",
+          "wearing_method": "穿在脚上"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "backpack",
+          "variant_type": "黑色双肩包",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_backpack",
+          "fit": "标准",
+          "shoulder": "双肩背",
+          "length": "常规尺寸",
+          "waistline": "不适用",
+          "bottom_shape": "方形",
+          "structure_details": [
+            "双肩带",
+            "插扣调节"
+          ],
+          "material": "尼龙帆布",
+          "wearing_method": "背负于背部"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的秋季休闲穿搭，利用宽松的卫衣和阔腿裤营造松弛感。",
+        "structure_points": [
+          "卫衣内搭白T露出下摆增加层次细节",
+          "阔腿裤长堆叠在鞋面上拉长腿部线条",
+          "冷帽与双肩包呼应整体休闲风格"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "深灰冷帽＋浅灰连帽卫衣（内搭白T）＋浅蓝水洗阔腿牛仔裤＋棕色厚底鞋＋黑色双肩包",
+        "steps": [
+          "戴上深灰冷帽",
+          "穿着浅灰连帽卫衣，确保内搭白T下摆露出",
+          "搭配浅蓝水洗阔腿牛仔裤",
+          "穿上棕色厚底鞋",
+          "背上黑色双肩包"
+        ],
+        "styling_points": [
+          "保持卫衣和裤子的宽松廓形",
+          "注意裤脚的堆叠效果",
+          "利用内搭白T打破单调"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "卫衣可替换为宽松毛衣，牛仔裤可替换为工装裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "双层（卫衣+内搭）",
+        "color_structure": "灰蓝主色调配深色点缀",
+        "footwear_shape": "圆头厚底"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型慵懒风",
+        "proportion": "上下皆宽松，强调舒适感",
+        "layering": "卫衣内搭白T增加层次",
+        "material_contrast": "柔软棉质与硬挺牛仔的对比",
+        "accessory_role": "帽子与背包增强街头休闲氛围",
+        "footwear_shape": "复古厚底"
+      },
+      "signature_features": [
+        "浅灰连帽卫衣",
+        "内搭白T露出下摆",
+        "浅蓝水洗阔腿牛仔裤",
+        "裤脚堆叠",
+        "深灰冷帽",
+        "黑色双肩包"
+      ],
+      "locked_features": [
+        "浅灰连帽卫衣",
+        "浅蓝水洗阔腿牛仔裤",
+        "深灰冷帽"
+      ]
+    },
+    {
+      "asset_id": "system-056-59f75094",
+      "label": "灰蓝阔腿街头",
+      "image": "system_assets/system-056-59f75094.jpg",
+      "sha256": "59f75094b7ff45964d1b1ff2f0027a46255ddb1ec2d68f97a7196ed24b45f9cb",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "travel",
+      "style_tags": [
+        "street"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/10-潮流男-落肩卫衣阔腿裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "hoodie",
+          "variant_type": "宽松落肩连帽卫衣",
+          "color_type": "solid",
+          "color_name": "灰色",
+          "color_value": "#808080",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "连帽设计",
+            "前置袋鼠兜",
+            "袖口罗纹收口"
+          ],
+          "material": "棉质毛圈布",
+          "wearing_method": "自然穿着，下摆露出内搭白边"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "高腰超宽直筒裤",
+          "color_type": "solid",
+          "color_name": "浅蓝色",
+          "color_value": "#AEC6CF",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠覆盖鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "前侧插袋"
+          ],
+          "material": "垂坠感面料",
+          "wearing_method": "完整露出高腰线"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "shoe_leather",
+          "variant_type": "厚底圆头休闲鞋",
+          "color_type": "solid",
+          "color_name": "驼色",
+          "color_value": "#C19A6B",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_leather",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆头",
+            "厚底"
+          ],
+          "material": "绒面革",
+          "wearing_method": "被裤脚大面积遮挡"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "sunglasses",
+          "variant_type": "黑色墨镜",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.99,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_glasses",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "窄框"
+          ],
+          "material": "塑料/金属",
+          "wearing_method": "佩戴于眼部"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "整体呈现日系Cityboy或韩系街头风格，强调极致的宽松廓形和舒适的垂坠感。",
+        "structure_points": [
+          "通过露出的白色内搭打破上衣的沉闷并增加层次",
+          "超宽裤腿配合厚底鞋撑起下半身体积感"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "宽松落肩连帽卫衣＋高腰超宽直筒裤＋厚底圆头鞋",
+        "steps": [
+          "穿着宽松落肩连帽卫衣",
+          "搭配高腰超宽直筒裤",
+          "脚踩厚底圆头鞋"
+        ],
+        "styling_points": [
+          "保留内搭下摆外露的细节",
+          "确保裤长足够并在鞋面形成堆叠"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "替换时请保持整体的宽松廓形，避免紧身单品。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "双层（可见下摆）",
+        "color_structure": "灰蓝撞色",
+        "footwear_shape": "圆头厚底"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型宽松",
+        "proportion": "上下同宽的松弛比例",
+        "layering": "利用内搭下摆制造层次",
+        "material_contrast": "棉质卫衣与垂坠西裤料",
+        "color_structure": "低饱和灰蓝搭配",
+        "accessory_role": "墨镜增加街头感",
+        "footwear_shape": "复古圆头"
+      },
+      "signature_features": [
+        "宽松落肩灰色卫衣",
+        "超宽直筒浅蓝长裤",
+        "裤脚堆叠盖住鞋面",
+        "白色内搭下摆外露",
+        "黑色窄框墨镜"
+      ],
+      "locked_features": [
+        "宽松落肩灰色卫衣",
+        "超宽直筒浅蓝长裤",
+        "裤脚堆叠盖住鞋面"
+      ]
+    },
+    {
+      "asset_id": "system-057-1c68092f",
+      "label": "牛仔格纹层次",
+      "image": "system_assets/system-057-1c68092f.jpg",
+      "sha256": "1c68092ffa9b5e3f6322178b563cbfe480b8a856cf32f9030ae7ff24eba3fe57",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "casual"
+      ],
+      "suitable_min": 10,
+      "suitable_max": 20,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/11-休闲男-牛仔夹克叠穿.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "equipment",
+          "functional_icon_key": "baseball_cap",
+          "variant_type": "棒球帽",
+          "color_type": "solid",
+          "color_name": "棕色",
+          "color_value": "#6B4A3A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "弯檐"
+          ],
+          "material": "棉质斜纹布",
+          "wearing_method": "正常佩戴"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "denim_jacket",
+          "variant_type": "牛仔夹克",
+          "color_type": "solid",
+          "color_name": "深蓝色",
+          "color_value": "#2C3545",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_light_jacket",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "盖过腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "翻领",
+            "胸前口袋",
+            "金属纽扣"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "variant_type": "长袖衬衫",
+          "color_type": "pattern",
+          "color_name": "黄棕格纹",
+          "color_value": "#D4A373",
+          "pattern_description": "格纹",
+          "thickness": "thin",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_shirt",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "塞入裤腰",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "翻领",
+            "前门襟"
+          ],
+          "material": "法兰绒",
+          "wearing_method": "作为中间层敞开穿着"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "variant_type": "圆领T恤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_tshirt_short",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "常规",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "棉质针织",
+          "wearing_method": "打底穿着"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "直筒牛仔裤",
+          "color_type": "solid",
+          "color_name": "黑灰色",
+          "color_value": "#3A3A3A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠",
+          "waistline": "中腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "水洗纹理"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "canvas_shoe",
+          "variant_type": "低帮帆布鞋",
+          "color_type": "pattern",
+          "color_name": "棕色拼白",
+          "color_value": "#8B5A2B",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_canvas",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "侧边条纹",
+            "平底"
+          ],
+          "material": "帆布与橡胶",
+          "wearing_method": "系带穿着"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用格纹衬衫打破深色牛仔的沉闷，通过帽子和鞋子的同色系呼应增加整体感。",
+        "structure_points": [
+          "敞开式叠穿丰富层次",
+          "上下皆宽营造松弛感"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "圆领T恤＋格纹衬衫＋牛仔夹克＋直筒牛仔裤＋帆布鞋＋棒球帽",
+        "steps": [
+          "穿白色圆领T恤打底",
+          "外搭黄棕格纹衬衫并敞开",
+          "套上深蓝色宽松牛仔夹克",
+          "搭配黑灰色直筒牛仔裤",
+          "穿棕色低帮帆布鞋",
+          "戴棕色棒球帽"
+        ],
+        "styling_points": [
+          "保持衬衫和夹克的敞开状态以露出层次",
+          "裤脚保留自然堆叠感",
+          "注意帽子和鞋子颜色的统一"
+        ],
+        "weather_note": "建议体感温度 10～20℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用卫衣替代衬衫层，但需保留色彩对比。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "三层叠穿",
+        "color_structure": "深色外套配亮色内搭",
+        "footwear_shape": "低帮帆布鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上宽下宽",
+        "proportion": "宽松牛仔夹克配直筒牛仔裤",
+        "layering": "三层叠穿（T恤+衬衫+夹克）",
+        "material_contrast": "硬挺牛仔与柔软法兰绒",
+        "color_structure": "深色外套配亮色内搭",
+        "accessory_role": "帽子呼应鞋履颜色",
+        "footwear_shape": "低帮帆布鞋"
+      },
+      "signature_features": [
+        "三层叠穿结构",
+        "黄棕格纹衬衫点缀",
+        "深色牛仔套装",
+        "棕色棒球帽与鞋履色彩呼应",
+        "裤脚自然堆叠"
+      ],
+      "locked_features": [
+        "三层叠穿结构",
+        "黄棕格纹衬衫点缀",
+        "深色牛仔套装",
+        "棕色棒球帽与鞋履色彩呼应"
+      ]
+    },
+    {
+      "asset_id": "system-058-615c4d31",
+      "label": "星星牛仔街头",
+      "image": "system_assets/system-058-615c4d31.jpg",
+      "sha256": "615c4d31f3f8055aa9f11f90dc6482ed8e9fe36441c69d632128af20c8ec76d1",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "travel",
+      "style_tags": [
+        "street"
+      ],
+      "suitable_min": 15,
+      "suitable_max": 24,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/12-潮流男-短外套星星牛仔裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "zip_up_hoodie",
+          "variant_type": "黑色拉链连帽卫衣",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "下摆收口",
+          "structure_details": [
+            "连帽",
+            "拉链门襟",
+            "袋鼠兜",
+            "袖口收口"
+          ],
+          "material": "棉质毛圈布",
+          "wearing_method": "拉链拉至领口"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "wide_leg_pants",
+          "variant_type": "深蓝色星星贴布牛仔裤",
+          "color_type": "solid",
+          "color_name": "深蓝色",
+          "color_value": "#1A2B4C",
+          "pattern_description": "局部贴布图案",
+          "thickness": "thick",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠",
+          "waistline": "中腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "前侧口袋",
+            "明线装饰",
+            "星星形状贴布"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂坠堆叠于鞋面"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "low_top_sneaker",
+          "variant_type": "白色低帮板鞋",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "标准",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "平底",
+          "structure_details": [
+            "系带",
+            "圆头",
+            "厚底"
+          ],
+          "material": "皮革",
+          "wearing_method": "正常穿着"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "baseball_cap",
+          "variant_type": "深蓝色棒球帽",
+          "color_type": "solid",
+          "color_name": "深蓝色",
+          "color_value": "#1A2B4C",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": "标准",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "弯檐",
+            "调节扣"
+          ],
+          "material": "帆布",
+          "wearing_method": "反戴"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "sunglasses",
+          "variant_type": "银色边框墨镜",
+          "color_type": "pattern",
+          "color_name": "银色",
+          "color_value": "#C0C0C0",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.99,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_glasses",
+          "fit": "标准",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "运动风镜框",
+            "反光镜片"
+          ],
+          "material": "金属与塑料",
+          "wearing_method": "架在帽檐上"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的街头休闲风格，通过宽松的版型和独特的星星贴布元素展现个性。",
+        "structure_points": [
+          "上下皆宽松营造慵懒氛围",
+          "星星贴布打破深色沉闷",
+          "白色鞋子作为视觉亮点"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "黑色拉链连帽卫衣 + 深蓝色星星贴布牛仔裤 + 白色低帮板鞋 + 棒球帽",
+        "steps": [
+          "穿上黑色拉链连帽卫衣，拉链拉至领口",
+          "搭配深蓝色星星贴布牛仔裤，保持裤脚自然堆叠",
+          "穿上一双干净的白色低帮板鞋",
+          "反戴深蓝色棒球帽，并将墨镜架在帽檐上"
+        ],
+        "styling_points": [
+          "强调裤脚的堆叠感",
+          "利用配饰（帽子、墨镜）提升造型完整度",
+          "保持整体色调深沉，用白鞋提亮"
+        ],
+        "weather_note": "建议体感温度 15～24℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可将卫衣替换为其他深色宽松外套，牛仔裤可替换为其他带有设计感的阔腿裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "单层",
+        "color_structure": "深色为主，浅色点缀",
+        "footwear_shape": "白色低帮板鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "街头宽松廓形",
+        "proportion": "宽松卫衣配超宽牛仔裤",
+        "layering": "单层",
+        "material_contrast": "柔软棉质与硬挺牛仔",
+        "color_structure": "深蓝黑主色调，白色鞋履提亮",
+        "accessory_role": "帽子墨镜增加层次感",
+        "footwear_shape": "经典板鞋"
+      },
+      "signature_features": [
+        "黑色拉链连帽卫衣",
+        "深蓝色星星贴布牛仔裤",
+        "裤脚堆叠感",
+        "反戴棒球帽",
+        "帽檐上的墨镜",
+        "白色低帮板鞋"
+      ],
+      "locked_features": [
+        "黑色拉链连帽卫衣",
+        "深蓝色星星贴布牛仔裤",
+        "裤脚堆叠感",
+        "反戴棒球帽"
+      ]
+    },
+    {
+      "asset_id": "system-059-a6a6fb8f",
+      "label": "山野绿壳衣",
+      "image": "system_assets/system-059-a6a6fb8f.jpg",
+      "sha256": "a6a6fb8fc1614206892de1da41a397b1fd08476990280b5728a7d5f8c42e6d6a",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "travel",
+      "style_tags": [
+        "outdoor"
+      ],
+      "suitable_min": 10,
+      "suitable_max": 20,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/13-户外男-绿壳衣工装裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "equipment",
+          "functional_icon_key": "beanie",
+          "variant_type": "纯色针织冷帽",
+          "color_type": "solid",
+          "color_name": "驼色",
+          "color_value": "#B88655",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_beanie",
+          "fit": "宽松堆叠",
+          "shoulder": "不适用",
+          "length": "覆盖头顶及耳朵",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "罗纹收边"
+          ],
+          "material": "针织毛线",
+          "wearing_method": "正常佩戴"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "shell_jacket",
+          "variant_type": "连帽户外夹克",
+          "color_type": "solid",
+          "color_name": "军绿色",
+          "color_value": "#7A8B4D",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_shell",
+          "fit": "合身微宽",
+          "shoulder": "正肩",
+          "length": "盖至腰带处",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "连帽设计",
+            "拉链门襟",
+            "胸前防水拉链口袋"
+          ],
+          "material": "防风防水面料",
+          "wearing_method": "拉链拉至胸口，领口微敞"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "直筒工装裤",
+          "color_type": "solid",
+          "color_name": "卡其色",
+          "color_value": "#A89070",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松直筒",
+          "shoulder": "不适用",
+          "length": "长裤，裤脚自然堆叠",
+          "waistline": "中腰",
+          "bottom_shape": "直筒",
+          "structure_details": [
+            "侧边大贴袋"
+          ],
+          "material": "斜纹棉布",
+          "wearing_method": "自然垂落"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "sneaker",
+          "variant_type": "厚底老爹鞋",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "常规",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "波浪形厚底",
+            "网面拼接"
+          ],
+          "material": "皮革与网布拼接",
+          "wearing_method": "系带穿着"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的秋季户外露营风格穿搭。利用军绿、卡其和驼色等大地色系构建视觉统一感，最后用一双白色厚底老爹鞋打破沉闷，增加现代街头",
+        "structure_points": [
+          "夹克的连帽设计与冷帽叠加，丰富头部层次",
+          "工装裤的宽松直筒版型完美衔接厚底鞋，形成稳定的下半身量感"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "连帽户外夹克＋直筒工装裤＋厚底老爹鞋＋针织冷帽",
+        "steps": [
+          "穿上一件军绿色的连帽户外夹克",
+          "搭配一条卡其色的宽松直筒工装裤",
+          "戴上一顶驼色针织冷帽",
+          "穿上一双白色的厚底老爹鞋"
+        ],
+        "styling_points": [
+          "保持夹克、裤子、帽子的大地色系一致性",
+          "利用白色鞋子作为全身亮点提亮"
+        ],
+        "weather_note": "建议体感温度 10～20℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可将老爹鞋替换为同色系户外徒步鞋以增强纯正户外感。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "单层外套",
+        "color_structure": "大地色系为主，亮色点缀",
+        "footwear_shape": "厚底老爹鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "休闲户外廓形",
+        "proportion": "宽松夹克配直筒工装裤",
+        "layering": "单层外套",
+        "material_contrast": "硬挺防风面料与柔软棉质、针织的对比",
+        "color_structure": "绿/棕/卡其的大地色组合，白色提亮",
+        "accessory_role": "驼色冷帽呼应整体大地色调",
+        "footwear_shape": "厚底老爹鞋"
+      },
+      "signature_features": [
+        "连帽军绿夹克",
+        "侧边大贴袋工装裤",
+        "驼色针织冷帽",
+        "白色厚底老爹鞋",
+        "整体大地色系搭配"
+      ],
+      "locked_features": [
+        "连帽军绿夹克",
+        "侧边大贴袋工装裤",
+        "驼色针织冷帽"
+      ]
+    },
+    {
+      "asset_id": "system-060-625cbead",
+      "label": "深蓝网球暖身",
+      "image": "system_assets/system-060-625cbead.jpg",
+      "sha256": "625cbead8e72c22cafb5e509c7140d652afaf2f012b843a296bc7e479ce38009",
+      "audience": "womens",
+      "season": "winter",
+      "scene": "travel",
+      "style_tags": [
+        "sport"
+      ],
+      "suitable_min": 5,
+      "suitable_max": 15,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/14-运动女-马甲紧身裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "long_sleeve",
+          "variant_type": "长袖针织打底衫",
+          "color_type": "solid",
+          "color_name": "灰色",
+          "color_value": "#808080",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_knit",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "盖过腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "针织面料",
+          "wearing_method": "内搭"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "vest",
+          "variant_type": "短款羽绒马甲",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "thick",
+          "confidence": 0.96,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "outer_down_short",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "短至胯部",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "立领",
+            "横向绗缝"
+          ],
+          "material": "防风面料填充羽绒",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "leggings",
+          "variant_type": "紧身运动裤",
+          "color_type": "solid",
+          "color_name": "深灰色",
+          "color_value": "#4F4F4F",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "紧身",
+          "shoulder": "不适用",
+          "length": "七分长度",
+          "waistline": "高腰",
+          "bottom_shape": "紧身直筒",
+          "structure_details": [],
+          "material": "弹力运动面料",
+          "wearing_method": "搭配长袜"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "sneaker",
+          "variant_type": "运动鞋",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "正常",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "平底",
+          "structure_details": [
+            "系带"
+          ],
+          "material": "网面与橡胶底",
+          "wearing_method": "穿在脚上"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "backpack",
+          "variant_type": "双肩包",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_backpack",
+          "fit": "正常",
+          "shoulder": "双肩背",
+          "length": "中等大小",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "拉链口袋"
+          ],
+          "material": "尼龙面料",
+          "wearing_method": "背在肩上"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "上宽下紧的运动休闲风，适合户外活动。",
+        "structure_points": [
+          "短款马甲提升腰线",
+          "紧身裤展现腿部线条"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "长袖针织打底衫＋短款羽绒马甲＋紧身运动裤＋运动鞋",
+        "steps": [
+          "穿长袖针织打底衫",
+          "外搭短款羽绒马甲",
+          "搭配紧身运动裤",
+          "穿运动鞋"
+        ],
+        "styling_points": [
+          "保持上宽下紧比例",
+          "选择深色鞋履"
+        ],
+        "weather_note": "建议体感温度 5～15℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "替换时保留上宽下紧比例。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下紧",
+        "layering": "双层",
+        "color_structure": "深浅结合",
+        "footwear_shape": "低帮运动鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上宽下紧",
+        "proportion": "短款马甲配紧身裤",
+        "layering": "双层",
+        "material_contrast": "蓬松羽绒与平滑弹力面料",
+        "color_structure": "深浅结合",
+        "accessory_role": "实用背包",
+        "footwear_shape": "低帮运动鞋"
+      },
+      "signature_features": [
+        "短款羽绒马甲",
+        "紧身运动裤",
+        "长筒袜搭配",
+        "深色运动鞋"
+      ],
+      "locked_features": [
+        "短款羽绒马甲",
+        "紧身运动裤",
+        "深色运动鞋"
+      ]
+    },
+    {
+      "asset_id": "system-061-21fdcead",
+      "label": "黑皮衣白裤",
+      "image": "system_assets/system-061-21fdcead.jpg",
+      "sha256": "21fdcead158e8ab474159f50d91b590c54a5c1f866544199aac5c99ab0423019",
+      "audience": "womens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "minimal"
+      ],
+      "suitable_min": 12,
+      "suitable_max": 22,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/15-简约女-黑皮夹克白长裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "variant_type": "基础款圆领短袖T恤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_tshirt_short",
+          "fit": "合身",
+          "shoulder": "正肩",
+          "length": "常规至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "棉质",
+          "wearing_method": "下摆扎进裤腰"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "jacket",
+          "variant_type": "翻领拉链皮夹克",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_light_jacket",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "短至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "罗纹收口",
+          "structure_details": [
+            "立领",
+            "前中拉链",
+            "金属按扣"
+          ],
+          "material": "皮革",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "高腰阔腿西装裤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#F8F8F8",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "超宽松",
+          "shoulder": "不适用",
+          "length": "长裤盖鞋面",
+          "waistline": "高腰",
+          "bottom_shape": "宽直筒",
+          "structure_details": [
+            "腰袢",
+            "前片压褶"
+          ],
+          "material": "垂坠面料",
+          "wearing_method": "搭配皮带系于腰间"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "leather_shoe",
+          "variant_type": "尖头粗跟短靴",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "shoe_sneaker_high_top",
+          "fit": "包裹脚部",
+          "shoulder": "不适用",
+          "length": "及踝",
+          "waistline": "不适用",
+          "bottom_shape": "尖头",
+          "structure_details": [
+            "低方跟"
+          ],
+          "material": "皮革",
+          "wearing_method": "穿在裤管内"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "sunglasses",
+          "variant_type": "黑框墨镜",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.99,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_glasses",
+          "fit": "佩戴于眼部",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "方形镜框",
+          "structure_details": [
+            "深色镜片"
+          ],
+          "material": "板材",
+          "wearing_method": "正常佩戴"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用短款皮衣与高腰阔腿裤打造利落干练的都市极简风。",
+        "structure_points": [
+          "高腰线拉长腿部比例",
+          "敞开的皮衣形成纵向线条显瘦",
+          "尖头鞋延伸视觉长度"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "黑色皮夹克＋白色T恤＋高腰白色阔腿裤＋黑色尖头短靴",
+        "steps": [
+          "将白色T恤下摆扎入高腰阔腿裤中",
+          "外搭短款黑色皮夹克并敞开穿着",
+          "脚踩黑色尖头短靴，佩戴墨镜"
+        ],
+        "styling_points": [
+          "保持黑白主色调干净纯粹",
+          "强调高腰线位置"
+        ],
+        "weather_note": "建议体感温度 12～22℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用其他材质短外套替换皮衣，但需保留短款版型。"
+      },
+      "reference_outfit": {
+        "proportion": "上短下长",
+        "layering": "双层",
+        "color_structure": "黑白对比",
+        "footwear_shape": "尖头"
+      },
+      "outfit_dna": {
+        "silhouette_route": "上短下长",
+        "proportion": "短外套配高腰阔腿裤",
+        "layering": "内搭加外套",
+        "material_contrast": "硬挺皮革与柔软垂坠面料",
+        "color_structure": "黑白经典配色",
+        "accessory_role": "墨镜增加气场",
+        "footwear_shape": "尖头"
+      },
+      "signature_features": [
+        "黑色皮夹克",
+        "高腰白色阔腿裤",
+        "尖头黑色短靴",
+        "黑框墨镜",
+        "黑白撞色"
+      ],
+      "locked_features": [
+        "黑色皮夹克",
+        "高腰白色阔腿裤",
+        "尖头黑色短靴"
+      ]
+    },
+    {
+      "asset_id": "system-062-57ab8aaf",
+      "label": "浅灰工装日常",
+      "image": "system_assets/system-062-57ab8aaf.jpg",
+      "sha256": "57ab8aafd0a819eb5b8a3d975d3bcb08bb0b13e15005c901e89985f16828d16d",
+      "audience": "mens",
+      "season": "spring-autumn",
+      "scene": "commute",
+      "style_tags": [
+        "casual"
+      ],
+      "suitable_min": 10,
+      "suitable_max": 20,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/16-休闲男-浅夹克牛仔裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "equipment",
+          "functional_icon_key": "baseball_cap",
+          "variant_type": "黑色棒球帽",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": null,
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": null,
+          "shoulder": null,
+          "length": null,
+          "waistline": null,
+          "bottom_shape": null,
+          "structure_details": [],
+          "material": null,
+          "wearing_method": null
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "jacket",
+          "variant_type": "浅灰色工装夹克",
+          "color_type": "solid",
+          "color_name": "浅灰色",
+          "color_value": "#BDBDBD",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.95,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "outer_light_jacket",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "短至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "翻领",
+            "拉链门襟",
+            "大贴袋"
+          ],
+          "material": "帆布或水洗棉",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "top",
+          "functional_icon_key": "hoodie",
+          "variant_type": "黑色连帽卫衣",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#1A1A1A",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_sweatshirt",
+          "fit": "合身偏宽松",
+          "shoulder": "正肩",
+          "length": "常规盖过腰带",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "连帽",
+            "袋鼠兜"
+          ],
+          "material": "毛圈布",
+          "wearing_method": "作为内搭，帽子翻出"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "long_bottom",
+          "variant_type": "泼墨做旧直筒牛仔裤",
+          "color_type": "pattern",
+          "color_name": "水洗蓝",
+          "color_value": "#7E94A6",
+          "pattern_description": "泼墨/做旧",
+          "thickness": "thick",
+          "confidence": 0.97,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_casual_pants",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "裤脚堆叠在鞋面",
+          "waistline": "中腰",
+          "bottom_shape": "直筒",
+          "structure_details": [
+            "五袋款",
+            "泼墨点状图案"
+          ],
+          "material": "牛仔布",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "leather_shoe",
+          "variant_type": "沙色麂皮休闲鞋",
+          "color_type": "solid",
+          "color_name": "沙色",
+          "color_value": "#C2B280",
+          "pattern_description": null,
+          "thickness": "regular",
+          "confidence": 0.92,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_leather",
+          "fit": null,
+          "shoulder": null,
+          "length": null,
+          "waistline": null,
+          "bottom_shape": null,
+          "structure_details": [],
+          "material": null,
+          "wearing_method": null
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "利用短款夹克优化比例，通过泼墨牛仔裤增加街头细节。",
+        "structure_points": [
+          "夹克长度止于腰线以拉长腿部",
+          "卫衣帽子翻出增加层次",
+          "裤脚堆叠配合厚底鞋增强体积感"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "浅灰色工装夹克＋黑色连帽卫衣＋泼墨做旧直筒牛仔裤＋沙色麂皮休闲鞋",
+        "steps": [
+          "穿上黑色连帽卫衣并将帽子翻出",
+          "套上浅灰色工装夹克并敞开拉链",
+          "搭配泼墨做旧直筒牛仔裤",
+          "脚踩沙色麂皮休闲鞋",
+          "最后戴上黑色棒球帽"
+        ],
+        "styling_points": [
+          "保持夹克敞开露出内搭",
+          "保留裤脚的堆叠效果",
+          "利用帽子颜色呼应上衣"
+        ],
+        "weather_note": "建议体感温度 10～20℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用其他深色卫衣替换黑色卫衣；可用普通深蓝牛仔裤替换泼墨裤。"
+      },
+      "reference_outfit": {
+        "proportion": "上宽下宽",
+        "layering": "双层（外套+卫衣）",
+        "color_structure": "外浅内深配浅色裤",
+        "footwear_shape": "圆头厚底"
+      },
+      "outfit_dna": {
+        "silhouette_route": "H型宽松",
+        "proportion": "短夹克配长直筒裤",
+        "layering": "硬挺外套叠穿软质卫衣",
+        "material_contrast": "帆布、毛圈布与牛仔布的混合",
+        "color_structure": "灰黑蓝经典冷色调组合",
+        "accessory_role": "黑色帽子呼应内搭",
+        "footwear_shape": "沙色圆头鞋"
+      },
+      "signature_features": [
+        "浅灰工装夹克",
+        "黑色连帽卫衣内搭",
+        "泼墨做旧牛仔裤",
+        "黑色棒球帽",
+        "沙色麂皮休闲鞋",
+        "裤脚堆叠感"
+      ],
+      "locked_features": [
+        "浅灰工装夹克",
+        "黑色连帽卫衣内搭",
+        "泼墨做旧牛仔裤"
+      ]
+    },
+    {
+      "asset_id": "system-063-9a3e1c17",
+      "label": "橙色轻量跑步",
+      "image": "system_assets/system-063-9a3e1c17.jpg",
+      "sha256": "9a3e1c179b61f59f2f31b94ce534cbf8cd1c375c2224a73f9cf2cc4468bc0c33",
+      "audience": "womens",
+      "season": "summer",
+      "scene": "travel",
+      "style_tags": [
+        "sport"
+      ],
+      "suitable_min": 20,
+      "suitable_max": 30,
+      "manual_reviewed": true,
+      "source_relative_path": "AI处理版/17-运动女-橙马甲跑步短裤.png",
+      "content_ready": true,
+      "content_version": "wearcue-vision-v3",
+      "ai_edited": true,
+      "temperature_basis": "visual_estimate_not_measured",
+      "components": [
+        {
+          "slot": "top",
+          "functional_icon_key": "short_sleeve",
+          "variant_type": "基础款短袖T恤",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "top_tshirt_short",
+          "fit": "常规",
+          "shoulder": "正肩",
+          "length": "标准至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "圆领"
+          ],
+          "material": "棉质",
+          "wearing_method": "作为内搭，下摆收进短裤"
+        },
+        {
+          "slot": "outerwear",
+          "functional_icon_key": "vest",
+          "variant_type": "连帽轻薄马甲",
+          "color_type": "solid",
+          "color_name": "橙色",
+          "color_value": "#E67E22",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.95,
+          "approximate": true,
+          "suggested": false,
+          "asset_key": "outer_shell",
+          "fit": "宽松",
+          "shoulder": "落肩",
+          "length": "短至腰线",
+          "waistline": "不适用",
+          "bottom_shape": "直筒",
+          "structure_details": [
+            "拉链门襟",
+            "连帽设计",
+            "两侧口袋"
+          ],
+          "material": "防风面料",
+          "wearing_method": "敞开穿着"
+        },
+        {
+          "slot": "bottom",
+          "functional_icon_key": "short_bottom",
+          "variant_type": "运动风抽绳短裤",
+          "color_type": "solid",
+          "color_name": "军绿色",
+          "color_value": "#6B6B4A",
+          "pattern_description": "纯色",
+          "thickness": "thin",
+          "confidence": 0.96,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "bottom_shorts",
+          "fit": "宽松",
+          "shoulder": "不适用",
+          "length": "大腿中部",
+          "waistline": "高腰",
+          "bottom_shape": "阔腿",
+          "structure_details": [
+            "腰部抽绳",
+            "侧开叉"
+          ],
+          "material": "速干面料",
+          "wearing_method": "自然垂坠"
+        },
+        {
+          "slot": "shoes",
+          "functional_icon_key": "sneaker",
+          "variant_type": "厚底老爹鞋",
+          "color_type": "pattern",
+          "color_name": "橙色拼色",
+          "color_value": "#FF7F50",
+          "pattern_description": "拼色",
+          "thickness": "regular",
+          "confidence": 0.99,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "shoe_sneaker",
+          "fit": "包裹",
+          "shoulder": "不适用",
+          "length": "低帮",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "网面拼接",
+            "厚底"
+          ],
+          "material": "网布与皮革",
+          "wearing_method": "搭配白袜"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "baseball_cap",
+          "variant_type": "棒球帽",
+          "color_type": "solid",
+          "color_name": "白色",
+          "color_value": "#FFFFFF",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 0.98,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_baseball_cap",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "弯檐"
+          ],
+          "material": "棉质",
+          "wearing_method": "佩戴"
+        },
+        {
+          "slot": "equipment",
+          "functional_icon_key": "sunglasses",
+          "variant_type": "墨镜",
+          "color_type": "solid",
+          "color_name": "黑色",
+          "color_value": "#000000",
+          "pattern_description": "纯色",
+          "thickness": "regular",
+          "confidence": 1.0,
+          "approximate": false,
+          "suggested": false,
+          "asset_key": "acc_glasses",
+          "fit": "不适用",
+          "shoulder": "不适用",
+          "length": "不适用",
+          "waistline": "不适用",
+          "bottom_shape": "不适用",
+          "structure_details": [
+            "运动型框"
+          ],
+          "material": "塑料/金属",
+          "wearing_method": "佩戴"
+        }
+      ],
+      "outfit_analysis": {
+        "summary": "典型的户外运动休闲风格，通过马甲叠穿和短裤组合展现活力。",
+        "structure_points": [
+          "马甲的橙色与鞋子形成色彩呼应",
+          "短裤的高腰设计拉长腿部线条",
+          "配饰（帽子、墨镜）增强功能性与造型感"
+        ],
+        "completion_advice": []
+      },
+      "replication_guide": {
+        "formula": "白色T恤＋橙色连帽马甲＋军绿抽绳短裤＋橙色老爹鞋",
+        "steps": [
+          "内搭白色圆领T恤",
+          "外穿橙色轻薄连帽马甲",
+          "下身搭配军绿色高腰抽绳短裤",
+          "脚踩橙色系厚底老爹鞋",
+          "佩戴白色棒球帽与运动墨镜"
+        ],
+        "styling_points": [
+          "保持马甲敞开以展示层次感",
+          "鞋服颜色呼应是关键"
+        ],
+        "weather_note": "建议体感温度 20～30℃，根据个人耐冷、活动强度和风雨调整；温度为服装估计，未经实测。",
+        "substitute": "可用其他亮色马甲替换，但需保留运动短裤与厚底鞋的组合。"
+      },
+      "reference_outfit": {
+        "proportion": "上长下短",
+        "layering": "三层（T恤+马甲+短裤）",
+        "color_structure": "亮色点缀",
+        "footwear_shape": "厚底运动鞋"
+      },
+      "outfit_dna": {
+        "silhouette_route": "户外机能休闲",
+        "proportion": "利用短裤露肤平衡上半身层次",
+        "layering": "叠穿增加丰富度",
+        "material_contrast": "棉质与防风面料的对比",
+        "color_structure": "大面积中性色配高饱和橙色",
+        "accessory_role": "帽子呼应整体色调",
+        "footwear_shape": "老爹鞋强化运动感"
+      },
+      "signature_features": [
+        "橙色连帽马甲",
+        "军绿抽绳短裤",
+        "同色系厚底老爹鞋",
+        "白色棒球帽",
+        "运动墨镜"
+      ],
+      "locked_features": [
+        "橙色连帽马甲",
+        "军绿抽绳短裤",
+        "同色系厚底老爹鞋"
+      ]
     }
   ]
 }

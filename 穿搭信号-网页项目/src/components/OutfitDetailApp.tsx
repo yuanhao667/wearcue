@@ -80,6 +80,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
   const [adviceStatusStep, setAdviceStatusStep] = useState(0);
   const [saveAction, setSaveAction] = useState<"pool" | "library" | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
+  const [detailAttempt, setDetailAttempt] = useState(0);
   const requestedDetail = useRef("");
   const recommendation = useMemo<BackendRecommendation | null>(() => {
     if (!raw) return null;
@@ -110,7 +111,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
     if (savedOutfit?.image_url && !needsAdvice) {
       return;
     }
-    const requestKey = `${id}:${needsAdvice}`;
+    const requestKey = `${id}:${detailAttempt}`;
     if (requestedDetail.current === requestKey) return;
     requestedDetail.current = requestKey;
     let active = true;
@@ -120,7 +121,9 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
     void apiJson<{
       replication_guide?: ReplicationGuide;
       outfit_analysis?: OutfitAnalysis;
-      image_url: string;
+      image_url: string | null;
+      image_error?: string;
+      advice_error?: string;
       ai_quota: AIQuota;
     }>("/recommendations/advice", {
       method: "POST",
@@ -140,7 +143,9 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
       if (active) {
         if (value.replication_guide) setAiAdvice(value.replication_guide);
         if (value.outfit_analysis) setAiAnalysis(value.outfit_analysis);
-        setGeneratedImageUrl(apiAsset(value.image_url));
+        if (value.image_url) setGeneratedImageUrl(apiAsset(value.image_url));
+        setImageError(value.image_error ?? "");
+        setAdviceError(value.advice_error ?? "");
         setAdviceQuota(value.ai_quota);
         if (recommendation && value.replication_guide && value.outfit_analysis) try {
           localStorage.setItem("wearcue_active_outfit_v1", JSON.stringify({
@@ -164,7 +169,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
       if (active) setAdviceDone(true);
     });
     return () => { active = false; };
-  }, [id, loading, recommendation, savedOutfit]);
+  }, [id, loading, recommendation, savedOutfit, detailAttempt]);
 
   const adviceLoading = Boolean(recommendation && recommendation.source === "ai" && !recommendation.replication_guide && !recommendation.outfit_analysis && !adviceDone);
 
@@ -236,6 +241,7 @@ export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?
         {showPhotoColumn && <section className="outfit-detail-photo-card">
           <div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>
           {imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}
+          {(imageError || adviceError) && adviceDone && <button className="outfit-save-secondary" type="button" onClick={() => setDetailAttempt((attempt) => attempt + 1)}>重新尝试生成</button>}
           {recommendation && <div className="outfit-detail-photo-actions">
             {isDefaultRecommendation
               ? <span className="outfit-save-primary is-saved is-default" role="status">已在首页推荐</span>

@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import ipaddress
 import logging
@@ -10,6 +11,7 @@ from urllib.parse import urlparse
 import httpx
 
 from .outfit_ai_service import scene_context_for
+from .style_guidance import style_guidance
 
 logger = logging.getLogger(__name__)
 DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.2"
@@ -56,6 +58,7 @@ class OutfitImageService:
             or ""
         )
         self.model = os.getenv("AI_IMAGE_MODEL", "wan2.7-image")
+        self.fallback_model = os.getenv("AI_IMAGE_FALLBACK_MODEL", "")
         # "openai"：POST /images/generations；"dashscope"：千问平台原生生图接口。
         self.style = (os.getenv("AI_IMAGE_API_STYLE") or "openai").strip().lower()
         prompt_path = Path(__file__).resolve().parents[1] / "prompts" / "outfit_image.txt"
@@ -104,6 +107,7 @@ class OutfitImageService:
                 item.get("waistline"),
                 item.get("bottom_shape"),
                 item.get("material"),
+                item.get("pattern_description"),
                 item.get("wearing_method"),
                 "、".join(str(value) for value in item.get("structure_details") or []),
             ]
@@ -129,13 +133,16 @@ class OutfitImageService:
         )
         must_show = "；".join(str(value) for value in (locked_features or []))
         style_names = "、".join(style_tags or []) or "由服装廓形自然决定"
+        guidance = style_guidance(audience, style_tags or [])
         prompt = (
             self.prompt
             + f"\n\n本次主题：{label}。人物："
             + ("青年感中国男性" if audience == "mens" else "青年感中国女性")
-            + f"，{person_profile['height_group']}身高、{person_profile['weight_group']}体重段。"
+            + f"，{person_profile['height_group']}身高、{person_profile['weight_group']}体型。保持该体型的真实轮廓，不夸张拉伸高矮或改变体型。"
             + f"\n场景：{scene_context['scene_name']}。主风格：{style_names}。"
             + f"\n场景约束：{scene_requirements}"
+            + ("\n\n本套穿搭的风格执行指引（按标签顺序，以第一种为主）：\n" + guidance if guidance else "")
+            + "\n风格定义仅指导清单内衣物的视觉表达；已确认的单品、颜色、版型、厚度与锁定特征优先。不得照搬展示图换装或增添鞋包配饰，也不得为了风格牺牲已确定的适温层次。"
             + f"\n\n唯一允许出现的 {len(items)} 件服装与配饰：\n{garment_list}"
             + (f"\n\n廓形与造型DNA：{dna_lines}" if dna_lines else "")
             + (f"\n必须清楚呈现：{must_show}" if must_show else "")
@@ -143,71 +150,91 @@ class OutfitImageService:
             + ("\n明确禁止：" + "；".join(forbidden) if forbidden else "")
             + "\n场景仅控制背景、姿态与活动感，不能改动上述服装。"
         )
+        models = list(dict.fromkeys(filter(None, [self.model, self.fallback_model])))
+        async with httpx.AsyncClient(timeout=90, follow_redirects=True) as client:
+            for index, model in enumerate(models):
+                started_at = time.perf_counter()
+                try:
+                    image = await asyncio.wait_for(
+                        self._generate_image(client, prompt, model), timeout=90
+                    )
+                    logger.info(
+                        "AI outfit image model=%s completed in %dms",
+                        model, round((time.perf_counter() - started_at) * 1000),
+                    )
+                    return image
+                except httpx.HTTPStatusError as error:
+                    status = error.response.status_code
+                    retryable = status == 429 or status >= 500
+                    failure = error
+                except (TimeoutError, httpx.RequestError, OutfitImageServiceError,
+                        KeyError, IndexError, TypeError, ValueError) as error:
+                    retryable = True
+                    failure = error
+                logger.warning(
+                    "AI outfit image model=%s failed type=%s status=%s fallback=%s",
+                    model, type(failure).__name__,
+                    failure.response.status_code if isinstance(failure, httpx.HTTPStatusError) else None,
+                    retryable and index < len(models) - 1,
+                )
+                if not retryable or index == len(models) - 1:
+                    raise OutfitImageServiceError("AI 穿搭参考图生成失败，请稍后重试") from failure
+        raise OutfitImageServiceError("AI 生图模型尚未配置")
+
+    async def _generate_image(self, client: httpx.AsyncClient, prompt: str, model: str) -> bytes:
         if self.style == "dashscope":
             request_url = self.url + "/services/aigc/multimodal-generation/generation"
             payload = {
-                "model": self.model,
+                "model": model,
                 "input": {"messages": [{"role": "user", "content": [{"text": prompt}]}]},
                 "parameters": {"size": "1024*1536", "n": 1, "watermark": False},
             }
         else:
             request_url = self.url + "/images/generations"
             payload = {
-                "model": self.model,
+                "model": model,
                 "prompt": prompt,
                 "n": 1,
                 "size": "1024x1536",
                 "thinking_mode": True,
                 "watermark": False,
             }
-        started_at = time.perf_counter()
-        async with httpx.AsyncClient(timeout=180, follow_redirects=True) as client:
-            try:
-                response = await client.post(
-                    request_url,
-                    headers={"Authorization": "Bearer " + self.key},
-                    json=payload,
-                )
-                response.raise_for_status()
-                body = response.json()
-                output = first_image_output(body, self.style)
-                if output.get("b64_json"):
-                    image = base64.b64decode(output["b64_json"], validate=True)
-                else:
-                    image_url = output.get("url") or output.get("content_url")
-                    if not image_url or not safe_image_url(image_url):
-                        raise OutfitImageServiceError("AI 生图未返回图片")
-                    api_host = urlparse(self.url).hostname
+        response = await client.post(
+            request_url,
+            headers={"Authorization": "Bearer " + self.key},
+            json=payload,
+        )
+        response.raise_for_status()
+        body = response.json()
+        output = first_image_output(body, self.style)
+        if output.get("b64_json"):
+            image = base64.b64decode(output["b64_json"], validate=True)
+        else:
+            image_url = output.get("url") or output.get("content_url")
+            if not image_url or not safe_image_url(image_url):
+                raise OutfitImageServiceError("AI 生图未返回图片")
+            api_host = urlparse(self.url).hostname
 
-                    async def download_image(headers: dict[str, str] | None = None) -> bytes | None:
-                        async with client.stream("GET", image_url, headers=headers) as download:
-                            if download.status_code == 401:
-                                return None
-                            download.raise_for_status()
-                            declared = int(download.headers.get("content-length", "0") or "0")
-                            if declared > MAX_GENERATED_IMAGE_BYTES:
-                                raise OutfitImageServiceError("AI 生图结果无效")
-                            content = bytearray()
-                            async for chunk in download.aiter_bytes():
-                                content.extend(chunk)
-                                if len(content) > MAX_GENERATED_IMAGE_BYTES:
-                                    raise OutfitImageServiceError("AI 生图结果无效")
-                            return bytes(content)
+            async def download_image(headers: dict[str, str] | None = None) -> bytes | None:
+                async with client.stream("GET", image_url, headers=headers) as download:
+                    if download.status_code == 401:
+                        return None
+                    download.raise_for_status()
+                    declared = int(download.headers.get("content-length", "0") or "0")
+                    if declared > MAX_GENERATED_IMAGE_BYTES:
+                        raise OutfitImageServiceError("AI 生图结果无效")
+                    content = bytearray()
+                    async for chunk in download.aiter_bytes():
+                        content.extend(chunk)
+                        if len(content) > MAX_GENERATED_IMAGE_BYTES:
+                            raise OutfitImageServiceError("AI 生图结果无效")
+                    return bytes(content)
 
-                    image = await download_image()
-                    if image is None and urlparse(image_url).hostname == api_host:
-                        image = await download_image({"Authorization": "Bearer " + self.key})
-                    if image is None:
-                        raise OutfitImageServiceError("AI 生图下载未授权")
-                if not image or len(image) > MAX_GENERATED_IMAGE_BYTES:
-                    raise OutfitImageServiceError("AI 生图结果无效")
-                logger.info(
-                    "AI outfit image %s completed in %dms",
-                    DETAIL_IMAGE_PROMPT_VERSION,
-                    round((time.perf_counter() - started_at) * 1000),
-                )
-                return image
-            except OutfitImageServiceError:
-                raise
-            except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
-                raise OutfitImageServiceError("AI 穿搭参考图生成失败") from error
+            image = await download_image()
+            if image is None and urlparse(image_url).hostname == api_host:
+                image = await download_image({"Authorization": "Bearer " + self.key})
+            if image is None:
+                raise OutfitImageServiceError("AI 生图下载未授权")
+        if not image or len(image) > MAX_GENERATED_IMAGE_BYTES:
+            raise OutfitImageServiceError("AI 生图结果无效")
+        return image

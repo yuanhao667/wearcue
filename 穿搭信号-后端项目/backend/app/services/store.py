@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import os
 import secrets
 import shutil
@@ -19,6 +20,15 @@ from .image_service import ImageService
 
 
 AI_USAGE_LIMITS = {"vision": 30, "swap": 6, "advice": 6}
+
+USER_DATA_COLUMNS = {
+    "outfits": "owner_user_id", "inspirations": "owner_user_id",
+    **{table: "user_id" for table in (
+        "sessions", "user_settings", "outfit_states", "user_skip_events",
+        "analysis_events", "ai_advice_cache", "ai_outfit_image_cache",
+        "push_subscriptions", "notification_deliveries", "feedback",
+    )},
+}
 
 
 def _now() -> str:
@@ -191,6 +201,7 @@ class Store:
                     PRIMARY KEY (outfit_id, local_date)
                 );
                 CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS deleted_users (user_id TEXT PRIMARY KEY);
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY, invite_code_hash TEXT NOT NULL UNIQUE,
                     nickname TEXT NOT NULL, audience TEXT NOT NULL,
@@ -251,6 +262,8 @@ class Store:
             self._add_column(db, "outfits", "recommendation_id TEXT")
             self._add_column(db, "inspirations", "owner_user_id TEXT")
             for table in ("settings", "user_settings"):
+                self._add_column(db, table, "preferred_styles TEXT NOT NULL DEFAULT '[]'")
+                self._add_column(db, table, "style_preferences_set INTEGER NOT NULL DEFAULT 0")
                 self._add_column(db, table, "height_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "weight_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "age_group TEXT NOT NULL DEFAULT '青年'")
@@ -262,6 +275,14 @@ class Store:
             self._add_column(db, "users", "email_normalized TEXT")
             self._add_column(db, "users", "password_hash TEXT")
             self._add_column(db, "users", "profile_completed INTEGER NOT NULL DEFAULT 1")
+            self._add_column(db, "users", "deletion_attempts INTEGER NOT NULL DEFAULT 0")
+            self._add_column(db, "users", "deletion_retry_at TEXT")
+            # In-flight generation must not recreate a closed account's records.
+            for table, column in USER_DATA_COLUMNS.items():
+                db.execute(f"""CREATE TRIGGER IF NOT EXISTS reject_deleted_user_{table}
+                    BEFORE INSERT ON {table}
+                    WHEN EXISTS (SELECT 1 FROM deleted_users WHERE user_id=NEW.{column})
+                    BEGIN SELECT RAISE(ABORT, 'account deleted'); END""")
             db.executescript(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
@@ -318,7 +339,7 @@ class Store:
                         styles = []
                     styles = [
                         style for style in styles
-                        if style in {"minimal", "sport", "outdoor"}
+                        if style in {"minimal", "casual", "street", "sport", "outdoor"}
                     ][:2] or ["minimal"]
                     db.execute(
                         "UPDATE outfits SET style_tags_json=? WHERE id=?",
@@ -572,6 +593,8 @@ class Store:
         result.pop("user_id", None)
         result["reminder_enabled"] = bool(result["reminder_enabled"])
         result["reminder_days"] = json.loads(result["reminder_days"])
+        result["preferred_styles"] = json.loads(result["preferred_styles"])
+        result["style_preferences_set"] = bool(result["style_preferences_set"])
         return result
 
     @staticmethod
@@ -816,6 +839,58 @@ class Store:
         with self.connect() as db:
             db.execute("DELETE FROM sessions WHERE token_hash=?", (_hash(token),))
 
+    def delete_account(self, user_id: str, password: str) -> str:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+            if not user:
+                return "invalid_password"
+            now = datetime.now(timezone.utc)
+            in_window = bool(user["deletion_retry_at"] and user["deletion_retry_at"] > now.isoformat())
+            attempts = user["deletion_attempts"] if in_window else 0
+            if attempts >= 5:
+                return "rate_limited"
+            if not user["password_hash"] or not _password_matches(password, user["password_hash"]):
+                retry_at = user["deletion_retry_at"] if in_window else (now + timedelta(minutes=15)).isoformat()
+                db.execute(
+                    "UPDATE users SET deletion_attempts=?,deletion_retry_at=? WHERE id=?",
+                    (attempts + 1, retry_at, user_id),
+                )
+                return "invalid_password"
+            paths = [row[0] for row in db.execute(
+                """SELECT file_path FROM inspirations WHERE owner_user_id=?
+                UNION SELECT file_path FROM ai_outfit_image_cache WHERE user_id=?""",
+                (user_id, user_id),
+            )]
+            db.execute("INSERT INTO deleted_users VALUES (?)", (user_id,))
+            db.execute(
+                "DELETE FROM skip_events WHERE outfit_id IN (SELECT id FROM outfits WHERE owner_user_id=?)",
+                (user_id,),
+            )
+            for table, column in USER_DATA_COLUMNS.items():
+                db.execute(f"DELETE FROM {table} WHERE {column}=?", (user_id,))
+            db.execute("DELETE FROM email_verification_codes WHERE email_normalized=?", (user["email_normalized"],))
+            db.execute("DELETE FROM users WHERE id=?", (user_id,))
+            db.execute("UPDATE app_meta SET value='claimed' WHERE key='legacy_data_claimed' AND value=?", (user_id,))
+        # Files are content-addressed and can be shared; only remove unreferenced private copies.
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            for original in paths:
+                path = Path(original).resolve()
+                if path.parent not in (self.upload_dir.resolve(), self.generated_dir.resolve()):
+                    continue
+                if db.execute(
+                    "SELECT 1 FROM inspirations WHERE file_path=? UNION SELECT 1 FROM ai_outfit_image_cache WHERE file_path=?",
+                    (original, original),
+                ).fetchone():
+                    continue
+                for size in ("original", "medium", "thumbnail"):
+                    try:
+                        ImageService.sized_path(path, size).unlink(missing_ok=True)
+                    except OSError:
+                        logging.getLogger(__name__).exception("Closed account image cleanup failed")
+        return "deleted"
+
     def update_nickname(self, user_id: str, nickname: str) -> Dict[str, Any]:
         with self.connect() as db:
             db.execute(
@@ -839,6 +914,9 @@ class Store:
     ) -> Dict[str, Any]:
         current = self.get_settings(user_id)
         current.update(payload)
+        if "preferred_styles" in payload:
+            current["preferred_styles"] = list(dict.fromkeys(payload["preferred_styles"]))
+            current["style_preferences_set"] = True
         table = "user_settings" if user_id else "settings"
         where = "user_id=?" if user_id else "id=1"
         values: List[Any] = [
@@ -847,7 +925,8 @@ class Store:
             current["cold_offset"], current["height_group"], current["weight_group"],
             current["age_group"],
             int(current["reminder_enabled"]),
-            current["reminder_time"], json.dumps(current["reminder_days"]), _now(),
+            current["reminder_time"], json.dumps(current["reminder_days"]),
+            json.dumps(current["preferred_styles"]), int(current["style_preferences_set"]), _now(),
         ]
         if user_id:
             values.append(user_id)
@@ -855,7 +934,7 @@ class Store:
             db.execute(
                 f"""UPDATE {table} SET city_id=?,city_name=?,latitude=?,longitude=?,timezone=?,
                 audience=?,cold_offset=?,height_group=?,weight_group=?,age_group=?,reminder_enabled=?,
-                reminder_time=?,reminder_days=?,updated_at=?
+                reminder_time=?,reminder_days=?,preferred_styles=?,style_preferences_set=?,updated_at=?
                 WHERE {where}""",
                 values,
             )
@@ -897,7 +976,7 @@ class Store:
         except (TypeError, json.JSONDecodeError):
             styles = ["minimal"]
         result["style_tags"] = [
-            style for style in styles if style in {"minimal", "sport", "outdoor"}
+            style for style in styles if style in {"minimal", "casual", "street", "sport", "outdoor"}
         ][:2] or ["minimal"]
         if result.get("season") not in {"spring-autumn", "summer", "winter"}:
             result["season"] = "spring-autumn"
@@ -1114,7 +1193,8 @@ class Store:
         return self.save_outfit(payload, outfit_id, user_id)
 
     def create_inspiration(
-        self, payload: Dict[str, Any], user_id: Optional[str] = None
+        self, payload: Dict[str, Any], user_id: Optional[str] = None,
+        image_data: Optional[bytes] = None,
     ) -> Dict[str, Any]:
         now = _now()
         row = {
@@ -1125,6 +1205,13 @@ class Store:
         if user_id:
             row["upload_key"] = f"{user_id}:{row['upload_key']}"
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM deleted_users WHERE user_id=?", (user_id,)).fetchone():
+                raise ValueError("account deleted")
+            if image_data is not None:
+                row["file_path"] = ImageService(self.upload_dir).process_and_store(
+                    image_data, row["content_hash"],
+                )["original"]
             db.execute(
                 """INSERT INTO inspirations
                 (id,upload_key,content_hash,original_name,media_type,file_path,status,provider,
@@ -1421,8 +1508,11 @@ class Store:
 
     def set_ai_outfit_image(self, user_id: str, recommendation_id: str, image_data: bytes) -> str:
         digest = hashlib.sha256(image_data).hexdigest()
-        file_path = ImageService(self.generated_dir).process_and_store(image_data, digest)["original"]
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM deleted_users WHERE user_id=?", (user_id,)).fetchone():
+                raise ValueError("account deleted")
+            file_path = ImageService(self.generated_dir).process_and_store(image_data, digest)["original"]
             db.execute(
                 """INSERT OR REPLACE INTO ai_outfit_image_cache
                 (user_id,recommendation_id,file_path,created_at) VALUES (?,?,?,?)""",

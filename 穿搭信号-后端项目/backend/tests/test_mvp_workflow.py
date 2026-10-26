@@ -322,6 +322,7 @@ def test_text_ai_retries_once_with_the_task_fallback_model(monkeypatch) -> None:
     monkeypatch.setenv("AI_API_KEY", "test-key")
     monkeypatch.setenv("AI_FAST_MODEL", "qwen-turbo")
     monkeypatch.setenv("AI_QUALITY_MODEL", "qwen3.8-flash")
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "qwen3.8-flash")
     request = httpx.Request("POST", "https://example.test/v1/chat/completions")
     responses = [
         httpx.Response(429, request=request),
@@ -395,12 +396,15 @@ def test_realtime_text_tasks_use_fast_model_and_low_variance_items(monkeypatch) 
 
     assert calls[0][0] == service.items_prompt
     assert calls[0][2:] == (480, "qwen-turbo", "qwen-turbo", 0.25)
-    assert calls[0][1] == {"scene": "commute", "audience": "mens"}
+    assert {key: value for key, value in calls[0][1].items() if key != "style_guidance"} == {
+        "scene": "commute", "audience": "mens"
+    }
+    assert "【运动（sport）】" in calls[0][1]["style_guidance"]
     assert calls[1][1]["scene_name"] == "通勤"
     assert calls[1][1]["person_profile"] == {
         "height_group": "偏高", "weight_group": "中等",
     }
-    assert calls[1][3:5] == ("qwen-turbo", "qwen3.8-flash")
+    assert calls[1][3:5] == ("qwen-turbo", "qwen-turbo")
     assert items_result["label"] == "适合通勤场景的清"
     assert items_result["replication_guide"] is None
     assert items_result["outfit_analysis"] is None
@@ -1029,7 +1033,7 @@ def test_new_account_library_excludes_legacy_duplicate_examples(tmp_path, monkey
     client = _client(test_store, monkeypatch)
 
     mens = client.get("/api/v1/outfits").json()
-    assert len(mens) == 24
+    assert len(mens) == 32
     assert not any(item["id"].startswith("example_mens_") for item in mens)
     assert not any(item["label"] == "都市层次出行" for item in mens)
     assert len(client.get("/api/v1/inspirations").json()) == 1
@@ -1051,7 +1055,7 @@ def test_new_account_library_excludes_legacy_duplicate_examples(tmp_path, monkey
 
     client.post("/api/v1/settings", json={"audience": "womens"})
     womens = client.get("/api/v1/outfits").json()
-    assert len(womens) == 22
+    assert len(womens) == 31
     assert old_mens["id"] not in {item["id"] for item in womens}
     assert all(item["audience"] == "womens" for item in womens)
     assert not any(item["id"].startswith("example_womens_") for item in womens)
@@ -1085,7 +1089,7 @@ def test_outfit_without_upload_reuses_existing_audience_example_image(tmp_path, 
     assert client.get(f"/api/v1{image_url}").status_code == 200
 
     all_outfits = client.get("/api/v1/outfits").json()
-    assert len(all_outfits) == 25
+    assert len(all_outfits) == 33
     assert any(item["id"] == merged["id"] for item in all_outfits)
     assert not any(item["id"].startswith("example_mens_") for item in all_outfits)
     assert not any(
@@ -1427,3 +1431,155 @@ def test_irrelevant_image_reports_no_outfit_and_still_spends_quota(tmp_path, mon
     # 无关图片照常计入当日次数
     assert response.json()["remaining_analyses"] == 29
     assert client.get("/api/v1/inspirations/analysis-quota").json()["remaining"] == 29
+
+
+@pytest.mark.parametrize("failure", ["content", "provider"])
+def test_detail_advice_retries_validation_and_provider_failure(monkeypatch, failure):
+    monkeypatch.setenv("AI_FAST_MODEL", "primary")
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "fallback")
+    service = OutfitAIService()
+    calls = []
+
+    async def call(prompt, content, max_tokens, model, fallback_model):
+        calls.append(model)
+        if model == "primary":
+            if failure == "provider":
+                raise OutfitAIServiceError("AI 生成失败")
+            return {"replication_guide": {"steps": ["搭配西装"]}}
+        return {"replication_guide": {"steps": ["搭配长袖 T 恤"]}}
+
+    monkeypatch.setattr(service, "_call", call)
+    result = asyncio.run(service.generate_advice(
+        [_component()], {}, "commute", "mens", {}
+    ))
+    assert calls == ["primary", "fallback"]
+    assert result["replication_guide"]["steps"] == ["搭配长袖 T 恤"]
+
+
+@pytest.mark.parametrize("status", [429, 503, "timeout", "malformed", 400, 401, 403])
+def test_image_fallback_only_retries_transient_or_invalid_results(monkeypatch, status):
+    monkeypatch.setenv("AI_IMAGE_API_URL", "https://example.test/api/v1")
+    monkeypatch.setenv("AI_IMAGE_API_KEY", "test-key")
+    monkeypatch.setenv("AI_IMAGE_API_STYLE", "dashscope")
+    monkeypatch.setenv("AI_IMAGE_MODEL", "wan2.7-image")
+    monkeypatch.setenv("AI_IMAGE_FALLBACK_MODEL", "qwen-image-2.0")
+    calls = []
+
+    def respond(request):
+        payload = json.loads(request.content)
+        calls.append(payload["model"])
+        assert payload["parameters"]["size"] == "1024*1536"
+        if len(calls) == 1:
+            if status == "timeout":
+                raise httpx.ReadTimeout("timeout", request=request)
+            if status == "malformed":
+                return httpx.Response(200, json={"output": {}})
+            return httpx.Response(status)
+        return httpx.Response(200, json={"output": {"choices": [{
+            "message": {"content": [{"image": "https://cdn.example.test/image.png", "b64_json": "aW1hZ2U="}]}
+        }]}})
+
+    client_type = httpx.AsyncClient
+    monkeypatch.setattr("app.services.outfit_image_service.httpx.AsyncClient",
+                        lambda **kwargs: client_type(transport=httpx.MockTransport(respond), **kwargs))
+    from app.services.outfit_image_service import OutfitImageServiceError
+    service = OutfitImageService()
+    task = service.generate("测试", "mens", "commute", [_component()], {},
+                            {"height_group": "中等", "weight_group": "中等"})
+    if status in (400, 401, 403):
+        with pytest.raises(OutfitImageServiceError):
+            asyncio.run(task)
+        assert calls == ["wan2.7-image"]
+    else:
+        assert asyncio.run(task) == b"image"
+        assert calls == ["wan2.7-image", "qwen-image-2.0"]
+
+
+@pytest.mark.parametrize("failed", ["advice", "image", "both"])
+def test_detail_preserves_successful_result_and_retries_only_missing_part(tmp_path, monkeypatch, failed):
+    store = Store(tmp_path)
+    client = _client(store, monkeypatch)
+    calls = {"advice": 0, "image": 0}
+    recovering = False
+
+    async def advice(*args):
+        calls["advice"] += 1
+        if not recovering and failed in ("advice", "both"):
+            raise OutfitAIServiceError("通勤方案误用了商务正装元素")
+        return await _fake_ai_advice(*args)
+
+    async def image(*args):
+        calls["image"] += 1
+        if not recovering and failed in ("image", "both"):
+            raise RuntimeError("model failure")
+        return await _fake_outfit_image(*args)
+
+    monkeypatch.setattr(OutfitAIService, "generate_advice", advice)
+    monkeypatch.setattr(OutfitImageService, "generate", image)
+    payload = {"recommendation_id": "partial-detail", "scene": "commute",
+               "items": [_component()], "constraints": {}}
+    response = client.post("/api/v1/recommendations/advice", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert bool(data.get("advice_error")) == (failed in ("advice", "both"))
+    assert bool(data.get("image_error")) == (failed in ("image", "both"))
+    assert data["ai_quota"]["remaining"] == (6 if failed == "both" else 5)
+    if failed == "advice":
+        assert client.get("/api/v1" + data["image_url"]).status_code == 200
+    if failed == "image":
+        assert data["replication_guide"]["steps"]
+        assert data["image_url"] is None
+    recovering = True
+    repaired = client.post("/api/v1/recommendations/advice", json=payload).json()
+    assert repaired["image_url"]
+    assert repaired["replication_guide"]["steps"]
+    assert "image_error" not in repaired and "advice_error" not in repaired
+    assert calls == {"advice": 1 if failed == "image" else 2,
+                     "image": 1 if failed == "advice" else 2}
+
+
+def test_generated_detail_can_be_saved_with_complete_long_copy(tmp_path, monkeypatch):
+    from app.schemas import OutfitSaveRequest
+    service = OutfitAIService()
+    raw = {
+        "replication_guide": {
+            "formula": "厚针织上衣＋厚运动裤＋短款羽绒外套＋复古高帮板鞋",
+            "steps": ["穿着灰色长袖上衣"],
+            "weather_note": "按当天体感温度增减外层，进入室内可以脱下外套。" * 5,
+            "substitute": "选择同样厚度与版型的上衣，保留当前的宽松度和衣长。" * 5,
+        },
+        "outfit_analysis": {"summary": "这套搭配采用基础款组合，通过清楚的层次和自然比例保持日常穿着的便利与舒适。" * 3},
+    }
+
+    async def call(*args):
+        return raw
+
+    monkeypatch.setattr(service, "_call", call)
+    detail = asyncio.run(service.generate_advice([_component()], {}, "commute", "mens", {}))
+    store = Store(tmp_path)
+    client = _client(store, monkeypatch)
+    payload = {"label": "灰调日常", "recommendation_id": "generated-long-copy",
+               "components": [_component()], **detail}
+    assert OutfitSaveRequest.model_validate(payload)
+    response = client.post("/api/v1/outfits", json=payload)
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["replication_guide"]["weather_note"] == raw["replication_guide"]["weather_note"]
+    assert saved["replication_guide"]["substitute"] == raw["replication_guide"]["substitute"]
+    assert saved["outfit_analysis"]["summary"] == raw["outfit_analysis"]["summary"]
+
+
+def test_unpersistable_advice_uses_fallback_before_returning(monkeypatch):
+    monkeypatch.setenv("AI_FAST_MODEL", "primary")
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "fallback")
+    service = OutfitAIService()
+    calls = []
+
+    async def call(prompt, content, max_tokens, model, fallback):
+        calls.append(model)
+        return {"outfit_analysis": {"summary": "层次清楚" * (300 if model == "primary" else 1)}}
+
+    monkeypatch.setattr(service, "_call", call)
+    result = asyncio.run(service.generate_advice([_component()], {}, "commute", "mens", {}))
+    assert calls == ["primary", "fallback"]
+    assert result["outfit_analysis"]["summary"] == "层次清楚"

@@ -5,8 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiAsset, apiJson } from "@/lib/backend-api";
-import type { Outfit, SceneId, SeasonId, StyleId } from "@/domain/backend";
+import type { BackendSettings, Outfit, SceneId, SeasonId, StyleId } from "@/domain/backend";
 import { displayOutfitLabel } from "@/domain/outfit-label";
+import { outfitColors, outfitMatchesColor, type OutfitColorId } from "@/domain/outfit-color";
+
+import { PreferenceHeart, StylePreferences } from "./StylePreferences";
+import { clearTodaySession } from "@/lib/today-session";
 
 type DiscoveryTab = "all" | "mine";
 const DISCOVERY_SEASON_STORAGE_KEY = "wearcue_discovery_season_v1";
@@ -21,6 +25,7 @@ const sceneOptions: Array<{ value: "all" | SceneId; label: string }> = [
 ];
 const styleOptions: Array<{ value: "all" | StyleId; label: string }> = [
   { value: "all", label: "全部" }, { value: "minimal", label: "简约" },
+  { value: "casual", label: "休闲" }, { value: "street", label: "潮流" },
   { value: "sport", label: "运动" }, { value: "outdoor", label: "户外" },
 ];
 
@@ -44,18 +49,31 @@ export function storedDiscoverySeason(
 
 export function LibraryApp() {
   const router = useRouter();
+  const [settings, setSettings] = useState<BackendSettings | null>(null);
   const [tab, setTab] = useState<DiscoveryTab>("all");
   const [season, setSeason] = useState<"all" | SeasonId>(() => currentSeason());
   const [seasonRestored, setSeasonRestored] = useState(false);
   const [scene, setScene] = useState<"all" | SceneId>("all");
   const [style, setStyle] = useState<"all" | StyleId>("all");
-  const [openFilter, setOpenFilter] = useState<"season" | "scene" | null>(null);
-  const [outfits, setOutfits] = useState<Outfit[]>([]);
-  const [tabCounts, setTabCounts] = useState<Record<DiscoveryTab, number | null>>({ all: null, mine: null });
+  const [color, setColor] = useState<OutfitColorId | null>(null);
+  const [openFilter, setOpenFilter] = useState<"season" | "scene" | "color" | null>(null);
+  const [tabOutfits, setTabOutfits] = useState<Record<DiscoveryTab, Outfit[]> | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Outfit | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const filteredOutfits = {
+    all: tabOutfits?.all.filter((outfit) => outfitMatchesColor(outfit, color)) ?? [],
+    mine: tabOutfits?.mine.filter((outfit) => outfitMatchesColor(outfit, color)) ?? [],
+  };
+  const outfits = filteredOutfits[tab];
+  if (tab === "all" && settings?.preferred_styles?.length) {
+    const preferred = settings.preferred_styles;
+    outfits.sort((a, b) =>
+      Number(b.source === "system" && b.style_tags.some((tag) => preferred.includes(tag)))
+      - Number(a.source === "system" && a.style_tags.some((tag) => preferred.includes(tag))));
+  }
+  const selectedColor = outfitColors.find((option) => option.id === color);
 
   const load = useCallback(async (showLoading = true) => {
     if (showLoading) setStatus("loading");
@@ -68,16 +86,17 @@ export function LibraryApp() {
       return params;
     };
     try {
-      const [allOutfits, mineOutfits] = await Promise.all([
+      const [allOutfits, mineOutfits, preferences] = await Promise.all([
         apiJson<Outfit[]>(`/outfits?${paramsFor("all")}`),
         apiJson<Outfit[]>(`/outfits?${paramsFor("mine")}`),
+        apiJson<BackendSettings>("/settings"),
       ]);
-      setTabCounts({ all: allOutfits.length, mine: mineOutfits.length });
-      setOutfits(tab === "all" ? allOutfits : mineOutfits);
+      setTabOutfits({ all: allOutfits, mine: mineOutfits });
+      setSettings(preferences);
       setStatus("success");
     }
     catch (error) { setMessage(error instanceof Error ? error.message : "穿搭灵感加载失败"); setStatus("error"); }
-  }, [scene, season, style, tab]);
+  }, [scene, season, style]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -102,7 +121,11 @@ export function LibraryApp() {
       if (!(event.target as Element).closest("[data-discovery-select]")) setOpenFilter(null);
     }
     function closeFilterOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpenFilter(null);
+      if (event.key === "Escape") {
+        const colorFilter = document.activeElement?.closest(".discovery-color-filter");
+        colorFilter?.querySelector<HTMLButtonElement>(".discovery-select-trigger")?.focus();
+        setOpenFilter(null);
+      }
     }
     document.addEventListener("pointerdown", closeFilter);
     window.addEventListener("keydown", closeFilterOnEscape);
@@ -115,11 +138,10 @@ export function LibraryApp() {
   async function updateStatus(outfit: Outfit, patch: { in_pool?: boolean; favorite?: boolean }) {
     try {
       const updated = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify(patch) });
-      if (tab === "mine" && outfit.source === "system" && patch.favorite === false) {
-        setOutfits((current) => current.filter((item) => item.id !== outfit.id));
-      } else {
-        setOutfits((current) => current.map((item) => item.id === updated.id ? updated : item));
-      }
+      setTabOutfits((current) => current && ({
+        all: current.all.map((item) => item.id === updated.id ? updated : item),
+        mine: current.mine.flatMap((item) => item.id !== updated.id ? [item] : updated.source === "system" && !updated.favorite ? [] : [updated]),
+      }));
       await load(false);
     } catch (error) { setMessage(error instanceof Error ? error.message : "状态更新失败"); }
   }
@@ -128,7 +150,11 @@ export function LibraryApp() {
     setDeleting(true);
     try {
       await apiJson<{ deleted: boolean }>(`/outfits/${outfit.id}`, { method: "DELETE" });
-      setOutfits((current) => current.filter((item) => item.id !== outfit.id)); setDeleteTarget(null);
+      setTabOutfits((current) => current && ({
+        all: current.all.filter((item) => item.id !== outfit.id),
+        mine: current.mine.filter((item) => item.id !== outfit.id),
+      }));
+      setDeleteTarget(null);
       await load(false);
     } catch (error) { setMessage(error instanceof Error ? error.message : "删除失败"); }
     finally { setDeleting(false); }
@@ -171,13 +197,22 @@ export function LibraryApp() {
     </article>;
   }
 
+  if (status === "loading" && !settings) return <main className="paper-page"><p className="discovery-loading" role="status">正在加载穿搭灵感…</p></main>;
+  if (status === "error" && !settings) return <main className="paper-page"><section className="paper-state"><h2>穿搭灵感暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section></main>;
+  if (settings && !settings.style_preferences_set) return <main className="paper-page style-onboarding-page"><StylePreferences
+    onboarding audience={settings.audience} selected={settings.preferred_styles ?? []}
+    onSave={async (preferred_styles) => {
+      const saved = await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify({ preferred_styles }) });
+      setSettings(saved); clearTodaySession(); return true;
+    }} /></main>;
+
   return <><main className="paper-page library-paper discovery-paper">
     <h1 className="sr-only">穿搭灵感</h1>
     <div className="discovery-tabs-sticky">
       <div className="discovery-tabs-sticky-inner">
         <div className="discovery-tabs" role="tablist" aria-label="穿搭范围">
-          <button role="tab" aria-selected={tab === "all"} className={tab === "all" ? "active" : ""} onClick={() => setTab("all")}><span>全部穿搭</span><small>{tabCounts.all ?? "—"}套</small></button>
-          <button role="tab" aria-selected={tab === "mine"} className={tab === "mine" ? "active" : ""} onClick={() => setTab("mine")}><span>收藏穿搭</span><small>{tabCounts.mine ?? "—"}套</small></button>
+          <button role="tab" aria-selected={tab === "all"} className={tab === "all" ? "active" : ""} onClick={() => setTab("all")}><span>全部穿搭</span><small>{tabOutfits ? filteredOutfits.all.length : "—"}套</small></button>
+          <button role="tab" aria-selected={tab === "mine"} className={tab === "mine" ? "active" : ""} onClick={() => setTab("mine")}><span>收藏穿搭</span><small>{tabOutfits ? filteredOutfits.mine.length : "—"}套</small></button>
         </div>
       </div>
     </div>
@@ -190,11 +225,21 @@ export function LibraryApp() {
           setOpenFilter(null);
         }} />
         <DiscoverySelect label="场景" value={scene} options={sceneOptions} open={openFilter === "scene"} onToggle={() => setOpenFilter((current) => current === "scene" ? null : "scene")} onChange={(value) => { setScene(value as "all" | SceneId); setOpenFilter(null); }} />
-        <div className="discovery-style-filter" aria-label="风格">{styleOptions.map((option) => <button type="button" key={option.value} aria-pressed={style === option.value} className={style === option.value ? "active" : ""} onClick={() => setStyle(option.value)}>{option.label}</button>)}</div>
+        <div className={`discovery-select discovery-color-filter${openFilter === "color" ? " is-open" : ""}${color ? " has-color" : ""}`} data-discovery-select>
+          <button className="discovery-select-trigger" type="button" aria-label={`颜色：${selectedColor?.label ?? "全部颜色"}`} aria-expanded={openFilter === "color"} aria-controls="discovery-color-options" onClick={() => setOpenFilter((current) => current === "color" ? null : "color")}>
+            <span className="discovery-color-label"><i className={`discovery-color-dot${color ? "" : " is-all"}`} style={selectedColor ? { backgroundColor: selectedColor.swatch } : undefined} aria-hidden="true" />{selectedColor?.label ?? "颜色"}</span>
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 4.5 3.5 3 3.5-3" /></svg>
+          </button>
+          {openFilter === "color" && <div id="discovery-color-options" className="discovery-select-menu discovery-color-menu" role="group" aria-label="选择服装颜色">
+            <div className="discovery-color-swatches">{outfitColors.map((option) => <button type="button" key={option.id} aria-label={option.label} title={option.label} aria-pressed={color === option.id} onClick={() => setColor(option.id)}><span style={{ backgroundColor: option.swatch }} aria-hidden="true" /></button>)}</div>
+            <button className="discovery-color-reset" type="button" onClick={() => setColor(null)}><i className="discovery-color-dot is-all" aria-hidden="true" />全部颜色</button>
+          </div>}
+        </div>
+        <div className="discovery-style-filter" aria-label="风格">{styleOptions.map((option) => <button type="button" key={option.value} aria-pressed={style === option.value} className={style === option.value ? "active" : ""} onClick={() => setStyle(option.value)}>{option.value !== "all" && settings?.preferred_styles?.includes(option.value) && <span className="discovery-style-heart" title="喜欢的风格"><PreferenceHeart /></span>}{option.label}</button>)}</div>
       </div>
     </section>
 
-    {status === "loading" && <section className="paper-loading"><div /><div /><div /></section>}
+    {status === "loading" && <p className="discovery-loading" role="status">正在加载穿搭灵感…</p>}
     {status === "error" && <section className="paper-state"><h2>穿搭灵感暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section>}
     {status === "success" && <section className="library-section">{outfits.length ? <div className="library-grid">{outfits.map(outfitCard)}</div> : tab === "mine" ? <div className="discovery-empty"><h2>还没有符合筛选条件的穿搭</h2><p>上传自己的穿搭，或去全部穿搭标记喜欢。</p><div><Link className="sunshine-button" href="/inspiration">上传穿搭</Link><button className="ghost-button" type="button" onClick={() => setTab("all")}>去全部穿搭看看</button></div></div> : <div className="discovery-empty"><h2>当前筛选暂无穿搭</h2><p>可以调整筛选条件，或上传一套自己的穿搭。</p><Link className="sunshine-button" href="/inspiration">上传穿搭</Link></div>}</section>}
     {message && status === "success" && <p className="inline-message">{message}</p>}
@@ -212,6 +257,6 @@ function DiscoverySelect({ label, value, options, open, onToggle, onChange }: { 
   </div>;
 }
 function sceneLabel(value?: string) { return ({ commute: "通勤", date: "约会", travel: "出行" } as Record<string, string>)[value ?? ""] ?? "通勤"; }
-function styleLabel(value?: string) { return ({ minimal: "简约", sport: "运动", outdoor: "户外" } as Record<string, string>)[value ?? ""] ?? "简约"; }
+function styleLabel(value?: string) { return ({ minimal: "简约", casual: "休闲", street: "潮流", sport: "运动", outdoor: "户外" } as Record<string, string>)[value ?? ""] ?? "简约"; }
 function seasonLabel(value: SeasonId) { return ({ "spring-autumn": "春秋", summer: "夏季", winter: "冬季" } as const)[value]; }
 function audienceLabel(value: Outfit["audience"]) { return value === "womens" ? "女装" : "男装"; }

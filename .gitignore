@@ -42,3 +42,18 @@ __pycache__/
 .tmp_prd_updates/
 pnpm-debug.log*
 *.log
+
+# 本地文档、素材工作区和敏感凭据不提交
+*.[mM][dD]
+*.[mM][dD][xX]
+*.markdown
+/output/
+/素材库/
+/风格素材待筛选/
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite*
+.aws/
+.ssh/

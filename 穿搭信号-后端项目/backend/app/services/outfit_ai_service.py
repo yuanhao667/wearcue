@@ -10,11 +10,15 @@ from typing import Any, Dict, List
 import httpx
 
 from app.domain.component_rules import normalize_component_thickness
+from app.schemas import OutfitAnalysis, ReplicationGuide
 from app.services.jev_service import JevClient, JevServiceError, plan_with_jev
+from app.services.style_guidance import PLANNING_STYLE_RULES, style_guidance
 
 logger = logging.getLogger(__name__)
 REALTIME_PLAN_PROMPT_VERSION = "wearcue-realtime-plan-v3.2"
 REALTIME_CONTEXT_KEYS = {
+    "preferred_style_tags",
+    "style_guidance",
     "scene", "audience", "season", "current_apparent_temperature",
     "apparent_min", "apparent_max", "thermal_band", "needs_waterproof",
     "needs_windproof", "required_top", "required_bottom",
@@ -121,22 +125,22 @@ def _first_str(value: Any, fallback: str = "") -> str:
 def _normalize_guide(raw: Any) -> Dict[str, Any]:
     raw = raw or {}
     steps = raw.get("steps") or []
-    return {
+    return ReplicationGuide.model_validate({
         "formula": _first_str(raw.get("formula"), "今日推荐"),
         "steps": [_first_str(step) for step in steps if _first_str(step)][:8] or ["按推荐单品逐件穿着"],
         "styling_points": [_first_str(point) for point in (raw.get("styling_points") or []) if _first_str(point)][:3],
         "weather_note": _first_str(raw.get("weather_note"), "按当天体感增减外层。"),
         "substitute": _first_str(raw.get("substitute"), "同厚度、相近版型的基础款即可替换。"),
-    }
+    }).model_dump()
 
 
 def _normalize_analysis(raw: Any) -> Dict[str, Any]:
     raw = raw or {}
-    return {
+    return OutfitAnalysis.model_validate({
         "summary": _first_str(raw.get("summary"), "基础款组合，按现有层次直接复刻即可。"),
         "structure_points": [_first_str(point) for point in (raw.get("structure_points") or []) if _first_str(point)][:3],
         "completion_advice": [_first_str(advice) for advice in (raw.get("completion_advice") or []) if _first_str(advice)][:3],
-    }
+    }).model_dump()
 
 
 def _profile_styling_points(profile: Dict[str, str]) -> List[str]:
@@ -147,6 +151,9 @@ def _profile_styling_points(profile: Dict[str, str]) -> List[str]:
     }.get(profile.get("height_group"), "衣长与裤长保持自然比例")
     weight = {
         "偏轻": "用适度层次和有结构感的面料完善轮廓，避免过度紧贴",
+        "偏瘦": "用适度层次和有结构感的面料完善轮廓，避免过度紧贴",
+        "稍瘦": "采用自然合身的版型，适度层次保留身形，避免过度宽大",
+        "稍重": "保留适度松量与自然垂感，肩腰合适，避免过度紧绷",
         "中等": "采用合身但不紧绷的常规松量",
         "偏重": "选择有垂感且不过度贴身的松量，给肩腰和活动留出空间",
     }.get(profile.get("weight_group"), "采用合身但不紧绷的常规松量")
@@ -243,6 +250,7 @@ class OutfitAIService:
         self.key = os.getenv("AI_API_KEY") or os.getenv("VISION_API_KEY") or ""
         self.model = os.getenv("AI_MODEL") or os.getenv("VISION_MODEL") or ""
         self.fast_model = os.getenv("AI_FAST_MODEL") or self.model
+        self.fast_fallback_model = os.getenv("AI_FAST_FALLBACK_MODEL") or self.fast_model
         self.quality_model = os.getenv("AI_QUALITY_MODEL") or self.model
         try:
             configured_timeout = float(os.getenv("AI_REALTIME_TIMEOUT_SECONDS", "30"))
@@ -298,15 +306,23 @@ class OutfitAIService:
                     response.raise_for_status()
                     content = response.json()["choices"][0]["message"]["content"]
                     raw = str(content).strip().removeprefix("```json").removesuffix("```").strip()
-                    return json.loads(raw)
+                    result = json.loads(raw)
+                    if not isinstance(result, dict):
+                        raise ValueError("AI response must be an object")
+                    return result
                 except httpx.HTTPStatusError as caught:
                     error = caught
                     retryable = caught.response.status_code == 429 or caught.response.status_code >= 500
+                    logger.warning("AI model=%s HTTP status=%d", selected_model, caught.response.status_code)
                 except (httpx.RequestError, KeyError, TypeError, ValueError) as caught:
                     error = caught
                     retryable = True
                 if not retryable or index == len(models) - 1:
                     raise OutfitAIServiceError("AI 生成失败") from error
+                logger.warning(
+                    "AI model=%s failed (%s); falling back to model=%s",
+                    selected_model, type(error).__name__, models[index + 1],
+                )
         raise OutfitAIServiceError("AI 生成失败")
 
     def _normalize_items(self, raw_items: Any) -> List[Dict[str, Any]]:
@@ -371,7 +387,7 @@ class OutfitAIService:
             raise OutfitAIServiceError(_first_str(raw.get("regeneration_instruction"), "AI 方案未通过 V3 质量检查"))
         styles = [
             style for style in raw.get("style_tags") or []
-            if style in {"minimal", "sport", "outdoor"}
+            if style in {"minimal", "casual", "street", "sport", "outdoor"}
         ][:2]
         return {
             "status": "ok",
@@ -406,6 +422,9 @@ class OutfitAIService:
     async def generate(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """完整生成（含建议），用于服务端预生成系统推荐。"""
         enriched_context = _with_scene_context(context)
+        enriched_context["style_guidance"] = PLANNING_STYLE_RULES + style_guidance(
+            context.get("audience", "")
+        )
         raw = await self._call(
             self.prompt, enriched_context, 1200, self.quality_model, self.fast_model
         )
@@ -416,6 +435,9 @@ class OutfitAIService:
     async def generate_items(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """生成首页图标方案：JEV 判断优先，文字模型兜底。"""
         enriched_context = _with_scene_context(context)
+        enriched_context["style_guidance"] = PLANNING_STYLE_RULES + style_guidance(
+            context.get("audience", "")
+        )
         realtime_context = {
             key: value for key, value in enriched_context.items()
             if key in REALTIME_CONTEXT_KEYS and value is not None
@@ -450,6 +472,11 @@ class OutfitAIService:
             if key in REALTIME_CONTEXT_KEYS and value is not None
         }
         payload["items"] = jev_plan.get("items") or []
+        payload["style_tags"] = jev_plan.get("style_tags") or []
+        payload["style_guidance"] = (
+            "主风格和单品已经确定，只为它们补充描述，不重新选风格或增减单品。\n"
+            + style_guidance(enriched_context.get("audience", ""), payload["style_tags"])
+        )
         started_at = time.perf_counter()
         try:
             raw_text = await asyncio.wait_for(
@@ -458,7 +485,7 @@ class OutfitAIService:
                     payload,
                     300,
                     self.fast_model,
-                    self.fast_model,
+                    self.fast_fallback_model,
                     temperature=0.4,
                 ),
                 timeout=self.realtime_timeout_seconds,
@@ -500,7 +527,7 @@ class OutfitAIService:
                     realtime_context,
                     480,
                     self.fast_model,
-                    self.fast_model,
+                    self.fast_fallback_model,
                     temperature=0.25,
                 ),
                 timeout=self.realtime_timeout_seconds,
@@ -544,32 +571,37 @@ class OutfitAIService:
             }
         )
         started_at = time.perf_counter()
-        raw = await self._call(
-            self.advice_prompt,
-            enriched_context,
-            800,
-            self.fast_model,
-            self.quality_model,
-        )
+        models = list(dict.fromkeys([self.fast_model, self.fast_fallback_model]))
+        for index, model in enumerate(models):
+            try:
+                raw = await self._call(
+                    self.advice_prompt, enriched_context, 800, model, model
+                )
+                _reject_business_commute(raw, enriched_context)
+                _reject_audience_style(raw, enriched_context)
+                guide = _normalize_guide(raw.get("replication_guide"))
+                analysis = _normalize_analysis(raw.get("outfit_analysis"))
+                break
+            except (OutfitAIServiceError, ValueError, TypeError, AttributeError) as error:
+                logger.warning("AI outfit advice model=%s failed type=%s", model, type(error).__name__)
+                if index == len(models) - 1:
+                    raise
         logger.info(
             "AI outfit advice completed in %dms",
             round((time.perf_counter() - started_at) * 1000),
         )
-        _reject_business_commute(raw, enriched_context)
-        _reject_audience_style(raw, enriched_context)
-        guide = _normalize_guide(raw.get("replication_guide"))
         guide["styling_points"] = (
             _profile_styling_points(person_profile) + guide["styling_points"]
         )[:3]
         return {
             "replication_guide": guide,
-            "outfit_analysis": _normalize_analysis(raw.get("outfit_analysis")),
+            "outfit_analysis": analysis,
         }
 
     async def generate_name(self, recognition_result: Dict[str, Any]) -> str:
         """根据图片识别结果生成一次可编辑的穿搭名称。"""
         raw = await self._call(
-            self.naming_prompt, recognition_result, 100, self.fast_model, self.quality_model
+            self.naming_prompt, recognition_result, 100, self.fast_model, self.fast_fallback_model
         )
         name = _normalize_outfit_name(raw.get("name"), recognition_result)
         if not name:

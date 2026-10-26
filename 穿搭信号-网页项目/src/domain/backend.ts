@@ -1,7 +1,7 @@
 export type Audience = "mens" | "womens";
 export type SceneId = "commute" | "date" | "travel";
 export type SeasonId = "spring-autumn" | "summer" | "winter";
-export type StyleId = "minimal" | "sport" | "outdoor";
+export type StyleId = "minimal" | "casual" | "street" | "sport" | "outdoor";
 export type Thickness = "thin" | "regular" | "thick";
 export type OutfitSlot = "top" | "bottom" | "outerwear" | "onepiece" | "shoes" | "equipment";
 
@@ -16,6 +16,8 @@ export interface BackendCity {
 }
 
 export interface BackendSettings {
+  preferred_styles?: StyleId[];
+  style_preferences_set?: boolean;
   id?: number;
   city_id: string;
   city_name: string;
@@ -24,7 +26,7 @@ export interface BackendSettings {
   timezone: string;
   audience: Audience;
   height_group: "偏矮" | "中等" | "偏高";
-  weight_group: "偏轻" | "中等" | "偏重";
+  weight_group: "偏轻" | "偏瘦" | "稍瘦" | "中等" | "稍重" | "偏重";
   cold_offset: number;
   reminder_enabled: boolean;
   reminder_time: string;

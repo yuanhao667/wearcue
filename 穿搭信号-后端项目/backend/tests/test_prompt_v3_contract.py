@@ -89,12 +89,12 @@ def test_packaged_system_images_match_the_reviewed_metadata() -> None:
     defaults = ROOT / "app" / "defaults"
     manifest = json.loads((defaults / "system_assets.json").read_text())
     assets = manifest["assets"]
-    assert manifest["count"] == len(assets) == 46
-    assert Counter(item["audience"] for item in assets) == {"mens": 24, "womens": 22}
+    assert manifest["count"] == len(assets) == 63
+    assert Counter(item["audience"] for item in assets) == {"mens": 32, "womens": 31}
     assert Counter(item["season"] for item in assets) == {
-        "spring-autumn": 18, "summer": 17, "winter": 11,
+        "spring-autumn": 31, "summer": 20, "winter": 12,
     }
-    assert len({item["sha256"] for item in assets}) == 46
+    assert len({item["sha256"] for item in assets}) == 63
     for item in assets:
         assert item["content_ready"] is True
         assert item["content_version"]
@@ -140,7 +140,8 @@ def test_visible_glasses_are_backfilled_as_detail_components() -> None:
     actual_ids = {
         item["asset_id"]
         for item in payload["assets"]
-        if any(component["asset_key"] == "acc_glasses" for component in item["components"])
+        if int(item["asset_id"].split("-")[1]) <= 46
+        and any(component["asset_key"] == "acc_glasses" for component in item["components"])
     }
     assert actual_ids == expected_ids
 

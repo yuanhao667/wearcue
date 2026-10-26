@@ -196,6 +196,7 @@ def recommend_personal_outfit(
     audience: str,
     outfits: Sequence[Dict[str, object]],
     excluded_ids: Optional[Sequence[str]] = None,
+    preferred_styles: Optional[Sequence[str]] = None,
 ) -> Optional[Dict[str, object]]:
     constraints = evaluate_weather_rules(weather)
     excluded = set(excluded_ids or ())
@@ -224,7 +225,11 @@ def recommend_personal_outfit(
     candidates = [outfit for outfit in outfits if suitable(outfit)]
     if not candidates:
         return None
-    outfit = candidates[0]
+    preferred = set(preferred_styles or [])
+    outfit = next(
+        (item for item in candidates if preferred.intersection(item.get("style_tags", []))),
+        candidates[0],
+    )
     return {
         "source": "personal",
         "template_id": outfit["id"],
@@ -247,6 +252,7 @@ def recommend_system_outfit(
     audience: str,
     outfits: Sequence[Dict[str, object]],
     excluded_ids: Optional[Sequence[str]] = None,
+    preferred_styles: Optional[Sequence[str]] = None,
 ) -> Optional[Dict[str, object]]:
     """Select a reviewed system outfit after the personal layer and before AI."""
     constraints = evaluate_weather_rules(weather)
@@ -265,7 +271,11 @@ def recommend_system_outfit(
     ]
     if not candidates:
         return None
-    outfit = candidates[0]
+    preferred = set(preferred_styles or [])
+    outfit = next(
+        (item for item in candidates if preferred.intersection(item.get("style_tags", []))),
+        candidates[0],
+    )
     # A reviewed system outfit is photo-bound content. It has already passed
     # the temperature filter above, so rewriting its visible garments to the
     # current weather vocabulary would make the detail icons contradict the

@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from app.auth import CurrentUser, allowed_invite_codes, bearer
 from app.schemas import (
+    AccountDeletionRequest,
     EmailCodeRequest,
     LoginRequest,
     OnboardingRequest,
@@ -136,4 +137,14 @@ async def logout(
     del user
     if credentials:
         store.logout(credentials.credentials)
+    return {"ok": True}
+
+
+@router.post("/delete-account")
+async def delete_account(payload: AccountDeletionRequest, user: CurrentUser) -> dict:
+    result = store.delete_account(user["id"], payload.password)
+    if result == "rate_limited":
+        raise HTTPException(429, "密码尝试次数过多，请在 15 分钟后重试")
+    if result != "deleted":
+        raise HTTPException(422, "当前密码不正确，账户未注销")
     return {"ok": True}

@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { BodyShapeControls } from "./BodyShapeControls";
+import { StylePreferences } from "./StylePreferences";
 import { CityPicker } from "./CityPicker";
 import { TimePicker } from "./TimePicker";
 import { ChangePassword } from "./ChangePassword";
-import { GenderIcon } from "./GenderIcon";
+import { DeleteAccount } from "./DeleteAccount";
 import { profileSnapshot, subscribeProfile } from "./AppNav";
 import { apiJson } from "@/lib/backend-api";
 import { ensurePushSubscription } from "@/lib/push";
@@ -17,8 +19,6 @@ import type { Audience, BackendSettings } from "@/domain/backend";
 type UserProfile = { id?: string; nickname: string; avatar: string; gender?: "mens" | "womens"; invited?: boolean };
 type CurrentUser = { id: string; email?: string | null };
 type BodyProfile = Pick<BackendSettings, "height_group" | "weight_group">;
-const heightGroups: BodyProfile["height_group"][] = ["偏矮", "中等", "偏高"];
-const weightGroups: BodyProfile["weight_group"][] = ["偏轻", "中等", "偏重"];
 const emptyProfile: UserProfile = { nickname: "", avatar: "" };
 
 function asCity(settings: BackendSettings): City {
@@ -43,6 +43,9 @@ export function SettingsApp() {
   const [saving, setSaving] = useState(false);
   const [bodyDraft, setBodyDraft] = useState<BodyProfile | null>(null);
   const bodySaveTimer = useRef<number | null>(null);
+  const bodySaveVersion = useRef(0);
+  const settingsSaveQueue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const pendingSaves = useRef(0);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -74,11 +77,17 @@ export function SettingsApp() {
     if (bodySaveTimer.current !== null) window.clearTimeout(bodySaveTimer.current);
   }, []);
 
-  async function update(patch: Record<string, unknown>, successMessage = "设置已保存") {
+  function update(patch: Record<string, unknown>, successMessage = "设置已保存") {
+    pendingSaves.current += 1;
     setSaving(true); setMessage("");
-    try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); clearTodaySession(); setMessage(successMessage); return true; }
-    catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); return false; }
-    finally { setSaving(false); }
+    // Serialize settings writes so a slow earlier response cannot replace the latest choice.
+    const save = settingsSaveQueue.current.then(async () => {
+      try { setSettings(await apiJson<BackendSettings>("/settings", { method: "POST", body: JSON.stringify(patch) })); clearTodaySession(); setMessage(successMessage); return true; }
+      catch (error) { setMessage(error instanceof Error ? error.message : "保存失败"); return false; }
+      finally { pendingSaves.current -= 1; if (!pendingSaves.current) setSaving(false); }
+    });
+    settingsSaveQueue.current = save;
+    return save;
   }
 
   async function chooseCity(city: City) {
@@ -164,14 +173,13 @@ export function SettingsApp() {
     weight_group: settings.weight_group,
   } : null;
 
-  function changeBodyProfile<K extends keyof BodyProfile>(key: K, value: BodyProfile[K]) {
-    if (!bodyProfile) return;
-    const next = { ...bodyProfile, [key]: value };
+  function changeBodyProfile(next: BodyProfile) {
+    const version = ++bodySaveVersion.current;
     setBodyDraft(next);
     if (bodySaveTimer.current !== null) window.clearTimeout(bodySaveTimer.current);
     bodySaveTimer.current = window.setTimeout(async () => {
       bodySaveTimer.current = null;
-      if (await update(next, "改动已实时更新保存")) setBodyDraft(null);
+      if (await update(next, "改动已实时更新保存") && version === bodySaveVersion.current) setBodyDraft(null);
     }, 250);
   }
 
@@ -191,21 +199,27 @@ export function SettingsApp() {
     </header>
     {status === "loading" && <section className="paper-loading"><div /><div /><div /></section>}
     {status === "error" && <section className="paper-state"><h2>设置暂时打不开</h2><p>{message}</p><button className="sunshine-button" onClick={() => void load()}>重新加载</button></section>}
-    {status === "success" && settings && <section className="settings-group" aria-label="偏好设置">
+    <section className="settings-group" aria-label="偏好设置">
     <div className="settings-paper-grid settings-preferences-grid">
-      {bodyProfile && <section className="settings-paper-card basic-info-card"><div className="card-caption">穿搭档案</div><h2>基本信息</h2><p>用于生成更贴近你的穿搭建议与人物效果图。</p><div className="basic-info-options">
-        <fieldset className="basic-info-field"><legend>身高</legend><input aria-label="身高" aria-valuetext={bodyProfile.height_group} className="paper-range" type="range" min="0" max="2" step="1" value={heightGroups.indexOf(bodyProfile.height_group)} style={{ "--range-progress": `${heightGroups.indexOf(bodyProfile.height_group) * 50}%` } as CSSProperties} onChange={(event) => changeBodyProfile("height_group", heightGroups[Number(event.target.value)])} /><div className="range-labels">{heightGroups.map((group) => group === bodyProfile.height_group ? <b key={group}>{group}</b> : <span key={group}>{group}</span>)}</div></fieldset>
-        <fieldset className="basic-info-field"><legend>体重</legend><input aria-label="体重" aria-valuetext={bodyProfile.weight_group} className="paper-range" type="range" min="0" max="2" step="1" value={weightGroups.indexOf(bodyProfile.weight_group)} style={{ "--range-progress": `${weightGroups.indexOf(bodyProfile.weight_group) * 50}%` } as CSSProperties} onChange={(event) => changeBodyProfile("weight_group", weightGroups[Number(event.target.value)])} /><div className="range-labels">{weightGroups.map((group) => group === bodyProfile.weight_group ? <b key={group}>{group}</b> : <span key={group}>{group}</span>)}</div></fieldset>
-        <fieldset className="basic-info-field"><legend>性别与服饰</legend><div className="basic-info-choices">{(["mens", "womens"] as Audience[]).map((audience) => <label key={audience}><input type="radio" name="audience" value={audience} checked={settings.audience === audience} onChange={() => void update({ audience })} /><span className="basic-info-choice"><span className="basic-info-icon"><GenderIcon gender={audience} /></span><span className="basic-info-choice-copy"><b>{audience === "mens" ? "男装" : "女装"}</b><small>{audience === "mens" ? "男士相关穿搭" : "女士相关穿搭"}</small></span></span></label>)}</div></fieldset>
-      </div></section>}
-      <section className="settings-paper-card"><div className="card-caption">体感偏好</div><h2>冷热偏好</h2><p>怕冷就向右微调，怕热就向左微调。</p><input className="paper-range" type="range" min="-6" max="6" step="2" value={settings.cold_offset} style={{ "--range-progress": `${((settings.cold_offset + 6) / 12) * 100}%` } as CSSProperties} onChange={(event) => void update({ cold_offset: Number(event.target.value) })} /><div className="range-labels"><span>更怕热</span><b>{settings.cold_offset === 0 ? "标准体感" : `${settings.cold_offset > 0 ? "+" : ""}${settings.cold_offset}°`}</b><span>更怕冷</span></div></section>
+      {status === "success" && settings && bodyProfile && <section className="settings-paper-card basic-info-card basic-profile-card" aria-labelledby="basic-profile-title">
+        <div className="card-caption">穿搭档案</div>
+        <div className="settings-card-title-row">
+          <h2 id="basic-profile-title">基本档案</h2>
+          <fieldset className="profile-audience-capsule" aria-label="性别与服饰">{(["mens", "womens"] as Audience[]).map((audience) => <label key={audience}><input className="sr-only" type="radio" name="audience" value={audience} checked={settings.audience === audience} disabled={saving} onChange={() => void update({ audience })} /><span>{audience === "mens" ? "男士" : "女士"}</span></label>)}</fieldset>
+        </div>
+        <p>用于生成更贴近你的穿搭建议与人物效果图。</p>
+        <BodyShapeControls audience={settings.audience} profile={bodyProfile} onChange={changeBodyProfile} />
+        <StylePreferences embedded audience={settings.audience} selected={settings.preferred_styles ?? []} disabled={saving} onSave={(preferred_styles) => update({ preferred_styles }, "风格偏好已保存")} />
+      </section>}
+      <div className="settings-side-column">
+      {status === "success" && settings && <><section className="settings-paper-card"><div className="card-caption">体感偏好</div><h2>冷热偏好</h2><p>怕冷就向右微调，怕热就向左微调。</p><input className="paper-range" type="range" min="-6" max="6" step="2" value={settings.cold_offset} style={{ "--range-progress": `${((settings.cold_offset + 6) / 12) * 100}%` } as CSSProperties} onChange={(event) => void update({ cold_offset: Number(event.target.value) })} /><div className="range-labels"><span>更怕热</span><b>{settings.cold_offset === 0 ? "标准体感" : `${settings.cold_offset > 0 ? "+" : ""}${settings.cold_offset}°`}</b><span>更怕冷</span></div></section>
       <section className="settings-paper-card"><div className="card-caption">所在城市</div><h2>常用城市</h2><p>天气与推荐默认按这里的城市计算。</p><button className="setting-value" onClick={() => setCityOpen(true)}><span><b>{simplifyLocationName(settings.city_name)}</b><small>{settings.timezone}</small></span><strong>更改 →</strong></button></section>
-    </div>
-    </section>}
-    <section className="settings-group" aria-label="系统设置">
-    <div className="settings-paper-grid">
+      </>}
+    <section className="settings-system-stack" aria-label="系统设置">
     {status === "success" && settings && <section className="settings-paper-card"><div className="card-caption">每日提醒</div><div className="settings-card-title-row"><h2>晨间提醒</h2><label className="settings-switch"><input aria-label="开启晨间提醒" type="checkbox" checked={settings.reminder_enabled} onChange={(event) => void toggleReminder(event.target.checked)} /></label></div><p>每天在你设定的时间提醒查看穿搭。</p>{settings.reminder_enabled && <div className="paper-field"><span>提醒时间</span><TimePicker value={settings.reminder_time} onChange={(value) => void update({ reminder_time: value })} /></div>}</section>}
-    <section className="settings-paper-card settings-account-card"><div className="card-caption">账号管理</div><h2>退出当前账号</h2>{email && <p style={{ overflowWrap: "anywhere" }}>已绑定邮箱：{email}</p>}<p>退出后需要重新登录才能查看个人穿搭与设置。</p><div className="settings-account-actions">{email && <ChangePassword email={email} />}<button className="settings-logout-button" onClick={() => void logout()}>退出登录</button></div></section>
+    <section className="settings-paper-card settings-account-card"><div className="card-caption">账号管理</div><h2>退出当前账号</h2>{email && <p style={{ overflowWrap: "anywhere" }}>已绑定邮箱：{email}</p>}<p>退出后需要重新登录才能查看个人穿搭与设置。</p><div className="settings-account-actions">{email && <ChangePassword email={email} />}<DeleteAccount /><button className="settings-logout-button" onClick={() => void logout()}>退出登录</button></div></section>
+    </section>
+      </div>
     </div>
     </section>
     {message && status === "success" && <div className={`save-notice ${saving ? "" : "ready"}`} aria-live="polite">{saving ? "正在保存…" : message}</div>}

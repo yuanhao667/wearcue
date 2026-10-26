@@ -137,7 +137,8 @@ async def health() -> dict:
 
 @router.post("/recommendations/preview", tags=["recommendations"])
 async def preview_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
-    audience = store.get_settings(user["id"])["audience"]
+    settings = store.get_settings(user["id"])
+    audience = settings["audience"]
     weather = _weather_input(payload)
     personal = recommend_personal_outfit(
         weather=weather,
@@ -145,6 +146,7 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
         audience=audience,
         outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if personal:
         return personal
@@ -154,6 +156,7 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
         audience=audience,
         outfits=store.list_outfits(user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if curated:
         return curated
@@ -170,6 +173,7 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
             weather=weather, scene=payload.scene, audience=audience,
             city_id=payload.city_id, local_date=payload.local_date,
             weather_context={
+                "preferred_style_tags": settings["preferred_styles"],
                 "city_name": payload.city_name, "latitude": payload.latitude,
                 "longitude": payload.longitude, "timezone": payload.timezone,
                 "current_temperature": payload.current_temperature,
@@ -200,7 +204,8 @@ async def ai_usage_quota(user: CurrentUser) -> dict:
 
 @router.post("/recommendations/swap", tags=["recommendations"])
 async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
-    audience = store.get_settings(user["id"])["audience"]
+    settings = store.get_settings(user["id"])
+    audience = settings["audience"]
     weather = _weather_input(payload)
     personal = recommend_personal_outfit(
         weather=weather,
@@ -208,6 +213,7 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
         audience=audience,
         outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if personal:
         return personal
@@ -217,6 +223,7 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
         audience=audience,
         outfits=store.list_outfits(user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if curated:
         return curated
@@ -236,6 +243,7 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
             city_id=payload.city_id,
             local_date=payload.local_date,
             weather_context={
+                "preferred_style_tags": settings["preferred_styles"],
                 "city_name": payload.city_name,
                 "latitude": payload.latitude,
                 "longitude": payload.longitude,
@@ -313,20 +321,37 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                 else None
             )
             pending = [task for task in (advice_task, image_task) if task is not None]
-            generated = await asyncio.gather(*pending)
+            generated = await asyncio.gather(*pending, return_exceptions=True)
             index = 0
             result = cached_advice or {}
+            errors = {}
+            succeeded = False
             if needs_advice:
-                result = generated[index]
+                advice = generated[index]
                 index += 1
-                store.set_ai_advice(user["id"], cache_id, result)
+                if isinstance(advice, BaseException):
+                    logger.warning("Detail advice failed: %s", type(advice).__name__)
+                    errors["advice_error"] = "AI 穿搭建议暂未生成，可先参考下方基础穿搭步骤"
+                else:
+                    result = advice
+                    store.set_ai_advice(user["id"], cache_id, result)
+                    succeeded = True
             if needs_image:
-                store.set_ai_outfit_image(user["id"], cache_id, generated[index])
+                image = generated[index]
+                if isinstance(image, BaseException):
+                    logger.warning("Detail image failed: %s", type(image).__name__)
+                    errors["image_error"] = "AI 穿搭参考图暂未生成，请稍后重试"
+                else:
+                    store.set_ai_outfit_image(user["id"], cache_id, image)
+                    cached_image = True
+                    succeeded = True
+            if not succeeded:
+                store.release_ai_usage(reservation_id)
         except Exception:
             store.release_ai_usage(reservation_id)
             raise
-        return result | {
-            "image_url": f"/recommendations/{cache_id}/image",
+        return result | errors | {
+            "image_url": f"/recommendations/{cache_id}/image" if cached_image else None,
             "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
             "cached": False,
         }

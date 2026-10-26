@@ -159,7 +159,7 @@ async def list_outfits(
     tab: Literal["all", "mine"] = Query(default="all"),
     season: Optional[Literal["spring-autumn", "summer", "winter"]] = Query(default=None),
     scene: Optional[Literal["commute", "date", "travel"]] = Query(default=None),
-    style: Optional[Literal["minimal", "sport", "outdoor"]] = Query(default=None),
+    style: Optional[Literal["minimal", "casual", "street", "sport", "outdoor"]] = Query(default=None),
 ) -> list:
     audience = store.get_settings(user["id"])["audience"]
     outfits = [
@@ -262,19 +262,18 @@ async def upload_inspiration(
         return existing | {"deduplicated": True}
     media_type, _ = detected
     try:
-        paths = ImageService(store.upload_dir).process_and_store(content, digest)
+        result = store.create_inspiration(
+            {
+                "upload_key": key, "content_hash": digest,
+                "original_name": Path(image.filename or "upload").name[:180],
+                "media_type": media_type,
+            },
+            user["id"], image_data=content,
+        )
     except ImagePixelLimitError as exc:
         raise HTTPException(413, "图片分辨率过高，请压缩后再上传") from exc
     except Exception as exc:
         raise HTTPException(415, "图片内容已损坏或无法解析") from exc
-    result = store.create_inspiration(
-        {
-            "upload_key": key, "content_hash": digest,
-            "original_name": Path(image.filename or "upload").name[:180],
-            "media_type": media_type, "file_path": paths["original"],
-        },
-        user["id"],
-    )
     return result | {"deduplicated": False}
 
 

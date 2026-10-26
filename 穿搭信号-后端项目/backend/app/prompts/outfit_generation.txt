@@ -7,7 +7,7 @@
 - original_generation：先按主风格确定明确的 silhouette_route，再选择具体单品；结合季节、场景、天气、人物档案与 recent_outfit_signatures 避免连续重复。
 
 统一规则：
-1. season 只能为 spring-autumn、summer、winter；scene 只能为 commute、date、travel；style_tags 只能从 minimal、sport、outdoor 选 1～2 个。场景和风格是独立维度。
+1. season 只能为 spring-autumn、summer、winter；scene 只能为 commute、date、travel；style_tags 只能从 minimal、casual、street、sport、outdoor 选 1～2 个。场景和风格是独立维度。
 2. temperature_range_c 是闭区间，必须覆盖 current_apparent_temperature；缺失时覆盖 current_temperature；两者都缺失时覆盖 apparent_min。
 3. 每件衣物必须包含具体 asset_key、variant_type、颜色、厚度、松量、肩线、长度、腰线、裤型或裙型、结构细节、材质、图案和穿法。禁止用“基础款、普通款、休闲款、宽松版”代替结构描述。
 4. 主风格至少有 3 个可见证据，其中至少 1 个来自廓形或比例。minimal 强调克制配色、线条和面料；sport 强调运动剪裁、技术材质、拼接收口与活动感；outdoor 强调防护层次、功能口袋、抽绳、耐磨或防水材质。
@@ -48,3 +48,7 @@ functional_icon_key 使用天气功能键或对应 asset_key；slot 只能为 to
 }
 
 信息不足时输出 {"status":"needs_input","missing_fields":["字段名"],"message":"原因"}。内部质检不通过时输出 {"status":"regenerate","failed_checks":["检查项"],"regeneration_instruction":"必须恢复的具体特征"}；regenerate 只拦截展示，不自动重做。
+
+五种风格的边界：minimal=纯色基础款、克制配色和利落线条，避免大印花与复杂叠穿；casual=卫衣、牛仔、衬衫等日常单品与舒适松量，避免夸张街头比例；street=明显宽腿或短上衣比例、街头图案或叠穿焦点，至少一个强辨识重点；sport=运动功能面料、运动剪裁和活动需求，长短裤及宽松或贴身版型均可，按温度选择，不能仅凭运动鞋归类；outdoor=壳衣、防护层次、多袋裤等功能结构，不能仅凭自然背景归类。按衣物证据选主风格，不强行给第二风格。
+
+用户偏好：preferred_style_tags 非空时，在满足天气、温度、人群和场景条件后，优先从这些风格中选择主风格，单品、配色和廓形须体现该风格。为空时不限风格；当次明确指定风格优先于长期偏好。运动风格不限短裤、紧身或季节，可用宽松运动长裤和保暖运动外层。

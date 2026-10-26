@@ -4,6 +4,7 @@ import asyncio
 import json
 
 import httpx
+import pytest
 
 from app.domain.component_rules import SUPPORTED_COMPONENT_ASSET_KEYS
 from app.services.jev_service import (
@@ -11,7 +12,7 @@ from app.services.jev_service import (
     GENDER_LOCKED,
     build_request,
 )
-from app.services.outfit_ai_service import OutfitAIService
+from app.services.outfit_ai_service import OutfitAIService, OutfitAIServiceError
 
 REALTIME_CONTEXT = {
     "scene": "commute",
@@ -81,9 +82,10 @@ def _answers_for(questions):
 class _FakeRuntime:
     """jev_service 与 outfit_ai_service 共享同一个 httpx 模块，按 URL 分发。"""
 
-    def __init__(self, jev_status=200, text_status=200, answers_builder=_answers_for):
+    def __init__(self, jev_status=200, text_status=200, answers_builder=_answers_for, model_status=None):
         self.jev_status = jev_status
         self.text_status = text_status
+        self.model_status = model_status or {}
         self.answers_builder = answers_builder
         self.jev_calls = []
         self.text_calls = []
@@ -120,6 +122,8 @@ class _FakeRuntime:
                 system_prompt = ((body.get("messages") or [{}])[0].get("content") or "")
                 kind = "plan_text" if PLAN_TEXT_MARKER in system_prompt else "items"
                 runtime.text_calls.append({"kind": kind, "model": body["model"]})
+                if runtime.model_status.get(body["model"], 200) >= 400:
+                    return httpx.Response(runtime.model_status[body["model"]], request=request)
                 if kind == "plan_text" and runtime.text_status >= 400:
                     return httpx.Response(runtime.text_status, request=request)
                 content = TEXT_SUPPLEMENT if kind == "plan_text" else TEXT_MODEL_PLAN
@@ -140,6 +144,7 @@ def _configure_text_models(monkeypatch):
     monkeypatch.setenv("AI_API_URL", "https://example.test/v1")
     monkeypatch.setenv("AI_API_KEY", "test-ai-key")
     monkeypatch.setenv("AI_FAST_MODEL", "qwen-turbo")
+    monkeypatch.delenv("AI_FAST_FALLBACK_MODEL", raising=False)
     monkeypatch.setenv("AI_QUALITY_MODEL", "qwen3.8-flash")
 
 
@@ -225,6 +230,51 @@ def test_homepage_plan_uses_the_full_text_model_when_jev_is_not_configured(monke
     assert runtime.jev_calls == []
     assert runtime.text_calls == [{"kind": "items", "model": "qwen-turbo"}]
     assert result["label"] == "兜底方案"
+
+
+@pytest.mark.parametrize("jev_status,kind", [(200, "plan_text"), (451, "items")])
+@pytest.mark.parametrize("turbo_status", [429, 503])
+def test_homepage_plan_uses_flash_when_turbo_is_unavailable(monkeypatch, jev_status, kind, turbo_status):
+    _configure_text_models(monkeypatch)
+    monkeypatch.setenv("JEV_API_KEY", "test-jev-key")
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "qwen3.8-flash")
+    runtime = _FakeRuntime(jev_status=jev_status, model_status={"qwen-turbo": turbo_status})
+    runtime.install(monkeypatch)
+
+    result = asyncio.run(OutfitAIService().generate_items(REALTIME_CONTEXT))
+
+    assert runtime.text_calls == [
+        {"kind": kind, "model": "qwen-turbo"},
+        {"kind": kind, "model": "qwen3.8-flash"},
+    ]
+    assert result["label"] == ("清晨通勤" if kind == "plan_text" else "兜底方案")
+    if kind == "plan_text":
+        assert _asset_keys(result) == JEV_ASSET_KEYS
+
+
+def test_homepage_plan_does_not_call_flash_when_turbo_succeeds(monkeypatch):
+    _configure_text_models(monkeypatch)
+    monkeypatch.delenv("JEV_API_KEY", raising=False)
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "qwen3.8-flash")
+    runtime = _FakeRuntime()
+    runtime.install(monkeypatch)
+
+    asyncio.run(OutfitAIService().generate_items(REALTIME_CONTEXT))
+
+    assert runtime.text_calls == [{"kind": "items", "model": "qwen-turbo"}]
+
+
+def test_homepage_plan_stops_after_both_text_models_fail(monkeypatch):
+    _configure_text_models(monkeypatch)
+    monkeypatch.delenv("JEV_API_KEY", raising=False)
+    monkeypatch.setenv("AI_FAST_FALLBACK_MODEL", "qwen3.8-flash")
+    runtime = _FakeRuntime(model_status={"qwen-turbo": 429, "qwen3.8-flash": 503})
+    runtime.install(monkeypatch)
+
+    with pytest.raises(OutfitAIServiceError):
+        asyncio.run(OutfitAIService().generate_items(REALTIME_CONTEXT))
+
+    assert len(runtime.text_calls) == 2
 
 
 def test_jev_icon_options_stay_inside_the_released_vocabulary():

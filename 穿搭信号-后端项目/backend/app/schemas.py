@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 
 SceneId = Literal["commute", "date", "travel"]
 SeasonId = Literal["spring-autumn", "summer", "winter"]
-StyleId = Literal["minimal", "sport", "outdoor"]
+StyleId = Literal["minimal", "casual", "street", "sport", "outdoor"]
 
 
 class LoginRequest(BaseModel):
@@ -54,6 +54,12 @@ class PasswordResetRequest(BaseModel):
 class OnboardingRequest(BaseModel):
     nickname: str = Field(min_length=1, max_length=5)
     audience: Literal["mens", "womens"]
+
+
+class AccountDeletionRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    password: str = Field(min_length=8, max_length=128)
+    confirmed: Literal[True]
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -108,6 +114,7 @@ class CityResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
+    preferred_styles: Optional[List[StyleId]] = Field(default=None, max_length=5)
     city_id: Optional[str] = None
     city_name: Optional[str] = Field(default=None, min_length=1, max_length=80)
     latitude: Optional[float] = Field(default=None, ge=-90, le=90)
@@ -115,7 +122,7 @@ class SettingsUpdate(BaseModel):
     timezone: Optional[str] = None
     audience: Optional[Literal["mens", "womens"]] = None
     height_group: Optional[Literal["偏矮", "中等", "偏高"]] = None
-    weight_group: Optional[Literal["偏轻", "中等", "偏重"]] = None
+    weight_group: Optional[Literal["偏轻", "偏瘦", "稍瘦", "中等", "稍重", "偏重"]] = None
     cold_offset: Optional[int] = Field(default=None, ge=-6, le=6, multiple_of=2)
     reminder_enabled: Optional[bool] = None
     reminder_time: Optional[str] = Field(default=None, pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
@@ -146,11 +153,11 @@ class OutfitComponent(BaseModel):
 
 
 class ReplicationGuide(BaseModel):
-    formula: str = Field(min_length=1, max_length=60)
-    steps: List[str] = Field(min_length=2, max_length=6)
+    formula: str = Field(min_length=1, max_length=1000)
+    steps: List[str] = Field(min_length=1, max_length=8)
     styling_points: List[str] = Field(default_factory=list, max_length=3)
-    weather_note: str = Field(default="按当天体感增减外层。", max_length=80)
-    substitute: str = Field(default="同类基础款即可替换。", max_length=80)
+    weather_note: str = Field(default="按当天体感增减外层。", max_length=1000)
+    substitute: str = Field(default="同类基础款即可替换。", max_length=1000)
 
 
 class SuggestedTemperature(BaseModel):
@@ -159,7 +166,7 @@ class SuggestedTemperature(BaseModel):
 
 
 class OutfitAnalysis(BaseModel):
-    summary: str = Field(default="基础款组合，按现有层次直接复刻即可。", min_length=1, max_length=60)
+    summary: str = Field(default="基础款组合，按现有层次直接复刻即可。", min_length=1, max_length=1000)
     structure_points: List[str] = Field(default_factory=list, max_length=3)
     completion_advice: List[str] = Field(default_factory=list, max_length=3)
 
