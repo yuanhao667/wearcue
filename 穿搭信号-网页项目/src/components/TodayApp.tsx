@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { HomeTour } from "./HomeTour";
+import { TrackingBear } from "./TrackingBear";
 import { useRouter } from "next/navigation";
 import { CityPicker } from "./CityPicker";
 import { profileSnapshot, subscribeProfile } from "./AppNav";
@@ -10,15 +11,47 @@ import { TypingHeadline } from "./TypingHeadline";
 import { apiJson } from "@/lib/backend-api";
 import { locateCurrentDistrict, simplifyLocationName, takeLoginLocation } from "@/lib/browser-location";
 import { fetchBrowserWeather } from "@/lib/browser-weather";
-import { clearTodaySession, readTodaySession, saveTodaySession } from "@/lib/today-session";
+import { clearTodaySession, readTodaySession, saveTodaySession, type SeenTemplateIdsByScene } from "@/lib/today-session";
 import type { City } from "@/domain/types";
 import type { AIQuota, AIUsageQuota, BackendRecommendation, BackendSettings, RecommendationRequest, SceneId, TodayWeather } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
+import { outfitThicknessLabel } from "@/domain/outfit-thickness";
+import { displayGarmentLabel, displayOutfitLabel } from "@/domain/outfit-label";
 
 type RecommendationsByScene = Partial<Record<SceneId, BackendRecommendation>>;
 
 export function withSceneRecommendation(current: RecommendationsByScene, next: BackendRecommendation): RecommendationsByScene {
   return { ...current, [next.scene]: next };
+}
+
+export function withSeenRecommendation(current: SeenTemplateIdsByScene, next: BackendRecommendation): SeenTemplateIdsByScene {
+  const seen = current[next.scene] ?? [];
+  return seen.includes(next.template_id)
+    ? current
+    : { ...current, [next.scene]: [...seen, next.template_id] };
+}
+
+export function outfitDetailActionLabel(source: BackendRecommendation["source"]) {
+  return source === "ai" ? "生成穿搭方案" : "查看穿搭方案";
+}
+
+export function homeHeadline(weather: TodayWeather | null, recommendation: BackendRecommendation | null, nickname = "") {
+  const name = Array.from(nickname.trim()).slice(0, 5).join("");
+  const greeting = name ? `${name}，` : "";
+  if (!weather || !recommendation) return { firstLine: `${greeting}今天穿什么`, secondLine: "看看今天的穿搭建议", secondLineHighlight: "" };
+  const { thermal_band, apparent_delta, needs_waterproof } = recommendation.constraints;
+  let summary = "今日晴朗";
+  if (weather.total_snowfall > 0 || [71, 73, 75, 77, 85, 86].includes(weather.weather_code)) summary = "今日有雪";
+  else if (weather.total_precipitation > .2 || [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(weather.weather_code)) summary = "今日有雨";
+  else if (needs_waterproof) summary = "今日可能有雨";
+  else if (apparent_delta >= 8) summary = "今日温差大";
+  else if (["cold", "freezing", "severe"].includes(thermal_band)) summary = "今日偏冷";
+  else if (["hot", "warm"].includes(thermal_band)) summary = "今日偏热";
+  else if (thermal_band === "cool") summary = "今日微凉";
+  else if (weather.weather_code === 45 || weather.weather_code === 48) summary = "今日有雾";
+  else if (weather.weather_code >= 1 && weather.weather_code <= 3) summary = "今日多云";
+  const secondLineHighlight = displayOutfitLabel(recommendation.label) || "今日推荐";
+  return { firstLine: `${greeting}${summary}`, secondLine: `试试这套${secondLineHighlight}`, secondLineHighlight };
 }
 
 const scenes: Array<{ id: SceneId; label: string }> = [
@@ -136,13 +169,19 @@ function activeRecommendationSnapshot() { return localStorage.getItem("wearcue_a
 export function TodayApp() {
   const router = useRouter();
   const savedProfile = useSyncExternalStore(subscribeProfile, profileSnapshot, () => "");
+  let nickname = "", accountKey = "";
+  try {
+    const profile = savedProfile ? JSON.parse(savedProfile) : null;
+    nickname = String(profile?.nickname || "").trim();
+    if (profile?.invited && nickname && profile.gender) accountKey = profile.id || `${nickname}:${profile.gender}`;
+  } catch { /* Ignore invalid cached profiles. */ }
   const activeRecommendationRaw = useSyncExternalStore(subscribeActiveRecommendation, activeRecommendationSnapshot, () => "");
-  let nickname = "";
-  try { nickname = savedProfile ? String(JSON.parse(savedProfile).nickname || "").trim() : ""; } catch { nickname = ""; }
   const [settings, setSettings] = useState<BackendSettings | null>(null);
   const outfitAreaRef = useRef<HTMLDivElement>(null);
+  const loadRequest = useRef(0);
   const [weather, setWeather] = useState<TodayWeather | null>(null);
   const [recommendationsByScene, setRecommendationsByScene] = useState<RecommendationsByScene>({});
+  const [seenTemplateIdsByScene, setSeenTemplateIdsByScene] = useState<SeenTemplateIdsByScene>({});
   const [sceneState, setScene] = useState<SceneId>("commute");
   const [useRestoredRecommendation, setUseRestoredRecommendation] = useState(true);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -158,18 +197,23 @@ export function TodayApp() {
   const restoredRecommendation = useRestoredRecommendation ? cachedRecommendation : null;
   const scene = restoredRecommendation?.scene ?? sceneState;
   const recommendation = restoredRecommendation ?? recommendationsByScene[scene] ?? null;
+  const headline = homeHeadline(weather, recommendation, nickname);
   const minimumTemperature = weather ? `${Math.round(weather.apparent_min)}°` : "";
   const maximumTemperature = weather ? `${Math.round(weather.apparent_max)}°` : "";
 
   const loadToday = useCallback(async (activeScene: SceneId) => {
+    const request = ++loadRequest.current;
+    setUseRestoredRecommendation(false);
+    setWeather(null);
     setStatus("loading");
     setMessage("");
     try {
       let nextSettings = await apiJson<BackendSettings>("/settings");
+      if (request !== loadRequest.current) return;
       if (nextSettings.city_id === "1816670" || nextSettings.city_id.startsWith("geo-")) {
         try {
-          const location = takeLoginLocation() ?? await locateCurrentDistrict();
-          nextSettings = {
+          const location = takeLoginLocation();
+          if (location) nextSettings = {
             ...nextSettings,
             city_id: location.id,
             city_name: location.name,
@@ -177,20 +221,25 @@ export function TodayApp() {
             longitude: location.longitude,
             timezone: location.timezone,
           };
-        } catch { /* 用户拒绝定位时沿用个人设置中的城市 */ }
+        } catch { /* 无登录定位缓存时直接使用已保存的城市 */ }
       }
+      setSettings(nextSettings);
       const nextWeather = await fetchBrowserWeather(nextSettings.latitude, nextSettings.longitude, nextSettings.city_name);
+      if (request !== loadRequest.current) return;
+      setWeather(nextWeather);
       const nextRecommendation = await apiJson<BackendRecommendation>("/recommendations/preview", {
         method: "POST",
         body: JSON.stringify(requestFrom(nextWeather, nextSettings, activeScene)),
       });
+      if (request !== loadRequest.current) return;
       cacheActiveRecommendation(nextRecommendation);
-      setSettings(nextSettings);
-      setWeather(nextWeather);
+      const nextSeen = withSeenRecommendation({}, nextRecommendation);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(nextSettings, nextWeather, nextRecommendation);
+      saveTodaySession(nextSettings, nextWeather, nextRecommendation, nextSeen);
       setStatus("success");
     } catch (error) {
+      if (request !== loadRequest.current) return;
       setMessage(error instanceof Error ? error.message : "今日数据暂时不可用");
       setStatus("error");
     }
@@ -205,6 +254,7 @@ export function TodayApp() {
       }
       setSettings(cached.settings);
       setWeather(cached.weather);
+      setSeenTemplateIdsByScene(withSeenRecommendation(cached.seenTemplateIdsByScene, cached.recommendation));
       setRecommendationsByScene({ [cached.recommendation.scene]: cached.recommendation });
       setScene(cached.recommendation.scene);
       setStatus("success");
@@ -243,8 +293,10 @@ export function TodayApp() {
     setScene(nextScene);
     if (!weather || !settings) return;
     if (existing) {
+      const nextSeen = withSeenRecommendation(seenTemplateIdsByScene, existing);
+      setSeenTemplateIdsByScene(nextSeen);
       cacheActiveRecommendation(existing);
-      saveTodaySession(settings, weather, existing);
+      saveTodaySession(settings, weather, existing, nextSeen);
       return;
     }
     setSwapping(true);
@@ -254,9 +306,11 @@ export function TodayApp() {
         method: "POST",
         body: JSON.stringify(requestFrom(weather, settings, nextScene)),
       });
+      const nextSeen = withSeenRecommendation(seenTemplateIdsByScene, nextRecommendation);
       cacheActiveRecommendation(nextRecommendation);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(settings, weather, nextRecommendation);
+      saveTodaySession(settings, weather, nextRecommendation, nextSeen);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "推荐暂时不可用");
     } finally { setSwapping(false); }
@@ -271,13 +325,16 @@ export function TodayApp() {
     setSwapRequestPending(true);
     setMessage("");
     try {
+      const seenBeforeSwap = withSeenRecommendation(seenTemplateIdsByScene, recommendation);
       const nextRecommendation = await apiJson<BackendRecommendation>("/recommendations/swap", {
         method: "POST",
-        body: JSON.stringify(requestFrom(weather, settings, scene, [recommendation.template_id])),
+        body: JSON.stringify(requestFrom(weather, settings, scene, seenBeforeSwap[scene] ?? [])),
       });
+      const nextSeen = withSeenRecommendation(seenBeforeSwap, nextRecommendation);
       cacheActiveRecommendation(nextRecommendation);
+      setSeenTemplateIdsByScene(nextSeen);
       setRecommendationsByScene((current) => withSceneRecommendation(current, nextRecommendation));
-      saveTodaySession(settings, weather, nextRecommendation);
+      saveTodaySession(settings, weather, nextRecommendation, nextSeen);
       if (nextRecommendation.ai_quota) setSwapQuota(nextRecommendation.ai_quota);
       if (nextRecommendation.ai_fallback_reason === "quota_exhausted") {
         setMessage("今日实时 AI 换一套已用完，已为你切换非 AI 方案，仍可无限换。");
@@ -300,6 +357,7 @@ export function TodayApp() {
       clearTodaySession();
       setUseRestoredRecommendation(false);
       setRecommendationsByScene({});
+      setSeenTemplateIdsByScene({});
       await loadToday(scene);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "城市切换失败");
@@ -312,7 +370,7 @@ export function TodayApp() {
   }
 
   function outfitItem(item: BackendRecommendation["items"][number], index: number) {
-    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong>{item.variant_type}</strong><em>{item.color_name}、{thicknessLabel(item.thickness)}</em></div></div>;
+    return <div className="recommendation-outfit-item" key={`${item.slot}-${index}`} style={{ "--outfit-hop-delay": `${5 + index * .48}s` } as CSSProperties}><OutfitIcon item={item} audience={recommendation!.audience} /><div><strong title={item.variant_type}>{displayGarmentLabel(item.variant_type)}</strong><em>{outfitThicknessLabel(item)}</em></div></div>;
   }
 
   function viewOutfit() {
@@ -329,67 +387,64 @@ export function TodayApp() {
       }
     } catch { /* 使用当前推荐覆盖无效缓存 */ }
     cacheActiveRecommendation(activeRecommendation);
-    router.push(`/outfit/${recommendation.template_id}`);
+    router.push(`/outfit/${recommendation.template_id}?from=home`);
   }
 
   return (
     <main className="paper-page today-paper">
       <section className="paper-hero compact-hero">
-        <p className="paper-kicker">天气 × 场景 × 穿搭</p>
-        <TypingHeadline key={nickname || "guest"} firstLine={nickname ? `${nickname}，今天穿什么，` : "今天穿什么，"} secondLine="现在就有答案。" />
+        <p className="paper-kicker">天气 × 场景 → 穿搭</p>
+        <TypingHeadline firstLine={headline.firstLine} secondLine={headline.secondLine} secondLineHighlight={headline.secondLineHighlight} />
       </section>
 
-      {status === "error" && !weather && !recommendation && <section className="paper-state" role="alert"><span>连接中断</span><h2>今天的天气还没拿到</h2><p>{message}</p><button className="sunshine-button" onClick={() => void loadToday(scene)}>重新获取</button></section>}
-
-      {weather && recommendation && <>
         <section className="today-overview">
-          <article className="weather-paper-card">
+          <article className="weather-paper-card" aria-busy={!weather && status === "loading"}>
             <div className="weather-card-head">
               <div className="card-caption weather-date-caption">{dateLabel()}</div>
-              <button className="card-location-button" onClick={() => setCityPickerOpen(true)} aria-label={`选择位置，当前${simplifyLocationName(settings?.city_name) || "北京"}`}><span className="status-dot" />{simplifyLocationName(settings?.city_name) || "北京"}<svg className="location-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 4.5 3.5 3 3.5-3" /></svg></button>
+              <button className="card-location-button" disabled={!settings} onClick={() => setCityPickerOpen(true)} aria-label={settings ? `选择位置，当前${simplifyLocationName(settings.city_name)}` : "正在读取位置"}><span className="status-dot" />{simplifyLocationName(settings?.city_name) || "读取位置"}<svg className="location-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 4.5 3.5 3 3.5-3" /></svg></button>
             </div>
+            {weather ? <>
             <div className="temperature-range" aria-label={`体感温度 ${minimumTemperature} 到 ${maximumTemperature}`}><strong key={`min-${minimumTemperature}`}><AnimatedWeatherCharacters text={minimumTemperature} /></strong><i aria-hidden="true" className="masked-weather-character" style={{ animationDelay: `${minimumTemperature.length * .12}s` }}>—</i><strong key={`max-${maximumTemperature}`}><AnimatedWeatherCharacters text={maximumTemperature} start={minimumTemperature.length + 1} /></strong></div>
             <div className="weather-summary"><h2>{weatherLabel(weather.weather_code)}</h2><p>全天体感范围 · 当前体感 {Math.round(weather.current_apparent_temperature)}°</p></div>
-            {(recommendation.constraints.needs_waterproof || recommendation.constraints.needs_sun_protection || recommendation.constraints.needs_windproof) && <div className="weather-alerts">
-              {recommendation.constraints.needs_waterproof && <span>注意防雨</span>}
+            {recommendation && (recommendation.constraints.needs_waterproof || recommendation.constraints.needs_sun_protection || recommendation.constraints.needs_windproof || recommendation.constraints.requires_layering) && <div className="weather-alerts">
+              {recommendation.constraints.needs_waterproof && <span>注意降水</span>}
               {recommendation.constraints.needs_sun_protection && <span>注意防晒</span>}
-              {recommendation.constraints.needs_windproof && <span>注意防风</span>}
+              {recommendation.constraints.needs_windproof && <span>注意大风</span>}
+              {recommendation.constraints.requires_layering && <span>注意温差</span>}
             </div>}
             <div className="weather-metrics">
               <span><b key={`precipitation-${Math.round(weather.max_precipitation_probability)}`} className="masked-weather-value reveal-delay-2">{Math.round(weather.max_precipitation_probability)}%</b>降水概率</span>
               <span><b key={`gust-${Math.round(weather.max_wind_gust)}`} className="masked-weather-value reveal-delay-3">{Math.round(weather.max_wind_gust)}</b>最大阵风</span>
               <span><b key={`uv-${Math.round(weather.uv_index_max)}`} className="masked-weather-value reveal-delay-4">{Math.round(weather.uv_index_max)}</b>紫外线</span>
             </div>
+            </> : <div className="home-card-placeholder" role="status"><span>{status === "error" ? "天气暂未加载" : "正在读取天气"}</span><i /><i /></div>}
           </article>
           <div className="recommendation-card-wrap">
-            <Image className="recommendation-mascot" src="/brand/wearcue-bear.png" alt="" width={1536} height={1024} priority />
-            <article className="recommendation-copy-card">
+            <TrackingBear />
+            <article className="recommendation-copy-card" aria-busy={!recommendation && status === "loading"}>
+            {recommendation ? <>
             <div className="recommendation-card-head">
               <div className="card-caption"><span className="status-dot mint" />今日推荐 <small className="recommendation-source">{recommendation.source === "personal" ? "来自个人首页推荐" : recommendation.source === "system_ai" ? "系统推荐" : "AI推荐方案"}</small></div>
               <div className="card-scene-switch" aria-label="穿搭场景">
                 {scenes.map((item) => <button key={item.id} className={scene === item.id ? "active" : ""} disabled={swapping} onClick={() => void selectScene(item.id)}>{item.label}</button>)}
               </div>
             </div>
-            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{recommendation.label}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button className="view-outfit-button" onClick={viewOutfit}>{recommendation.source === "ai" ? "生成 AI 穿搭方案" : "查看穿搭"}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
+            <div className="recommendation-title-row"><div className="recommendation-title-copy"><h2>{displayOutfitLabel(recommendation.label)}</h2><p>{recommendation.constraints.apparent_delta >= 8 ? "早晚温差明显，建议把外层做成可以随时穿脱的一层。" : "今天温差相对稳定，按这一套出门就够了。"}</p></div><button id="home-tour-detail" className="view-outfit-button" onClick={viewOutfit}>{outfitDetailActionLabel(recommendation.source)}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" /></svg></button></div>
             {message && <p className="inline-message" role="status">{message}</p>}
             <div className="recommendation-outfit-area" ref={outfitAreaRef}>
               <div className="recommendation-outfit-head"><span>今日搭配<small>{recommendation.items.length} 件{recommendation.items.length > 6 ? " · 可滚动" : ""}{swapQuota ? ` · 今日 AI 生成剩余 ${swapQuota.remaining}/${swapQuota.limit}` : ""} · 非 AI 不限次</small></span><button aria-busy={swapRequestPending} disabled={swapping} onClick={() => void swap()}>{!swapRequestPending && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 5.5A6 6 0 1 0 14 9" /><path d="M10.5 2.5h3v3" /></svg>}<span>{swapRequestPending ? homeSwapStatus(swapStatusStep, swapQuota?.remaining !== 0) : "换一套"}</span></button></div>
-              <div className="recommendation-outfit-strip" aria-label={`今日搭配，共 ${recommendation.items.length} 件`} tabIndex={recommendation.items.length > 6 ? 0 : undefined}>
+              <div id="home-tour-items" className="recommendation-outfit-strip" aria-label={`今日搭配，共 ${recommendation.items.length} 件`} tabIndex={recommendation.items.length > 6 ? 0 : -1}>
                 {[...recommendation.items].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b)).map(outfitItem)}
               </div>
             </div>
+            </> : <div className="home-card-placeholder" role="status"><span>{status === "error" ? message : weather ? "天气已就绪，正在匹配穿搭" : "正在准备今日穿搭"}</span><i /><i />{status === "error" && <button className="sunshine-button" onClick={() => void loadToday(scene)}>重新加载</button>}</div>}
             </article>
           </div>
         </section>
 
-      </>}
-
+      <HomeTour key={accountKey} accountKey={accountKey} ready={Boolean(weather && recommendation?.items.length && !swapping && !cityPickerOpen)} />
       {cityPickerOpen && settings && <CityPicker current={asCity(settings)} onSelect={chooseCity} onLocate={locate} onClose={() => setCityPickerOpen(false)} />}
 
     </main>
   );
-}
-
-function thicknessLabel(value: string) {
-  return ({ thin: "薄款", regular: "常规", thick: "厚款" } as Record<string, string>)[value] ?? value;
 }

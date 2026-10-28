@@ -20,6 +20,8 @@ class ThermalBand(str, Enum):
 class WeatherInput:
     apparent_min: float
     apparent_max: float
+    current_temperature: Optional[float] = None
+    current_apparent_temperature: Optional[float] = None
     max_precipitation_probability: float = 0
     total_precipitation: float = 0
     total_snowfall: float = 0
@@ -158,8 +160,8 @@ def evaluate_weather_rules(weather: WeatherInput) -> WeatherConstraints:
         warnings.append("avoid_absorbent_shoes")
     if needs_snow and calibrated < 10:
         equipment.append("gloves")
-    if needs_sun:
-        equipment.append("sun_protection")
+    if needs_strong_sun:
+        equipment.append("sunscreen")
     if needs_strong_sun:
         warnings.append("strong_uv")
     if avoid_umbrella:

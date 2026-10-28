@@ -72,7 +72,7 @@ export async function fetchBrowserWeather(latitude: number, longitude: number, c
     hourly: "temperature_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,weather_code,wind_speed_10m,wind_gusts_10m",
     daily: "temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,snowfall_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,weather_code,uv_index_max",
   });
-  const response = await fetch(`${OPEN_METEO_URL}?${query}`, { cache: "no-store" });
+  const response = await fetch(`${OPEN_METEO_URL}?${query}`, { cache: "no-store", signal: AbortSignal.timeout(10000) });
   if (!response.ok) throw new Error("天气服务暂时不可用");
   return openMeteoWeather(await response.json() as OpenMeteoPayload, city);
 }

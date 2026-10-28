@@ -5,11 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { OutfitIcon } from "./OutfitIcon";
 import { ApiError, apiForm, apiJson } from "@/lib/backend-api";
-import type { Audience, BackendSettings, Inspiration, Outfit, OutfitComponent, SceneId } from "@/domain/backend";
+import type { Audience, BackendSettings, Inspiration, Outfit, OutfitComponent, SceneId, StyleId } from "@/domain/backend";
 import { crossAudienceGarmentLabels, garmentIconsFor, resolveGarmentIcon } from "@/config/garment-icon-map";
+import { normalizeOutfitComponent, normalizedOutfitThickness, outfitThicknessLabel, usesRegularAccessoryThickness } from "@/domain/outfit-thickness";
 
 const sceneOptions: Array<{ id: SceneId; label: string }> = [
   { id: "commute", label: "通勤" }, { id: "date", label: "约会" }, { id: "travel", label: "出行" },
+];
+const outfitStyleOptions: Array<{ id: StyleId; label: string }> = [
+  { id: "minimal", label: "简约" }, { id: "casual", label: "休闲" }, { id: "street", label: "潮流" }, { id: "sport", label: "运动" }, { id: "outdoor", label: "户外" },
 ];
 const thicknessOptions = [{ value: "thin", label: "薄款" }, { value: "regular", label: "常规" }, { value: "thick", label: "厚款" }] as const;
 const seasonOptions = [
@@ -25,7 +29,7 @@ const recognitionSteps = [
 
 function normalizeComponent(item: OutfitComponent, audience: Audience): OutfitComponent {
   const definition = resolveGarmentIcon(item, audience);
-  return definition ? { ...item, asset_key: definition.iconKey } : item;
+  return normalizeOutfitComponent(definition ? { ...item, asset_key: definition.iconKey } : item);
 }
 
 function recognitionAudience(result: Inspiration["result"], fallback: Audience): Audience {
@@ -43,15 +47,15 @@ export function recognitionOutfitName(result: Inspiration["result"], audience: A
   return names[audience][scene];
 }
 
-function thicknessLabel(value: OutfitComponent["thickness"]) {
-  return thicknessOptions.find((option) => option.value === value)?.label ?? "常规";
-}
-
-function applySuggestions(result: Inspiration["result"], setScenes: (value: SceneId[]) => void, setRange: (value: { minimum: number; maximum: number }) => void, setSeason: (value: (typeof seasonOptions)[number]["value"]) => void) {
-  if (result.suggested_scenes?.length) setScenes(result.suggested_scenes);
+function applySuggestions(result: Inspiration["result"], setScenes: (value: SceneId[]) => void, setRange: (value: { minimum: number; maximum: number }) => void, setSeason: (value: (typeof seasonOptions)[number]["value"]) => void, setStyles: (value: StyleId[]) => void) {
+  setScenes(result.suggested_scenes?.length ? [result.suggested_scenes[0]] : []);
   if (result.suggested_temperature) setRange({ minimum: result.suggested_temperature.min, maximum: result.suggested_temperature.max });
   if (result.suggested_season) setSeason(result.suggested_season);
+  setStyles(result.suggested_style_tags?.slice(0, 2) ?? []);
 }
+
+/** 进度条匀速走到 90% 的时长；走完之后继续从 90% 慢慢渗到 99%，不会停下。 */
+const SCAN_RAMP_MS = 3600;
 
 export function InspirationApp() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,13 +67,17 @@ export function InspirationApp() {
   const [audience, setAudience] = useState<Audience>("mens");
   const [garmentAudience, setGarmentAudience] = useState<Audience>("mens");
   const [label, setLabel] = useState("我的穿搭");
-  const [scenes, setScenes] = useState<SceneId[]>(["commute"]);
+  const [scenes, setScenes] = useState<SceneId[]>([]);
+  const [styles, setStyles] = useState<StyleId[]>([]);
   const [suitableRange, setSuitableRange] = useState({ minimum: 10, maximum: 30 });
   const [season, setSeason] = useState<(typeof seasonOptions)[number]["value"]>("spring-autumn");
-  const [stage, setStage] = useState<"idle" | "uploading" | "analysing" | "review" | "saving" | "error">("idle");
+  const [stage, setStage] = useState<"idle" | "uploading" | "analysing" | "review" | "saving" | "error" | "no_outfit">("idle");
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const [recognitionStep, setRecognitionStep] = useState(0);
+  /** 0-100：预览图上的扫描进度，从上往下只走一遍，到底即识别完成。 */
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanVisible, setScanVisible] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [styleMenuOpen, setStyleMenuOpen] = useState(false);
   const [crossAudienceAcknowledged, setCrossAudienceAcknowledged] = useState(false);
@@ -93,6 +101,18 @@ export function InspirationApp() {
     return () => { active = false; };
   }, [inspiration]);
 
+  // 固定节奏：前 3.6 秒匀速走到 90%，之后从 90% 慢慢渗到 99%。
+  useEffect(() => {
+    if (!scanVisible) return;
+    const startedAt = performance.now();
+    const timer = window.setInterval(() => {
+      const ratio = (performance.now() - startedAt) / SCAN_RAMP_MS;
+      const target = ratio <= 1 ? ratio * 90 : Math.min(99, 90 + (ratio - 1) * 9);
+      setScanProgress((current) => Math.max(current, target));
+    }, 80);
+    return () => window.clearInterval(timer);
+  }, [scanVisible]);
+
   useEffect(() => {
     if (stage !== "analysing") return;
     const timer = window.setInterval(() => setRecognitionStep((current) => Math.min(current + 1, recognitionSteps.length - 1)), 5500);
@@ -114,7 +134,7 @@ export function InspirationApp() {
     setPreview(URL.createObjectURL(next));
     setGarmentAudience(audience);
     setLabel("我的穿搭");
-    setSuitableRange({ minimum: 10, maximum: 30 }); setSeason("spring-autumn");
+    setSuitableRange({ minimum: 10, maximum: 30 }); setSeason("spring-autumn"); setScenes([]); setStyles([]);
     setInspiration(null); setSavedOutfit(null); setComponents([]); setMessage(""); setStage("idle");
     setCrossAudienceAcknowledged(false);
   }
@@ -134,10 +154,18 @@ export function InspirationApp() {
     setCrossAudienceAcknowledged(false);
   }
 
+  /** 扫描到底后先停住一下，让用户看到“扫完”，再收起覆盖层。 */
+  function finishScan() {
+    setScanProgress(100);
+    window.setTimeout(() => setScanVisible(false), 320);
+  }
+
   async function analyse(force = false) {
     if (!file) return;
     setMessage("");
     setRecognitionStep(0);
+    setScanProgress(0);
+    setScanVisible(true);
     try {
       setStage("uploading");
       const form = new FormData();
@@ -150,23 +178,34 @@ export function InspirationApp() {
         setGarmentAudience(detectedAudience);
         setComponents(cachedComponents);
         setLabel(recognitionOutfitName(uploaded.result, detectedAudience));
-        applySuggestions(uploaded.result, setScenes, setSuitableRange, setSeason);
+        applySuggestions(uploaded.result, setScenes, setSuitableRange, setSeason, setStyles);
         setStage("review");
+        finishScan();
         return;
       }
       setStage("analysing");
-      const analysed = await apiJson<Inspiration & { remaining_analyses?: number }>(`/inspirations/${uploaded.id}/analyze`, { method: "POST" });
+      const analysed = await apiJson<Inspiration & { remaining_analyses?: number }>(`/inspirations/${uploaded.id}/analyze`, { method: "POST", timeoutMs: 45000 });
       if (typeof analysed.remaining_analyses === "number") setRemainingAnalyses(analysed.remaining_analyses);
+      if (analysed.result.no_outfit || !(analysed.result.components ?? []).length) {
+        setScanVisible(false);
+        setInspiration(analysed);
+        setComponents([]);
+        setMessage("");
+        setStage("no_outfit");
+        return;
+      }
       const detectedAudience = recognitionAudience(analysed.result, audience);
       const nextComponents = (analysed.result.components ?? []).map((item) => normalizeComponent(item, detectedAudience));
       setGarmentAudience(detectedAudience);
       setInspiration(analysed);
       setComponents(nextComponents);
       setLabel(recognitionOutfitName(analysed.result, detectedAudience));
-      applySuggestions(analysed.result, setScenes, setSuitableRange, setSeason);
+      applySuggestions(analysed.result, setScenes, setSuitableRange, setSeason, setStyles);
       setStage("review");
+      finishScan();
     } catch (error) {
       if (error instanceof ApiError && error.status === 429) setRemainingAnalyses(0);
+      setScanVisible(false);
       setMessage(error instanceof Error ? error.message : "图片识别失败");
       setStage("error");
     }
@@ -187,7 +226,13 @@ export function InspirationApp() {
   }
 
   function toggleScene(scene: SceneId) {
-    setScenes((current) => current.includes(scene) ? current.filter((item) => item !== scene) : [...current, scene]);
+    setScenes((current) => current[0] === scene ? [] : [scene]);
+  }
+
+  function toggleStyle(style: StyleId) {
+    setStyles((current) => current.includes(style)
+      ? current.filter((item) => item !== style)
+      : current.length < 2 ? [...current, style] : [current[1], style]);
   }
 
   function adjustTemperature(key: "minimum" | "maximum", amount: number) {
@@ -198,7 +243,7 @@ export function InspirationApp() {
     return <article key={`${item.slot}-${index}`} className="component-row">
       {item.suggested && <span className="suggested-component-badge">AI 补充</span>}
       <OutfitIcon item={item} audience={garmentAudience} />
-      <div className="component-result"><strong>{item.variant_type}</strong><span>{item.color_name}、{thicknessLabel(item.thickness)}</span></div>
+      <div className="component-result"><strong>{item.variant_type}</strong><span>{item.color_name}、{outfitThicknessLabel(item)}</span></div>
       <button className="component-edit-button" type="button" onClick={() => { setStyleMenuOpen(false); setEditingIndex(index); }}>编辑</button>
     </article>;
   }
@@ -209,30 +254,23 @@ export function InspirationApp() {
     setComponents((current) => current.map((item, index) => index === editingIndex ? { ...item, ...patch } : item));
   };
 
-  async function save(addToPersonalRecommendation: boolean) {
-    if (!inspiration || !components.length || !scenes.length) return;
-    if (!addToPersonalRecommendation && savedOutfit) {
-      setToast({ message: "已保存到全部穿搭", tone: "success" });
-      return;
-    }
-    const removing = addToPersonalRecommendation && Boolean(savedOutfit?.in_pool);
+  async function save() {
+    if (!inspiration || !components.length || !scenes.length || !styles.length) return;
     setStage("saving"); setMessage("");
     try {
-      const saved = removing && savedOutfit
-        ? await apiJson<Outfit>(`/outfits/${savedOutfit.id}/status`, { method: "POST", body: JSON.stringify({ in_pool: false }) })
-        : await apiJson<Outfit>(`/inspirations/${inspiration.id}/confirm`, {
+      const saved = await apiJson<Outfit>(`/inspirations/${inspiration.id}/confirm`, {
           method: "POST",
           body: JSON.stringify({
-            label: label.trim() || "我的穿搭", audience, components, scene_ids: scenes,
+            label: label.trim() || "我的穿搭", audience, components: components.map(normalizeOutfitComponent), scene_ids: [scenes[0]], season, style_tags: styles,
             suitable_min: suitableRange.minimum, suitable_max: suitableRange.maximum,
-            in_pool: addToPersonalRecommendation || Boolean(savedOutfit?.in_pool),
+            in_pool: true,
             outfit_analysis: inspiration.result.outfit_analysis,
             replication_guide: inspiration.result.replication_guide,
           }),
         });
       setSavedOutfit(saved);
       setStage("review");
-      setToast({ message: removing ? "已移出个人首页推荐，穿搭仍保留在全部穿搭" : addToPersonalRecommendation ? "已加入个人首页推荐" : "已保存到全部穿搭", tone: "success" });
+      setToast({ message: "已保存，并自动加入首页推荐", tone: "success" });
     } catch (error) {
       setToast({ message: error instanceof Error ? error.message : "保存失败", tone: "error" }); setStage("review");
     }
@@ -241,13 +279,27 @@ export function InspirationApp() {
   const crossAudienceLabels = crossAudienceGarmentLabels(components, audience);
   const crossAudienceGate = crossAudienceLabels.length > 0 && !crossAudienceAcknowledged;
   const crossAudienceNotice = crossAudienceLabels.length > 0 ? <p className="cross-audience-notice" role="status"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">当前为{audience === "mens" ? "男装" : "女装"}账号，识别到 <strong>{garmentAudience === "womens" ? "女士服装" : "男士服装"}</strong></span></p> : null;
+  /** 多人照片的识别说明：合影按账号性别取一侧；同性别多人只取服装最完整的一位。 */
+  const recognitionNotice = (() => {
+    if (!inspiration) return null;
+    const gender = garmentAudience === "womens" ? "女士" : "男士";
+    const mixed = Boolean(inspiration.result.multi_audience);
+    const many = Boolean(inspiration.result.multi_person);
+    if (!mixed && !many) return null;
+    const body = mixed && many
+      ? <>照片中有多人，已按你的账号只识别其中一位<strong>{gender}服装</strong>，其他人和另一方的衣物都未计入。</>
+      : mixed
+        ? <>照片中有多人，已按你的账号只识别<strong>{gender}服装</strong>，另一方的衣物未计入。</>
+        : <>照片中有多位{gender}，已只识别<strong>服装最完整的一位</strong>。如果不是你要的那位，把照片裁成单人照后重新上传即可。</>;
+    return <p className="mixed-audience-notice" role="status"><span className="mixed-audience-notice-icon" aria-hidden="true">i</span><span>{body}</span></p>;
+  })();
 
   return <main className="paper-page upload-paper">
     <div className="upload-layout">
       <nav className="upload-breadcrumb" aria-label="面包屑"><Link href="/closet"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m11.5 5-5 5 5 5" /></svg><span>穿搭灵感</span></Link></nav>
       <section className="upload-source-card">
         <div className="card-caption">穿搭照片</div>
-        {!preview ? <button className="paper-dropzone" onClick={chooseAnotherImage}><b>＋</b><strong>选择一张穿搭照片</strong><span className="photo-guidance">建议上传单人全身穿搭照，衣物和鞋子尽量完整入镜</span><span>JPEG · PNG · WEBP / 最大 5MB</span></button> : <div className="upload-preview"><img src={preview} alt="待识别穿搭" width={800} height={800} /><button className="upload-clear-image" type="button" aria-label="移除已选图片" title="移除图片" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={clearSelectedImage}><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14" /></svg></button></div>}
+        {!preview ? <button className="paper-dropzone" onClick={chooseAnotherImage}><b>＋</b><strong>选择一张穿搭照片</strong><span className="photo-guidance">建议上传单人全身穿搭照，衣物和鞋子尽量完整入镜</span><span>JPEG · PNG · WEBP / 最大 5MB</span></button> : <div className="upload-preview"><img src={preview} alt="待识别穿搭" width={800} height={800} />{scanVisible && <span className="preview-scan" aria-hidden="true"><b style={{ height: `${scanProgress}%` }} /><i style={{ top: `${scanProgress}%` }} /></span>}<button className="upload-clear-image" type="button" aria-label="移除已选图片" title="移除图片" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={clearSelectedImage}><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14" /></svg></button></div>}
         <input hidden ref={inputRef} name="outfit-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => chooseFile(event.target.files?.[0])} />
         {components.length ? <div className="source-actions">
           <button className="source-regenerate-button" type="button" aria-label="重新生成识别结果" title="重新生成识别结果" disabled={stage === "uploading" || stage === "analysing" || generatingName} onClick={() => void analyse(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 5v6h-6" /></svg></button>
@@ -259,7 +311,10 @@ export function InspirationApp() {
       <section className="review-card">
         <div className="section-title-row"><div className="card-caption">识别结果</div>{components.length > 0 && !crossAudienceGate && <span className="mint-chip">{components.length} 件</span>}</div>
         {!components.length ? <div className={`review-empty${stage === "idle" ? " is-idle" : stage === "uploading" || stage === "analysing" ? " is-loading" : ""}`}>
-          {stage === "idle" ? <>
+          {stage === "no_outfit" ? <>
+            <p className="cross-audience-notice" role="status"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">这看起来不是穿搭照片，请换一张单人全身穿搭照</span></p>
+            <button className="sunshine-button" type="button" onClick={chooseAnotherImage}>重新上传穿搭照片</button>
+          </> : stage === "idle" ? <>
             <div className="review-empty-bear" aria-hidden="true"><img src="/illustrations/inspiration-bear.png" alt="" /></div>
             <h3>等待图片识别</h3>
             <p>一张照片，变成可复用穿搭。</p>
@@ -276,16 +331,18 @@ export function InspirationApp() {
           </div>
         </div> : <>
           {crossAudienceNotice}
+          {recognitionNotice}
           <div className="outfit-name-row">
             <label className="paper-field"><span>这套穿搭叫什么？（最多30字）</span><input value={label} onChange={(event) => setLabel(event.target.value)} maxLength={30} placeholder="例如：松弛通勤" /></label>
             <button className="ai-name-button" type="button" disabled={generatingName} onClick={() => void generateName()}>{generatingName ? "生成中…" : "AI生成"}</button>
           </div>
-          <p className="outfit-name-hint">建议按“风格＋场景”命名，例如：{garmentAudience === "mens" ? "利落通勤、帅气约会、活力出行" : "简约通勤、精致约会、轻旅出行"}。</p>
+          <p className="outfit-name-hint">名称优先忠实描述服装风格，场景只在有助于理解时使用。</p>
           <div className="review-suggestions">
             <div className="scene-review suggestion-block"><span>建议场景</span><div className="filter-row">{sceneOptions.map((scene) => <button type="button" key={scene.id} aria-pressed={scenes.includes(scene.id)} className={scenes.includes(scene.id) ? "dark-filter" : "filter-pill"} onClick={() => toggleScene(scene.id)}>{scene.label}</button>)}</div></div>
             <div className="suggestion-block"><span>建议温度</span><div className="temperature-inputs"><label><input type="number" min="-30" max="50" value={suitableRange.minimum} onChange={(event) => setSuitableRange((current) => ({ ...current, minimum: Number(event.target.value) }))} /><b>°</b><span className="temperature-stepper"><button type="button" aria-label="提高最低温度" onClick={() => adjustTemperature("minimum", 1)}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 7.5 6 4.5l3 3" /></svg></button><button type="button" aria-label="降低最低温度" onClick={() => adjustTemperature("minimum", -1)}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" /></svg></button></span></label><i>—</i><label><input type="number" min="-30" max="50" value={suitableRange.maximum} onChange={(event) => setSuitableRange((current) => ({ ...current, maximum: Number(event.target.value) }))} /><b>°</b><span className="temperature-stepper"><button type="button" aria-label="提高最高温度" onClick={() => adjustTemperature("maximum", 1)}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 7.5 6 4.5l3 3" /></svg></button><button type="button" aria-label="降低最高温度" onClick={() => adjustTemperature("maximum", -1)}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" /></svg></button></span></label></div></div>
             <div className="suggestion-block"><span>建议季节</span><div className="season-options">{seasonOptions.map((option) => <button type="button" key={option.value} aria-pressed={season === option.value} className={season === option.value ? "active" : ""} onClick={() => { setSeason(option.value); setSuitableRange({ minimum: option.minimum, maximum: option.maximum }); }}>{option.label}</button>)}</div></div>
           </div>
+          <div className="review-style-tags"><span>建议风格（最多两个）</span><div>{outfitStyleOptions.map((option) => <button type="button" key={option.id} aria-pressed={styles.includes(option.id)} className={styles.includes(option.id) ? "active" : ""} onClick={() => toggleStyle(option.id)}>{option.label}</button>)}</div>{!styles.length && <p>AI 未可靠判断，请选择后保存。</p>}</div>
           {(inspiration?.result.outfit_analysis || inspiration?.result.replication_guide) && <div className="recognition-guide" aria-label="穿搭建议与快速复刻">
             <span>穿搭建议 · 快速复刻</span>
             {inspiration.result.replication_guide && <strong>{inspiration.result.replication_guide.formula}</strong>}
@@ -299,8 +356,7 @@ export function InspirationApp() {
           <div className="component-list">{components.map(componentEditor)}</div>
           {message && <p className="inline-message" role="alert" aria-live="polite">{message}</p>}
           <div className="save-actions">
-            <div className="save-action-option"><button className={`sunshine-button${savedOutfit?.in_pool ? " is-saved" : ""}`} aria-pressed={Boolean(savedOutfit?.in_pool)} disabled={stage === "saving" || generatingName || !scenes.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save(true)}>{savedOutfit?.in_pool && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button><p className="privacy-copy">符合当天的天气和场景时，将在<strong>首页推荐展示</strong>。</p></div>
-            <div className="save-action-option"><button className={`ghost-button${savedOutfit ? " is-saved" : ""}`} disabled={Boolean(savedOutfit) || stage === "saving" || generatingName || !scenes.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save(false)}>{savedOutfit && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit ? "已保存到全部穿搭" : "保存到全部穿搭"}</button></div>
+            <div className="save-action-option"><button className={`sunshine-button${savedOutfit?.in_pool ? " is-saved" : ""}`} aria-pressed={Boolean(savedOutfit?.in_pool)} disabled={stage === "saving" || generatingName || !scenes.length || !styles.length || suitableRange.minimum > suitableRange.maximum} onClick={() => void save()}>{savedOutfit?.in_pool && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6" /></svg>}{savedOutfit?.in_pool ? "已保存并加入首页" : "确认保存"}</button><p className="privacy-copy">保存后自动加入<strong>首页推荐</strong>，之后可在详情中移出。</p></div>
             <div className="save-action-option"><Link className="ghost-button view-inspiration-button" href="/closet">查看灵感穿搭</Link></div>
           </div>
         </>}
@@ -319,7 +375,7 @@ export function InspirationApp() {
           <button className="component-style-trigger" type="button" aria-haspopup="listbox" aria-expanded={styleMenuOpen} onClick={() => setStyleMenuOpen((open) => !open)}><span>{editingComponent.variant_type}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg></button>
           {styleMenuOpen && <div className="component-style-menu" role="listbox" aria-label="选择服装款式">{garmentIconsFor(editingComponent.slot, garmentAudience).map((option) => <button type="button" role="option" aria-selected={editingComponent.asset_key === option.iconKey} className={editingComponent.asset_key === option.iconKey ? "is-selected" : ""} key={option.iconKey} onClick={() => { updateEditingComponent({ asset_key: option.iconKey, variant_type: option.label }); setStyleMenuOpen(false); }}>{option.label}</button>)}</div>}
         </div></div>
-        <div className="component-editor-thickness"><span>薄厚</span><div>{thicknessOptions.map((option) => <button type="button" key={option.value} className={editingComponent.thickness === option.value ? "active" : ""} onClick={() => updateEditingComponent({ thickness: option.value })}>{option.label}</button>)}</div></div>
+        <div className="component-editor-thickness"><span>薄厚</span><div>{(usesRegularAccessoryThickness(editingComponent) ? thicknessOptions.filter((option) => option.value === "regular") : thicknessOptions).map((option) => <button type="button" key={option.value} className={normalizedOutfitThickness(editingComponent) === option.value ? "active" : ""} onClick={() => updateEditingComponent({ thickness: option.value })}>{option.label}</button>)}</div></div>
         <button className="sunshine-button full-button" type="button" onClick={() => { setStyleMenuOpen(false); setEditingIndex(null); }}>完成</button>
       </section>
     </div>}

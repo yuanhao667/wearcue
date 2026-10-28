@@ -6,12 +6,60 @@ from pydantic import BaseModel, Field, field_validator
 
 
 SceneId = Literal["commute", "date", "travel"]
+SeasonId = Literal["spring-autumn", "summer", "winter"]
+StyleId = Literal["minimal", "casual", "street", "sport", "outdoor"]
 
 
 class LoginRequest(BaseModel):
+    mode: Literal["login", "register"]
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=8, max_length=128)
+    invite_code: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    verification_code: Optional[str] = Field(default=None, pattern="^\\d{6}$")
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        email = value.strip()
+        if email.count("@") != 1:
+            raise ValueError("邮箱格式不正确")
+        local, domain = email.rsplit("@", 1)
+        if not local or "." not in domain or domain.startswith(".") or domain.endswith("."):
+            raise ValueError("邮箱格式不正确")
+        return email
+
+
+class EmailCodeRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    purpose: Literal["register", "reset"]
+    invite_code: Optional[str] = Field(default=None, min_length=1, max_length=120)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        return LoginRequest.email_must_be_valid(value)
+
+
+class PasswordResetRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    verification_code: str = Field(pattern="^\\d{6}$")
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(_cls, value: str) -> str:
+        return LoginRequest.email_must_be_valid(value)
+
+
+class OnboardingRequest(BaseModel):
     nickname: str = Field(min_length=1, max_length=5)
     audience: Literal["mens", "womens"]
-    invite_code: str = Field(min_length=1, max_length=120)
+
+
+class AccountDeletionRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    password: str = Field(min_length=8, max_length=128)
+    confirmed: Literal[True]
 
 
 class ProfileUpdateRequest(BaseModel):
@@ -66,6 +114,7 @@ class CityResponse(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
+    preferred_styles: Optional[List[StyleId]] = Field(default=None, max_length=5)
     city_id: Optional[str] = None
     city_name: Optional[str] = Field(default=None, min_length=1, max_length=80)
     latitude: Optional[float] = Field(default=None, ge=-90, le=90)
@@ -73,7 +122,7 @@ class SettingsUpdate(BaseModel):
     timezone: Optional[str] = None
     audience: Optional[Literal["mens", "womens"]] = None
     height_group: Optional[Literal["偏矮", "中等", "偏高"]] = None
-    weight_group: Optional[Literal["偏轻", "中等", "偏重"]] = None
+    weight_group: Optional[Literal["偏轻", "偏瘦", "稍瘦", "中等", "稍重", "偏重"]] = None
     cold_offset: Optional[int] = Field(default=None, ge=-6, le=6, multiple_of=2)
     reminder_enabled: Optional[bool] = None
     reminder_time: Optional[str] = Field(default=None, pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
@@ -93,14 +142,22 @@ class OutfitComponent(BaseModel):
     approximate: bool = False
     suggested: bool = False
     asset_key: Optional[str] = None
+    fit: Optional[str] = Field(default=None, max_length=30)
+    shoulder: Optional[str] = Field(default=None, max_length=40)
+    length: Optional[str] = Field(default=None, max_length=40)
+    waistline: Optional[str] = Field(default=None, max_length=30)
+    bottom_shape: Optional[str] = Field(default=None, max_length=30)
+    structure_details: List[str] = Field(default_factory=list, max_length=6)
+    material: Optional[str] = Field(default=None, max_length=80)
+    wearing_method: Optional[str] = Field(default=None, max_length=80)
 
 
 class ReplicationGuide(BaseModel):
-    formula: str = Field(min_length=1, max_length=60)
-    steps: List[str] = Field(min_length=2, max_length=6)
+    formula: str = Field(min_length=1, max_length=1000)
+    steps: List[str] = Field(min_length=1, max_length=8)
     styling_points: List[str] = Field(default_factory=list, max_length=3)
-    weather_note: str = Field(default="按当天体感增减外层。", max_length=80)
-    substitute: str = Field(default="同类基础款即可替换。", max_length=80)
+    weather_note: str = Field(default="按当天体感增减外层。", max_length=1000)
+    substitute: str = Field(default="同类基础款即可替换。", max_length=1000)
 
 
 class SuggestedTemperature(BaseModel):
@@ -109,7 +166,7 @@ class SuggestedTemperature(BaseModel):
 
 
 class OutfitAnalysis(BaseModel):
-    summary: str = Field(default="基础款组合，按现有层次直接复刻即可。", min_length=1, max_length=60)
+    summary: str = Field(default="基础款组合，按现有层次直接复刻即可。", min_length=1, max_length=1000)
     structure_points: List[str] = Field(default_factory=list, max_length=3)
     completion_advice: List[str] = Field(default_factory=list, max_length=3)
 
@@ -117,8 +174,11 @@ class OutfitAnalysis(BaseModel):
 class OutfitSaveRequest(BaseModel):
     label: str = Field(default="我的穿搭", min_length=1, max_length=30)
     audience: Literal["mens", "womens"] = "mens"
+    recommendation_id: Optional[str] = Field(default=None, min_length=1, max_length=80, pattern="^[A-Za-z0-9_-]+$")
     components: List[OutfitComponent] = Field(min_length=1, max_length=8)
     scene_ids: List[SceneId] = Field(default_factory=lambda: ["commute"], min_length=1, max_length=3)
+    season: SeasonId = "spring-autumn"
+    style_tags: List[StyleId] = Field(default_factory=lambda: ["minimal"], min_length=1, max_length=2)
     suitable_min: float = Field(default=15, ge=-40, le=50)
     suitable_max: float = Field(default=28, ge=-40, le=60)
     in_pool: bool = False
@@ -128,6 +188,7 @@ class OutfitSaveRequest(BaseModel):
 
 class OutfitStatusRequest(BaseModel):
     in_pool: Optional[bool] = None
+    favorite: Optional[bool] = None
     scene_ids: Optional[List[SceneId]] = Field(default=None, min_length=1, max_length=3)
 
 
@@ -138,12 +199,21 @@ class InspirationConfirmRequest(OutfitSaveRequest):
 class VisionResult(BaseModel):
     model_version: str
     garment_audience: Literal["mens", "womens", "unisex"] = "unisex"
+    multi_audience: bool = False
+    multi_person: bool = False
+    # 无关图片（动物、风景、食物、截图等），没有任何可识别穿搭。
+    no_outfit: bool = False
     image_coverage: Literal["full_body", "partial", "unknown"] = "unknown"
     requires_user_confirmation: bool = True
     suggested_scenes: List[Literal["commute", "date", "travel"]] = Field(default_factory=list)
     suggested_temperature: SuggestedTemperature = Field(default_factory=SuggestedTemperature)
-    suggested_season: Literal["spring-autumn", "winter", "summer"] = "spring-autumn"
+    suggested_season: SeasonId = "spring-autumn"
+    suggested_style_tags: List[StyleId] = Field(default_factory=list, max_length=2)
     components: List[OutfitComponent]
+    reference_outfit: dict = Field(default_factory=dict)
+    outfit_dna: dict = Field(default_factory=dict)
+    signature_features: List[str] = Field(default_factory=list, min_length=0, max_length=8)
+    locked_features: List[str] = Field(default_factory=list, min_length=0, max_length=8)
     outfit_analysis: OutfitAnalysis = Field(default_factory=OutfitAnalysis)
     replication_guide: ReplicationGuide
 
@@ -182,8 +252,12 @@ class RecommendationAdviceRequest(BaseModel):
     recommendation_id: str = Field(min_length=1, max_length=80, pattern="^[A-Za-z0-9_-]+$")
     label: str = Field(default="今日穿搭", min_length=1, max_length=30)
     scene: SceneId
-    items: List[OutfitComponent] = Field(min_length=1, max_length=8)
+    items: List[OutfitComponent] = Field(min_length=1, max_length=12)
     constraints: dict = Field(default_factory=dict)
+    style_tags: List[StyleId] = Field(default_factory=list, max_length=2)
+    outfit_dna: dict = Field(default_factory=dict)
+    locked_features: List[str] = Field(default_factory=list, max_length=8)
+    image_direction: dict = Field(default_factory=dict)
     generate_advice: bool = True
 
     @field_validator("constraints")

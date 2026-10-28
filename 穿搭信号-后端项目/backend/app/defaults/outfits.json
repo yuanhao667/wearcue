@@ -14,6 +14,8 @@
           {"slot": "shoes", "functional_icon_key": "daily_shoes", "asset_key": "shoe_sneaker", "variant_type": "低帮板鞋", "color_type": "solid", "color_name": "黑色", "color_value": "#25282E", "pattern_description": null, "thickness": "regular", "confidence": 1, "approximate": false, "suggested": false}
         ],
         "scene_ids": ["travel"],
+        "season": "winter",
+        "style_tags": ["outdoor", "minimal"],
         "suitable_min": 2,
         "suitable_max": 12,
         "in_pool": false,
@@ -43,6 +45,8 @@
           {"slot": "shoes", "functional_icon_key": "daily_shoes", "asset_key": "shoe_sneaker", "variant_type": "厚底乐福鞋", "color_type": "solid", "color_name": "黑色", "color_value": "#17191C", "pattern_description": null, "thickness": "regular", "confidence": 1, "approximate": true, "suggested": false}
         ],
         "scene_ids": ["travel"],
+        "season": "summer",
+        "style_tags": ["sport"],
         "suitable_min": 23,
         "suitable_max": 32,
         "in_pool": false,

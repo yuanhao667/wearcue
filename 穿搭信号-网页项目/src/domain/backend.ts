@@ -1,5 +1,7 @@
 export type Audience = "mens" | "womens";
 export type SceneId = "commute" | "date" | "travel";
+export type SeasonId = "spring-autumn" | "summer" | "winter";
+export type StyleId = "minimal" | "casual" | "street" | "sport" | "outdoor";
 export type Thickness = "thin" | "regular" | "thick";
 export type OutfitSlot = "top" | "bottom" | "outerwear" | "onepiece" | "shoes" | "equipment";
 
@@ -14,6 +16,8 @@ export interface BackendCity {
 }
 
 export interface BackendSettings {
+  preferred_styles?: StyleId[];
+  style_preferences_set?: boolean;
   id?: number;
   city_id: string;
   city_name: string;
@@ -22,7 +26,7 @@ export interface BackendSettings {
   timezone: string;
   audience: Audience;
   height_group: "偏矮" | "中等" | "偏高";
-  weight_group: "偏轻" | "中等" | "偏重";
+  weight_group: "偏轻" | "偏瘦" | "稍瘦" | "中等" | "稍重" | "偏重";
   cold_offset: number;
   reminder_enabled: boolean;
   reminder_time: string;
@@ -78,6 +82,14 @@ export interface OutfitComponent {
   approximate?: boolean;
   suggested?: boolean;
   asset_key?: string | null;
+  fit?: string | null;
+  shoulder?: string | null;
+  length?: string | null;
+  waistline?: string | null;
+  bottom_shape?: string | null;
+  structure_details?: string[];
+  material?: string | null;
+  wearing_method?: string | null;
 }
 
 export interface ReplicationGuide {
@@ -117,6 +129,7 @@ export interface RecommendationConstraints {
   apparent_delta: number;
   warnings: string[];
   needs_removable_layer: boolean;
+  requires_layering: boolean;
   needs_waterproof: boolean;
   needs_windproof: boolean;
   city_id?: string;
@@ -140,16 +153,26 @@ export interface RecommendationConstraints {
   weather_code?: number;
   cold_offset?: number;
   needs_sun_protection: boolean;
+  needs_strong_sun_protection: boolean;
 }
 
 export interface BackendRecommendation {
-  source: "official" | "personal" | "ai" | "system_ai";
+  source: "official" | "personal" | "ai" | "system_ai" | "system";
   template_id: string;
   label: string;
   scene: SceneId;
   audience: Audience;
   constraints: RecommendationConstraints;
   items: OutfitComponent[];
+  outing_reminders?: Array<{ type: "umbrella" | "sunscreen" | "weather"; text: string }>;
+  prompt_version?: "wearcue-outfit-plan-v3" | string;
+  season?: SeasonId;
+  style_tags?: StyleId[];
+  temperature_range_c?: { min: number; max: number };
+  outfit_dna?: Record<string, unknown>;
+  signature_features?: string[];
+  locked_features?: string[];
+  image_direction?: Record<string, unknown>;
   outfit_analysis?: OutfitAnalysis | null;
   replication_guide?: ReplicationGuide | null;
   ai_quota?: AIQuota;
@@ -158,15 +181,22 @@ export interface BackendRecommendation {
 
 export interface Outfit {
   id: string;
+  recommendation_id?: string | null;
   label: string;
   audience: Audience;
   source: "manual" | "inspiration" | "system";
   components: OutfitComponent[];
   scene_ids: SceneId[];
+  season: SeasonId;
+  style_tags: StyleId[];
   suitable_min: number;
   suitable_max: number;
+  favorite: boolean;
+  system_ready?: boolean;
   in_pool: boolean;
   inspiration_id?: string | null;
+  image_url?: string | null;
+  image_key?: string | null;
   skip_count: number;
   created_at: string;
   updated_at: string;
@@ -177,12 +207,23 @@ export interface Outfit {
 export interface VisionResult {
   model_version: string;
   garment_audience: Audience | "unisex";
+  /** 照片中同时出现男女服装时，已按账号性别只识别一侧。 */
+  multi_audience?: boolean;
+  /** 照片中同性别有多人时，已只识别服装最完整的一位。 */
+  multi_person?: boolean;
+  /** 动物、风景、食物、截图等无关图片：没有任何可识别穿搭。 */
+  no_outfit?: boolean;
   image_coverage: "full_body" | "partial" | "unknown";
   requires_user_confirmation: boolean;
   suggested_scenes: SceneId[];
   suggested_temperature: SuggestedTemperature;
   suggested_season: "spring-autumn" | "winter" | "summer";
+  suggested_style_tags: StyleId[];
   components: OutfitComponent[];
+  reference_outfit: Record<string, unknown>;
+  outfit_dna: Record<string, unknown>;
+  signature_features: string[];
+  locked_features: string[];
   outfit_analysis: OutfitAnalysis;
   replication_guide: ReplicationGuide;
   ai_generated_name?: string;

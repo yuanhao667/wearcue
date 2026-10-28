@@ -1,6 +1,9 @@
 import { OutfitDetailApp } from "@/components/OutfitDetailApp";
+import { requireSession } from "@/lib/server-auth";
 
-export default async function OutfitDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OutfitDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string }> }) {
+  await requireSession();
   const { id } = await params;
-  return <OutfitDetailApp id={id} key={id} />;
+  const { from } = await searchParams;
+  return <OutfitDetailApp id={id} origin={from === "home" ? "home" : "closet"} key={id} />;
 }

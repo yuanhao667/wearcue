@@ -1,5 +1,8 @@
+import base64
 import hashlib
+import hmac
 import json
+import logging
 import os
 import secrets
 import shutil
@@ -12,10 +15,20 @@ from typing import Any, Dict, Iterator, List, Optional
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
+from app.domain.component_rules import normalize_component_list
 from .image_service import ImageService
 
 
-AI_USAGE_LIMITS = {"vision": 30, "swap": 4, "advice": 4}
+AI_USAGE_LIMITS = {"vision": 30, "swap": 6, "advice": 6}
+
+USER_DATA_COLUMNS = {
+    "outfits": "owner_user_id", "inspirations": "owner_user_id",
+    **{table: "user_id" for table in (
+        "sessions", "user_settings", "outfit_states", "user_skip_events",
+        "analysis_events", "ai_advice_cache", "ai_outfit_image_cache",
+        "push_subscriptions", "notification_deliveries", "feedback",
+    )},
+}
 
 
 def _now() -> str:
@@ -28,6 +41,36 @@ def _id(prefix: str) -> str:
 
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _normalize_email(value: str) -> str:
+    return value.strip().casefold()
+
+
+def _password_hash(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(
+        password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1, dklen=32,
+    )
+    return "scrypt$16384$8$1$%s$%s" % (
+        base64.urlsafe_b64encode(salt).decode("ascii"),
+        base64.urlsafe_b64encode(digest).decode("ascii"),
+    )
+
+
+def _password_matches(password: str, encoded: str) -> bool:
+    try:
+        algorithm, n, r, p, salt, expected = encoded.split("$")
+        if algorithm != "scrypt":
+            return False
+        actual = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=base64.urlsafe_b64decode(salt),
+            n=int(n), r=int(r), p=int(p), dklen=32,
+        )
+        return hmac.compare_digest(actual, base64.urlsafe_b64decode(expected))
+    except (ValueError, TypeError):
+        return False
 
 
 def user_local_date(tz_name: Optional[str]) -> str:
@@ -65,6 +108,7 @@ class Store:
         self._backup_lock = threading.Lock()
         self._restore_database()
         self._init()
+        self._seed_system_assets()
         self._seed_existing_user_examples()
 
     def _restore_database(self) -> None:
@@ -157,10 +201,17 @@ class Store:
                     PRIMARY KEY (outfit_id, local_date)
                 );
                 CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS deleted_users (user_id TEXT PRIMARY KEY);
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY, invite_code_hash TEXT NOT NULL UNIQUE,
                     nickname TEXT NOT NULL, audience TEXT NOT NULL,
                     created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS email_verification_codes (
+                    id TEXT PRIMARY KEY, email_normalized TEXT NOT NULL,
+                    purpose TEXT NOT NULL, code_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+                    consumed_at TEXT, created_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS sessions (
                     token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL,
@@ -205,8 +256,14 @@ class Store:
             self._add_column(db, "outfits", "replication_json TEXT NOT NULL DEFAULT '{}'")
             self._add_column(db, "outfits", "analysis_json TEXT NOT NULL DEFAULT '{}'")
             self._add_column(db, "outfits", "owner_user_id TEXT")
+            self._add_column(db, "outfits", "season TEXT NOT NULL DEFAULT 'spring-autumn'")
+            self._add_column(db, "outfits", "style_tags_json TEXT NOT NULL DEFAULT '[\"minimal\"]'")
+            self._add_column(db, "outfits", "system_ready INTEGER NOT NULL DEFAULT 0")
+            self._add_column(db, "outfits", "recommendation_id TEXT")
             self._add_column(db, "inspirations", "owner_user_id TEXT")
             for table in ("settings", "user_settings"):
+                self._add_column(db, table, "preferred_styles TEXT NOT NULL DEFAULT '[]'")
+                self._add_column(db, table, "style_preferences_set INTEGER NOT NULL DEFAULT 0")
                 self._add_column(db, table, "height_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "weight_group TEXT NOT NULL DEFAULT '中等'")
                 self._add_column(db, table, "age_group TEXT NOT NULL DEFAULT '青年'")
@@ -214,15 +271,35 @@ class Store:
             for table in ("push_subscriptions", "notification_deliveries", "feedback"):
                 self._add_column(db, table, "user_id TEXT")
             self._add_column(db, "analysis_events", "usage_type TEXT NOT NULL DEFAULT 'vision'")
+            self._add_column(db, "users", "email TEXT")
+            self._add_column(db, "users", "email_normalized TEXT")
+            self._add_column(db, "users", "password_hash TEXT")
+            self._add_column(db, "users", "profile_completed INTEGER NOT NULL DEFAULT 1")
+            self._add_column(db, "users", "deletion_attempts INTEGER NOT NULL DEFAULT 0")
+            self._add_column(db, "users", "deletion_retry_at TEXT")
+            # In-flight generation must not recreate a closed account's records.
+            for table, column in USER_DATA_COLUMNS.items():
+                db.execute(f"""CREATE TRIGGER IF NOT EXISTS reject_deleted_user_{table}
+                    BEFORE INSERT ON {table}
+                    WHEN EXISTS (SELECT 1 FROM deleted_users WHERE user_id=NEW.{column})
+                    BEGIN SELECT RAISE(ABORT, 'account deleted'); END""")
             db.executescript(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
                 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
                 CREATE INDEX IF NOT EXISTS idx_outfits_owner ON outfits(owner_user_id);
+                CREATE INDEX IF NOT EXISTS idx_outfits_discovery
+                ON outfits(audience,source,season,suitable_min,suitable_max);
+                CREATE INDEX IF NOT EXISTS idx_outfits_recommendation
+                ON outfits(owner_user_id,recommendation_id);
                 CREATE INDEX IF NOT EXISTS idx_inspirations_owner ON inspirations(owner_user_id);
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_user_date ON analysis_events(user_id, local_date);
                 CREATE INDEX IF NOT EXISTS idx_analysis_events_quota
                 ON analysis_events(user_id, local_date, usage_type);
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_normalized
+                ON users(email_normalized) WHERE email_normalized IS NOT NULL;
+                CREATE INDEX IF NOT EXISTS idx_email_codes_lookup
+                ON email_verification_codes(email_normalized,purpose,created_at);
                 """
             )
             db.execute(
@@ -234,6 +311,207 @@ class Store:
                 (_now(),),
             )
 
+            # Old rows did not have explicit discovery metadata. Infer season only from
+            # visible garment structure (never from temperature), and use minimal as the
+            # conservative style fallback until an operator reviews the record.
+            migrated = db.execute(
+                "SELECT 1 FROM app_meta WHERE key='outfit_discovery_v1'"
+            ).fetchone()
+            if not migrated:
+                for row in db.execute(
+                    "SELECT id,components_json,style_tags_json FROM outfits"
+                ).fetchall():
+                    try:
+                        components = json.loads(row["components_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        components = []
+                    keys = {
+                        str(item.get("asset_key") or item.get("functional_icon_key") or "")
+                        for item in components if isinstance(item, dict)
+                    }
+                    db.execute(
+                        "UPDATE outfits SET season=? WHERE id=?",
+                        (self._season_from_components(keys), row["id"]),
+                    )
+                    try:
+                        styles = json.loads(row["style_tags_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        styles = []
+                    styles = [
+                        style for style in styles
+                        if style in {"minimal", "casual", "street", "sport", "outdoor"}
+                    ][:2] or ["minimal"]
+                    db.execute(
+                        "UPDATE outfits SET style_tags_json=? WHERE id=?",
+                        (json.dumps(styles, ensure_ascii=False), row["id"]),
+                    )
+                db.execute(
+                    "INSERT INTO app_meta(key,value) VALUES ('outfit_discovery_v1','1')"
+                )
+
+            thickness_migrated = db.execute(
+                "SELECT 1 FROM app_meta WHERE key='regular_only_accessory_thickness_v1'"
+            ).fetchone()
+            if not thickness_migrated:
+                for row in db.execute("SELECT id,components_json FROM outfits").fetchall():
+                    try:
+                        components = json.loads(row["components_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    normalized = normalize_component_list(components)
+                    if normalized != components:
+                        db.execute(
+                            "UPDATE outfits SET components_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(normalized, ensure_ascii=False), _now(), row["id"]),
+                        )
+                for row in db.execute("SELECT id,result_json FROM inspirations").fetchall():
+                    try:
+                        result = json.loads(row["result_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    if not isinstance(result, dict) or not isinstance(result.get("components"), list):
+                        continue
+                    normalized = normalize_component_list(result["components"])
+                    if normalized != result["components"]:
+                        result["components"] = normalized
+                        db.execute(
+                            "UPDATE inspirations SET result_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(result, ensure_ascii=False), _now(), row["id"]),
+                        )
+                db.execute(
+                    "INSERT INTO app_meta(key,value) VALUES ('regular_only_accessory_thickness_v1','1')"
+                )
+
+            icon_mapping_migrated = db.execute(
+                "SELECT 1 FROM app_meta WHERE key='supported_component_icons_v1'"
+            ).fetchone()
+            if not icon_mapping_migrated:
+                for row in db.execute("SELECT id,components_json FROM outfits").fetchall():
+                    try:
+                        components = json.loads(row["components_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    normalized = normalize_component_list(components)
+                    if normalized != components:
+                        db.execute(
+                            "UPDATE outfits SET components_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(normalized, ensure_ascii=False), _now(), row["id"]),
+                        )
+                for row in db.execute("SELECT id,result_json FROM inspirations").fetchall():
+                    try:
+                        result = json.loads(row["result_json"])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    if not isinstance(result, dict) or not isinstance(result.get("components"), list):
+                        continue
+                    normalized = normalize_component_list(result["components"])
+                    if normalized != result["components"]:
+                        result["components"] = normalized
+                        db.execute(
+                            "UPDATE inspirations SET result_json=?,updated_at=? WHERE id=?",
+                            (json.dumps(result, ensure_ascii=False), _now(), row["id"]),
+                        )
+                db.execute(
+                    "INSERT INTO app_meta(key,value) VALUES ('supported_component_icons_v1','1')"
+                )
+
+    @staticmethod
+    def _season_from_components(keys: set[str]) -> str:
+        if keys & {"outer_down_short", "outer_wool_coat", "warm_outerwear", "warm_top"}:
+            return "winter"
+        summer = keys & {
+            "top_tshirt_short", "top_tank", "top_camisole", "short_sleeve",
+            "bottom_shorts", "bottom_skirt_short", "short_bottom", "shoe_sandal",
+        }
+        warm = keys & {
+            "outer_light_jacket", "outer_shell", "top_knit", "top_sweatshirt",
+            "bottom_sweatpants", "long_sleeve", "warm_bottom",
+        }
+        return "summer" if summer and not warm else "spring-autumn"
+
+    def _seed_system_assets(self) -> None:
+        manifest_path = Path(__file__).resolve().parents[1] / "defaults" / "system_assets.json"
+        if not manifest_path.is_file():
+            return
+        try:
+            entries = json.loads(manifest_path.read_text(encoding="utf-8")).get("assets", [])
+        except (OSError, json.JSONDecodeError):
+            return
+        for entry in entries:
+            image_path = manifest_path.parent / str(entry.get("image") or "")
+            if not image_path.is_file():
+                continue
+            inspiration_id = f"inspiration_{entry['asset_id']}"
+            outfit_id = str(entry["asset_id"])
+            now = _now()
+            result = {
+                "model_version": "WearCue-System-Curated-v1",
+                "garment_audience": entry["audience"],
+                "requires_user_confirmation": False,
+                "suggested_scenes": [entry["scene"]],
+                "suggested_temperature": {
+                    "min": entry["suitable_min"], "max": entry["suitable_max"]
+                },
+                "suggested_season": entry["season"],
+                "suggested_style_tags": entry["style_tags"],
+                "components": entry.get("components", []),
+                "replication_guide": entry.get("replication_guide", {}),
+                "outfit_analysis": entry.get("outfit_analysis", {}),
+            }
+            with self.connect() as db:
+                db.execute(
+                    """INSERT INTO inspirations
+                    (id,upload_key,content_hash,original_name,media_type,file_path,status,provider,
+                     result_json,created_at,updated_at,owner_user_id)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,NULL)
+                    ON CONFLICT(id) DO UPDATE SET
+                      upload_key=excluded.upload_key,
+                      content_hash=excluded.content_hash,
+                      original_name=excluded.original_name,
+                      media_type=excluded.media_type,
+                      file_path=excluded.file_path,
+                      status=excluded.status,
+                      provider=excluded.provider,
+                      result_json=excluded.result_json,
+                      updated_at=excluded.updated_at""",
+                    (
+                        inspiration_id, f"system-curated:{entry['asset_id']}", entry["sha256"],
+                        image_path.name, "image/jpeg", str(image_path), "ready", "system-curated",
+                        json.dumps(result, ensure_ascii=False), now, now,
+                    ),
+                )
+            existing = self.get_outfit(outfit_id)
+            expected = {
+                "label": entry["label"], "audience": entry["audience"],
+                "scene_ids": [entry["scene"]], "season": entry["season"],
+                "style_tags": entry["style_tags"],
+                "suitable_min": entry["suitable_min"],
+                "suitable_max": entry["suitable_max"],
+                "system_ready": bool(entry.get("content_ready", False)),
+                "inspiration_id": inspiration_id,
+            }
+            metadata_changed = not existing or any(
+                existing.get(key) != value for key, value in expected.items()
+            )
+            content_changed = not existing or any((
+                existing.get("components") != entry.get("components", []),
+                existing.get("replication_guide") != entry.get("replication_guide", {}),
+                existing.get("outfit_analysis") != entry.get("outfit_analysis", {}),
+            ))
+            if (metadata_changed or content_changed) and (not existing or existing["source"] == "system"):
+                payload = expected | {
+                    "source": "system", "favorite": False, "in_pool": False,
+                }
+                if entry.get("components") or not existing:
+                    payload["components"] = entry.get("components", [])
+                if entry.get("replication_guide"):
+                    payload["replication_guide"] = entry["replication_guide"]
+                if entry.get("outfit_analysis"):
+                    payload["outfit_analysis"] = entry["outfit_analysis"]
+                self.save_outfit(
+                    payload,
+                    outfit_id,
+                )
     def _seed_existing_user_examples(self) -> None:
         with self.connect() as db:
             users = db.execute("SELECT user_id,audience FROM user_settings").fetchall()
@@ -241,8 +519,17 @@ class Store:
             self._ensure_user_example(user["user_id"], user["audience"])
 
     def _ensure_user_example(self, user_id: str, audience: str) -> None:
-        version_key = f"default_example_v1:{user_id}:{audience}"
+        version_key = f"default_example_v2:{user_id}:{audience}"
+        outfit_id = f"example_{audience}_{_hash(user_id)[:12]}"
         with self.connect() as db:
+            # Always run the cleanup, including for users whose example asset was
+            # seeded by an older release before this migration existed.
+            db.execute("DELETE FROM outfit_states WHERE outfit_id=?", (outfit_id,))
+            db.execute("DELETE FROM user_skip_events WHERE outfit_id=?", (outfit_id,))
+            db.execute(
+                "DELETE FROM outfits WHERE id=? AND owner_user_id=?",
+                (outfit_id, user_id),
+            )
             if db.execute("SELECT 1 FROM app_meta WHERE key=?", (version_key,)).fetchone():
                 return
         defaults_dir = Path(__file__).resolve().parents[1] / "defaults"
@@ -261,7 +548,8 @@ class Store:
                 "requires_user_confirmation": False,
                 "suggested_scenes": outfit["scene_ids"],
                 "suggested_temperature": {"min": outfit["suitable_min"], "max": outfit["suitable_max"]},
-                "suggested_season": "winter" if outfit["suitable_max"] <= 12 else "summer",
+                "suggested_season": outfit["season"],
+                "suggested_style_tags": outfit["style_tags"],
                 "components": outfit["components"],
                 "replication_guide": outfit["replication_guide"],
                 "outfit_analysis": outfit["outfit_analysis"],
@@ -279,15 +567,25 @@ class Store:
                 },
                 user_id,
             )
-        outfit_id = f"example_{audience}_{_hash(user_id)[:12]}"
-        if not self.get_outfit(outfit_id, user_id):
-            self.save_outfit(
-                outfit | {"audience": audience, "source": "system", "inspiration_id": inspiration["id"]},
-                outfit_id,
-                user_id,
-            )
+        # The example image remains available to backfill old icon-only cards,
+        # but it must not also appear as an independent discovery outfit. The
+        # reviewed system library already contains the canonical mens/womens
+        # looks, so remove the obsolete seeded card for existing users as well.
         with self.connect() as db:
             db.execute("INSERT OR REPLACE INTO app_meta VALUES (?,?)", (version_key, "1"))
+
+    def get_user_example_outfit(self, user_id: str, audience: str) -> Optional[Dict[str, Any]]:
+        del user_id  # The payload is packaged and shared; only its image is user-scoped.
+        manifest_path = Path(__file__).resolve().parents[1] / "defaults" / "outfits.json"
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            entry = next(
+                item for item in manifest["examples"]
+                if item["audience"] == audience
+            )
+        except (OSError, json.JSONDecodeError, KeyError, StopIteration):
+            return None
+        return entry["outfit"]
 
     @staticmethod
     def _settings(row: sqlite3.Row) -> Dict[str, Any]:
@@ -295,11 +593,19 @@ class Store:
         result.pop("user_id", None)
         result["reminder_enabled"] = bool(result["reminder_enabled"])
         result["reminder_days"] = json.loads(result["reminder_days"])
+        result["preferred_styles"] = json.loads(result["preferred_styles"])
+        result["style_preferences_set"] = bool(result["style_preferences_set"])
         return result
 
     @staticmethod
     def _user(row: sqlite3.Row) -> Dict[str, Any]:
-        return {"id": row["id"], "nickname": row["nickname"], "audience": row["audience"]}
+        return {
+            "id": row["id"],
+            "email": row["email"],
+            "nickname": row["nickname"],
+            "audience": row["audience"],
+            "profile_completed": bool(row["profile_completed"]),
+        }
 
     def _create_user_settings(
         self, db: sqlite3.Connection, user_id: str, audience: str, legacy: bool
@@ -327,49 +633,198 @@ class Store:
             ),
         )
 
-    def login(self, invite_code: str, nickname: str, audience: str) -> Dict[str, Any]:
+    @staticmethod
+    def _create_session(db: sqlite3.Connection, user: sqlite3.Row) -> Dict[str, Any]:
+        now = _now()
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        db.execute("DELETE FROM sessions WHERE expires_at<=?", (now,))
+        db.execute(
+            "INSERT INTO sessions VALUES (?,?,?,?)",
+            (_hash(token), user["id"], expires_at, now),
+        )
+        return {"token": token, "expires_at": expires_at, "user": Store._user(user)}
+
+    def email_exists(self, email: str) -> bool:
+        with self.connect() as db:
+            return db.execute(
+                "SELECT 1 FROM users WHERE email_normalized=?", (_normalize_email(email),)
+            ).fetchone() is not None
+
+    def invite_is_claimed(self, invite_code: str) -> bool:
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT email_normalized FROM users WHERE invite_code_hash=?", (_hash(invite_code),)
+            ).fetchone()
+        return bool(row and row["email_normalized"])
+
+    def issue_email_code(
+        self, email: str, purpose: str, code_hash: str, expires_at: str,
+    ) -> tuple[bool, int]:
+        normalized = _normalize_email(email)
+        now = datetime.now(timezone.utc)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            latest = db.execute(
+                """SELECT created_at FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? ORDER BY created_at DESC LIMIT 1""",
+                (normalized, purpose),
+            ).fetchone()
+            if latest:
+                elapsed = (now - datetime.fromisoformat(latest["created_at"])).total_seconds()
+                if elapsed < 60:
+                    return False, max(1, 60 - int(elapsed))
+            db.execute(
+                """UPDATE email_verification_codes SET consumed_at=?
+                WHERE email_normalized=? AND purpose=? AND consumed_at IS NULL""",
+                (_now(), normalized, purpose),
+            )
+            db.execute(
+                """INSERT INTO email_verification_codes
+                (id,email_normalized,purpose,code_hash,expires_at,attempts,consumed_at,created_at)
+                VALUES (?,?,?,?,?,0,NULL,?)""",
+                (_id("mail"), normalized, purpose, code_hash, expires_at, now.isoformat()),
+            )
+        return True, 0
+
+    def consume_email_code(self, email: str, purpose: str, code_hash: str) -> bool:
+        normalized = _normalize_email(email)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                """SELECT * FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? AND consumed_at IS NULL
+                ORDER BY created_at DESC LIMIT 1""",
+                (normalized, purpose),
+            ).fetchone()
+            if not row or row["expires_at"] <= _now() or row["attempts"] >= 5:
+                return False
+            if not hmac.compare_digest(row["code_hash"], code_hash):
+                db.execute(
+                    "UPDATE email_verification_codes SET attempts=attempts+1 WHERE id=?",
+                    (row["id"],),
+                )
+                return False
+            db.execute(
+                "UPDATE email_verification_codes SET consumed_at=? WHERE id=?",
+                (_now(), row["id"]),
+            )
+        return True
+
+    def discard_email_code(self, email: str, purpose: str, code_hash: str) -> None:
+        with self.connect() as db:
+            db.execute(
+                """DELETE FROM email_verification_codes
+                WHERE email_normalized=? AND purpose=? AND code_hash=? AND consumed_at IS NULL""",
+                (_normalize_email(email), purpose, code_hash),
+            )
+
+    def register(
+        self, email: str, password: str, invite_code: str,
+    ) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+        normalized_email = _normalize_email(email)
         code_hash = _hash(invite_code)
         now = _now()
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            if db.execute(
+                "SELECT 1 FROM users WHERE email_normalized=?", (normalized_email,)
+            ).fetchone():
+                return None, "email"
             user = db.execute(
                 "SELECT * FROM users WHERE invite_code_hash=?", (code_hash,)
             ).fetchone()
-            if not user:
-                user_id = _id("user")
+            if user and user["email_normalized"]:
+                return None, "invite"
+            if user:
                 db.execute(
-                    "INSERT INTO users VALUES (?,?,?,?,?,?)",
-                    (user_id, code_hash, nickname[:5], audience, now, now),
+                    """UPDATE users SET email=?,email_normalized=?,password_hash=?,updated_at=?
+                    WHERE id=?""",
+                    (email.strip(), normalized_email, _password_hash(password), now, user["id"]),
                 )
-                claimed = db.execute(
-                    "SELECT value FROM app_meta WHERE key='legacy_data_claimed'"
-                ).fetchone()
-                is_first_user = not claimed
-                self._create_user_settings(db, user_id, audience, is_first_user)
-                if is_first_user:
-                    db.execute(
-                        "UPDATE outfits SET owner_user_id=? WHERE owner_user_id IS NULL",
-                        (user_id,),
-                    )
-                    db.execute(
-                        "UPDATE inspirations SET owner_user_id=? WHERE owner_user_id IS NULL",
-                        (user_id,),
-                    )
-                    for table in ("push_subscriptions", "notification_deliveries", "feedback"):
-                        db.execute(f"UPDATE {table} SET user_id=? WHERE user_id IS NULL", (user_id,))
-                    db.execute(
-                        "INSERT INTO app_meta VALUES ('legacy_data_claimed',?)", (user_id,)
-                    )
-                user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
-            token = secrets.token_urlsafe(32)
-            expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-            db.execute("DELETE FROM sessions WHERE expires_at<=?", (now,))
+                user = db.execute("SELECT * FROM users WHERE id=?", (user["id"],)).fetchone()
+                return self._create_session(db, user), None
+            user_id = _id("user")
+            placeholder = normalized_email.split("@", 1)[0][:5] or "新用户"
             db.execute(
-                "INSERT INTO sessions VALUES (?,?,?,?)",
-                (_hash(token), user["id"], expires_at, now),
+                """INSERT INTO users
+                (id,invite_code_hash,nickname,audience,created_at,updated_at,email,
+                 email_normalized,password_hash,profile_completed)
+                VALUES (?,?,?,?,?,?,?,?,?,0)""",
+                (
+                    user_id, code_hash, placeholder, "mens", now, now, email.strip(),
+                    normalized_email, _password_hash(password),
+                ),
             )
+            claimed = db.execute(
+                "SELECT value FROM app_meta WHERE key='legacy_data_claimed'"
+            ).fetchone()
+            is_first_user = not claimed
+            self._create_user_settings(db, user_id, "mens", is_first_user)
+            if is_first_user:
+                db.execute(
+                    """UPDATE outfits SET owner_user_id=? WHERE owner_user_id IS NULL
+                    AND (inspiration_id IS NULL OR inspiration_id NOT IN (
+                        SELECT id FROM inspirations WHERE provider='system-curated'
+                    ))""",
+                    (user_id,),
+                )
+                db.execute(
+                    """UPDATE inspirations SET owner_user_id=? WHERE owner_user_id IS NULL
+                    AND provider!='system-curated'""",
+                    (user_id,),
+                )
+                for table in ("push_subscriptions", "notification_deliveries", "feedback"):
+                    db.execute(f"UPDATE {table} SET user_id=? WHERE user_id IS NULL", (user_id,))
+                db.execute(
+                    "INSERT INTO app_meta VALUES ('legacy_data_claimed',?)", (user_id,)
+                )
+            user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+            session = self._create_session(db, user)
         self._ensure_user_example(user["id"], user["audience"])
-        return {"token": token, "expires_at": expires_at, "user": self._user(user)}
+        return session, None
+
+    def login(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            user = db.execute(
+                "SELECT * FROM users WHERE email_normalized=?", (_normalize_email(email),)
+            ).fetchone()
+            if not user or not user["password_hash"] or not _password_matches(password, user["password_hash"]):
+                return None
+            session = self._create_session(db, user)
+        self._ensure_user_example(user["id"], user["audience"])
+        return session
+
+    def complete_profile(self, user_id: str, nickname: str, audience: str) -> Dict[str, Any]:
+        with self.connect() as db:
+            db.execute(
+                """UPDATE users SET nickname=?,audience=?,profile_completed=1,updated_at=?
+                WHERE id=?""",
+                (nickname[:5], audience, _now(), user_id),
+            )
+            db.execute(
+                "UPDATE user_settings SET audience=?,updated_at=? WHERE user_id=?",
+                (audience, _now(), user_id),
+            )
+            row = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+        self._ensure_user_example(user_id, audience)
+        return self._user(row)
+
+    def reset_password(self, email: str, password: str) -> bool:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            user = db.execute(
+                "SELECT id FROM users WHERE email_normalized=?", (_normalize_email(email),)
+            ).fetchone()
+            if not user:
+                return False
+            db.execute(
+                "UPDATE users SET password_hash=?,updated_at=? WHERE id=?",
+                (_password_hash(password), _now(), user["id"]),
+            )
+            db.execute("DELETE FROM sessions WHERE user_id=?", (user["id"],))
+        return True
 
     def user_for_token(self, token: str) -> Optional[Dict[str, Any]]:
         with self.connect() as db:
@@ -383,6 +838,58 @@ class Store:
     def logout(self, token: str) -> None:
         with self.connect() as db:
             db.execute("DELETE FROM sessions WHERE token_hash=?", (_hash(token),))
+
+    def delete_account(self, user_id: str, password: str) -> str:
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+            if not user:
+                return "invalid_password"
+            now = datetime.now(timezone.utc)
+            in_window = bool(user["deletion_retry_at"] and user["deletion_retry_at"] > now.isoformat())
+            attempts = user["deletion_attempts"] if in_window else 0
+            if attempts >= 5:
+                return "rate_limited"
+            if not user["password_hash"] or not _password_matches(password, user["password_hash"]):
+                retry_at = user["deletion_retry_at"] if in_window else (now + timedelta(minutes=15)).isoformat()
+                db.execute(
+                    "UPDATE users SET deletion_attempts=?,deletion_retry_at=? WHERE id=?",
+                    (attempts + 1, retry_at, user_id),
+                )
+                return "invalid_password"
+            paths = [row[0] for row in db.execute(
+                """SELECT file_path FROM inspirations WHERE owner_user_id=?
+                UNION SELECT file_path FROM ai_outfit_image_cache WHERE user_id=?""",
+                (user_id, user_id),
+            )]
+            db.execute("INSERT INTO deleted_users VALUES (?)", (user_id,))
+            db.execute(
+                "DELETE FROM skip_events WHERE outfit_id IN (SELECT id FROM outfits WHERE owner_user_id=?)",
+                (user_id,),
+            )
+            for table, column in USER_DATA_COLUMNS.items():
+                db.execute(f"DELETE FROM {table} WHERE {column}=?", (user_id,))
+            db.execute("DELETE FROM email_verification_codes WHERE email_normalized=?", (user["email_normalized"],))
+            db.execute("DELETE FROM users WHERE id=?", (user_id,))
+            db.execute("UPDATE app_meta SET value='claimed' WHERE key='legacy_data_claimed' AND value=?", (user_id,))
+        # Files are content-addressed and can be shared; only remove unreferenced private copies.
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            for original in paths:
+                path = Path(original).resolve()
+                if path.parent not in (self.upload_dir.resolve(), self.generated_dir.resolve()):
+                    continue
+                if db.execute(
+                    "SELECT 1 FROM inspirations WHERE file_path=? UNION SELECT 1 FROM ai_outfit_image_cache WHERE file_path=?",
+                    (original, original),
+                ).fetchone():
+                    continue
+                for size in ("original", "medium", "thumbnail"):
+                    try:
+                        ImageService.sized_path(path, size).unlink(missing_ok=True)
+                    except OSError:
+                        logging.getLogger(__name__).exception("Closed account image cleanup failed")
+        return "deleted"
 
     def update_nickname(self, user_id: str, nickname: str) -> Dict[str, Any]:
         with self.connect() as db:
@@ -407,6 +914,9 @@ class Store:
     ) -> Dict[str, Any]:
         current = self.get_settings(user_id)
         current.update(payload)
+        if "preferred_styles" in payload:
+            current["preferred_styles"] = list(dict.fromkeys(payload["preferred_styles"]))
+            current["style_preferences_set"] = True
         table = "user_settings" if user_id else "settings"
         where = "user_id=?" if user_id else "id=1"
         values: List[Any] = [
@@ -415,7 +925,8 @@ class Store:
             current["cold_offset"], current["height_group"], current["weight_group"],
             current["age_group"],
             int(current["reminder_enabled"]),
-            current["reminder_time"], json.dumps(current["reminder_days"]), _now(),
+            current["reminder_time"], json.dumps(current["reminder_days"]),
+            json.dumps(current["preferred_styles"]), int(current["style_preferences_set"]), _now(),
         ]
         if user_id:
             values.append(user_id)
@@ -423,7 +934,7 @@ class Store:
             db.execute(
                 f"""UPDATE {table} SET city_id=?,city_name=?,latitude=?,longitude=?,timezone=?,
                 audience=?,cold_offset=?,height_group=?,weight_group=?,age_group=?,reminder_enabled=?,
-                reminder_time=?,reminder_days=?,updated_at=?
+                reminder_time=?,reminder_days=?,preferred_styles=?,style_preferences_set=?,updated_at=?
                 WHERE {where}""",
                 values,
             )
@@ -454,10 +965,21 @@ class Store:
     def _outfit(row: sqlite3.Row) -> Dict[str, Any]:
         result = dict(row)
         result.pop("owner_user_id", None)
-        result["components"] = json.loads(result.pop("components_json"))
+        components = json.loads(result.pop("components_json"))
+        result["components"] = normalize_component_list(components)
         result["scene_ids"] = json.loads(result.pop("scene_ids_json"))
-        result.pop("favorite", None)
+        result["favorite"] = bool(result["favorite"])
         result["in_pool"] = bool(result["in_pool"])
+        result["system_ready"] = bool(result.get("system_ready", False))
+        try:
+            styles = json.loads(result.pop("style_tags_json", "[\"minimal\"]"))
+        except (TypeError, json.JSONDecodeError):
+            styles = ["minimal"]
+        result["style_tags"] = [
+            style for style in styles if style in {"minimal", "casual", "street", "sport", "outdoor"}
+        ][:2] or ["minimal"]
+        if result.get("season") not in {"spring-autumn", "summer", "winter"}:
+            result["season"] = "spring-autumn"
         result["replication_guide"] = json.loads(result.pop("replication_json", "{}"))
         result["outfit_analysis"] = json.loads(result.pop("analysis_json", "{}"))
         return result
@@ -477,6 +999,8 @@ class Store:
             return None
         if state["in_pool"] is not None:
             outfit["in_pool"] = bool(state["in_pool"])
+        if state["favorite"] is not None:
+            outfit["favorite"] = bool(state["favorite"])
         if state["scene_ids_json"] is not None:
             outfit["scene_ids"] = json.loads(state["scene_ids_json"])
         outfit["skip_count"] = state["skip_count"]
@@ -489,7 +1013,7 @@ class Store:
         query = "SELECT * FROM outfits"
         values: List[Any] = []
         if user_id:
-            query += " WHERE owner_user_id=?"
+            query += " WHERE owner_user_id=? OR (owner_user_id IS NULL AND source='system')"
             values.append(user_id)
         query += " ORDER BY updated_at DESC"
         with self.connect() as db:
@@ -508,7 +1032,8 @@ class Store:
     ) -> Optional[Dict[str, Any]]:
         with self.connect() as db:
             row = db.execute(
-                "SELECT * FROM outfits WHERE id=? AND owner_user_id=?"
+                """SELECT * FROM outfits WHERE id=? AND
+                (owner_user_id=? OR (owner_user_id IS NULL AND source='system'))"""
                 if user_id else "SELECT * FROM outfits WHERE id=?",
                 (outfit_id, user_id) if user_id else (outfit_id,),
             ).fetchone()
@@ -525,6 +1050,17 @@ class Store:
         query += " ORDER BY updated_at DESC LIMIT 1"
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
+            return self._apply_state(db, self._outfit(row), user_id) if row else None
+
+    def get_outfit_by_recommendation(
+        self, recommendation_id: str, user_id: str
+    ) -> Optional[Dict[str, Any]]:
+        with self.connect() as db:
+            row = db.execute(
+                """SELECT * FROM outfits WHERE recommendation_id=? AND owner_user_id=?
+                ORDER BY updated_at DESC LIMIT 1""",
+                (recommendation_id, user_id),
+            ).fetchone()
             return self._apply_state(db, self._outfit(row), user_id) if row else None
 
     @staticmethod
@@ -551,6 +1087,15 @@ class Store:
         outfit = self.get_outfit(outfit_id, user_id)
         if not outfit:
             return False
+        if outfit["source"] == "system":
+            if not user_id:
+                return False
+            with self.connect() as db:
+                self._upsert_state(
+                    db, user_id, outfit_id,
+                    {"favorite": 0, "in_pool": 0, "hidden": 1},
+                )
+            return True
         with self.connect() as db:
             if user_id:
                 db.execute(
@@ -581,18 +1126,24 @@ class Store:
             "label": payload.get("label", existing["label"] if existing else "我的穿搭"),
             "audience": payload.get("audience", existing["audience"] if existing else "mens"),
             "source": source,
-            "components_json": json.dumps(
-                payload.get("components", existing["components"] if existing else []), ensure_ascii=False
-            ),
+            "components_json": json.dumps(normalize_component_list(
+                payload.get("components", existing["components"] if existing else [])
+            ), ensure_ascii=False),
             "scene_ids_json": json.dumps(
                 payload.get("scene_ids", existing["scene_ids"] if existing else ["commute"]),
                 ensure_ascii=False,
             ),
             "suitable_min": payload.get("suitable_min", existing["suitable_min"] if existing else 15),
             "suitable_max": payload.get("suitable_max", existing["suitable_max"] if existing else 28),
-            # Keep the retired database column at zero for backward-compatible SQLite files.
-            "favorite": 0,
+            "favorite": int(payload.get("favorite", existing["favorite"] if existing else False)),
             "in_pool": int(payload.get("in_pool", existing["in_pool"] if existing else False)),
+            "season": payload.get("season", existing["season"] if existing else "spring-autumn"),
+            "style_tags_json": json.dumps(
+                payload.get("style_tags", existing["style_tags"] if existing else ["minimal"]),
+                ensure_ascii=False,
+            ),
+            "system_ready": int(payload.get("system_ready", existing.get("system_ready", False) if existing else False)),
+            "recommendation_id": payload.get("recommendation_id", existing.get("recommendation_id") if existing else None),
             "inspiration_id": payload.get("inspiration_id", existing["inspiration_id"] if existing else None),
             "skip_count": existing["skip_count"] if existing else 0,
             "created_at": existing["created_at"] if existing else now,
@@ -612,10 +1163,11 @@ class Store:
                 """INSERT OR REPLACE INTO outfits
                 (id,label,audience,source,components_json,scene_ids_json,suitable_min,suitable_max,
                  favorite,in_pool,inspiration_id,skip_count,created_at,updated_at,replication_json,
-                 analysis_json,owner_user_id)
+                 analysis_json,owner_user_id,season,style_tags_json,system_ready,recommendation_id)
                 VALUES (:id,:label,:audience,:source,:components_json,:scene_ids_json,:suitable_min,
                  :suitable_max,:favorite,:in_pool,:inspiration_id,:skip_count,:created_at,:updated_at,
-                 :replication_json,:analysis_json,:owner_user_id)""",
+                 :replication_json,:analysis_json,:owner_user_id,:season,:style_tags_json,:system_ready,
+                 :recommendation_id)""",
                 values,
             )
         return self.get_outfit(identifier, user_id)
@@ -626,10 +1178,23 @@ class Store:
         outfit = self.get_outfit(outfit_id, user_id)
         if not outfit:
             return None
+        if outfit["source"] == "system":
+            changes: Dict[str, Any] = {}
+            if "favorite" in payload:
+                changes["favorite"] = int(bool(payload["favorite"]))
+                changes["in_pool"] = int(bool(payload["favorite"]))
+            if "in_pool" in payload:
+                changes["in_pool"] = int(bool(payload["in_pool"]))
+            if "scene_ids" in payload:
+                changes["scene_ids_json"] = json.dumps(payload["scene_ids"], ensure_ascii=False)
+            with self.connect() as db:
+                self._upsert_state(db, user_id, outfit_id, changes)
+            return self.get_outfit(outfit_id, user_id)
         return self.save_outfit(payload, outfit_id, user_id)
 
     def create_inspiration(
-        self, payload: Dict[str, Any], user_id: Optional[str] = None
+        self, payload: Dict[str, Any], user_id: Optional[str] = None,
+        image_data: Optional[bytes] = None,
     ) -> Dict[str, Any]:
         now = _now()
         row = {
@@ -640,6 +1205,13 @@ class Store:
         if user_id:
             row["upload_key"] = f"{user_id}:{row['upload_key']}"
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM deleted_users WHERE user_id=?", (user_id,)).fetchone():
+                raise ValueError("account deleted")
+            if image_data is not None:
+                row["file_path"] = ImageService(self.upload_dir).process_and_store(
+                    image_data, row["content_hash"],
+                )["original"]
             db.execute(
                 """INSERT INTO inspirations
                 (id,upload_key,content_hash,original_name,media_type,file_path,status,provider,
@@ -702,7 +1274,7 @@ class Store:
         query = "SELECT * FROM inspirations WHERE id=?"
         values: List[Any] = [inspiration_id]
         if user_id:
-            query += " AND owner_user_id=?"
+            query += " AND (owner_user_id=? OR (owner_user_id IS NULL AND provider='system-curated'))"
             values.append(user_id)
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
@@ -714,7 +1286,7 @@ class Store:
         query = "SELECT file_path FROM inspirations WHERE id=?"
         values: List[Any] = [inspiration_id]
         if user_id:
-            query += " AND owner_user_id=?"
+            query += " AND (owner_user_id=? OR (owner_user_id IS NULL AND provider='system-curated'))"
             values.append(user_id)
         with self.connect() as db:
             row = db.execute(query, values).fetchone()
@@ -735,6 +1307,8 @@ class Store:
         result = dict(row)
         result.pop("owner_user_id", None)
         result["result"] = json.loads(result.pop("result_json"))
+        if isinstance(result["result"], dict) and isinstance(result["result"].get("components"), list):
+            result["result"]["components"] = normalize_component_list(result["result"]["components"])
         result.pop("file_path", None)
         return result
 
@@ -742,6 +1316,9 @@ class Store:
         self, inspiration_id: str, result: Dict[str, Any], provider: str,
         user_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
+        result = dict(result)
+        if isinstance(result.get("components"), list):
+            result["components"] = normalize_component_list(result["components"])
         query = "UPDATE inspirations SET status='needs_review',provider=?,result_json=?,updated_at=? WHERE id=?"
         values: List[Any] = [provider, json.dumps(result, ensure_ascii=False), _now(), inspiration_id]
         if user_id:
@@ -915,10 +1492,27 @@ class Store:
             return None
         return dict(row)
 
+    def get_latest_outfit_image(self, user_id: str, outfit_id: str) -> Optional[Dict[str, Any]]:
+        """Return an existing detail image for an outfit without generating a new one."""
+        with self.connect() as db:
+            rows = db.execute(
+                """SELECT recommendation_id,file_path,created_at FROM ai_outfit_image_cache
+                WHERE user_id=? AND (recommendation_id=? OR recommendation_id LIKE ?)
+                ORDER BY created_at DESC""",
+                (user_id, outfit_id, f"{outfit_id}-%"),
+            ).fetchall()
+        for row in rows:
+            if Path(row["file_path"]).is_file():
+                return dict(row)
+        return None
+
     def set_ai_outfit_image(self, user_id: str, recommendation_id: str, image_data: bytes) -> str:
         digest = hashlib.sha256(image_data).hexdigest()
-        file_path = ImageService(self.generated_dir).process_and_store(image_data, digest)["original"]
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM deleted_users WHERE user_id=?", (user_id,)).fetchone():
+                raise ValueError("account deleted")
+            file_path = ImageService(self.generated_dir).process_and_store(image_data, digest)["original"]
             db.execute(
                 """INSERT OR REPLACE INTO ai_outfit_image_cache
                 (user_id,recommendation_id,file_path,created_at) VALUES (?,?,?,?)""",

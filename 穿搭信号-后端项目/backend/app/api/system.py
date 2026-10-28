@@ -17,8 +17,8 @@ from app.services.outfit_image_service import OutfitImageService
 from app.services.recommendation_service import (
     NoRecommendationError,
     recommend_ai_outfit,
-    recommend_official_outfit,
     recommend_personal_outfit,
+    recommend_system_outfit,
     recommend_system_ai_outfit,
 )
 from app.services.store import AI_USAGE_LIMITS, store, user_local_date
@@ -37,8 +37,13 @@ GARMENT_LABELS = {
     "bottom_sweatpants": "保暖长裤", "bottom_skirt_short": "短裙",
     "bottom_skirt_long": "长裙", "onepiece_dress": "连衣裙", "shoe_sneaker": "低帮鞋",
     "shoe_canvas": "高帮鞋", "shoe_leather": "正装皮鞋", "shoe_pump": "高跟鞋",
+    "shoe_sandal": "凉鞋", "shoe_boot_short": "短靴",
+    "shoe_sneaker_high_top": "高帮运动鞋",
     "acc_umbrella": "雨伞", "acc_baseball_cap": "棒球帽", "acc_gloves": "手套",
-    "acc_beanie": "针织帽",
+    "acc_beanie": "针织帽", "acc_sunscreen": "防晒霜",
+    "acc_bucket_hat": "渔夫帽", "acc_tote_bag": "托特包",
+    "acc_crossbody_bag": "斜挎包", "acc_backpack": "双肩包",
+    "acc_glasses": "眼镜 / 墨镜", "acc_scarf": "围巾",
 }
 # ponytail: 进程内锁足够覆盖当前单 worker；扩到多 worker 时改为数据库任务锁。
 DETAIL_LOCKS: defaultdict[tuple[str, str], asyncio.Lock] = defaultdict(asyncio.Lock)
@@ -66,6 +71,10 @@ def _detail_cache_id(
         "scene": payload.scene,
         "items": [item.model_dump(mode="json") for item in payload.items],
         "constraints": payload.constraints,
+        "style_tags": payload.style_tags,
+        "outfit_dna": payload.outfit_dna,
+        "locked_features": payload.locked_features,
+        "image_direction": payload.image_direction,
         "audience": audience,
         "person_profile": person_profile,
     }
@@ -79,20 +88,7 @@ def _non_ai_recommendation(
     weather: WeatherInput,
     audience: str,
 ) -> dict:
-    try:
-        return recommend_system_ai_outfit(
-            weather=weather,
-            scene=payload.scene,
-            audience=audience,
-            city_id=payload.city_id,
-            local_date=payload.local_date,
-            excluded_template_ids=payload.excluded_template_ids,
-        )
-    except NoRecommendationError:
-        pass
-    except Exception:
-        logger.exception("system recommendation failed, falling back to official templates")
-    return recommend_official_outfit(
+    return recommend_system_ai_outfit(
         weather=weather,
         scene=payload.scene,
         audience=audience,
@@ -102,10 +98,28 @@ def _non_ai_recommendation(
     )
 
 
+def _provider_failure_fallback(
+    payload: RecommendationRequest,
+    weather: WeatherInput,
+    audience: str,
+) -> dict:
+    """Provider 超时或格式错误时立即复用一套安全模板，不再让首页等待。"""
+    return recommend_system_ai_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        city_id=payload.city_id,
+        local_date=payload.local_date,
+        excluded_template_ids=[],
+    ) | {"ai_fallback_reason": "provider_failed"}
+
+
 def _weather_input(payload: WeatherRuleRequest) -> WeatherInput:
     return WeatherInput(
         apparent_min=payload.apparent_min,
         apparent_max=payload.apparent_max,
+        current_temperature=getattr(payload, "current_temperature", None),
+        current_apparent_temperature=getattr(payload, "current_apparent_temperature", None),
         max_precipitation_probability=payload.max_precipitation_probability,
         total_precipitation=payload.total_precipitation,
         total_snowfall=payload.total_snowfall,
@@ -123,7 +137,8 @@ async def health() -> dict:
 
 @router.post("/recommendations/preview", tags=["recommendations"])
 async def preview_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
-    audience = store.get_settings(user["id"])["audience"]
+    settings = store.get_settings(user["id"])
+    audience = settings["audience"]
     weather = _weather_input(payload)
     personal = recommend_personal_outfit(
         weather=weather,
@@ -131,10 +146,51 @@ async def preview_recommendation(payload: RecommendationRequest, user: CurrentUs
         audience=audience,
         outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if personal:
         return personal
-    return _non_ai_recommendation(payload, weather, audience)
+    curated = recommend_system_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        outfits=store.list_outfits(user_id=user["id"]),
+        excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
+    )
+    if curated:
+        return curated
+    try:
+        return _non_ai_recommendation(payload, weather, audience)
+    except NoRecommendationError:
+        pass
+    local_date = _quota_date(user["id"])
+    reservation_id = store.reserve_ai_usage(user["id"], local_date, "swap")
+    if not reservation_id:
+        raise HTTPException(429, "暂无符合条件的个人或系统穿搭，今日 AI 换装次数已用完")
+    try:
+        recommendation = await recommend_ai_outfit(
+            weather=weather, scene=payload.scene, audience=audience,
+            city_id=payload.city_id, local_date=payload.local_date,
+            weather_context={
+                "preferred_style_tags": settings["preferred_styles"],
+                "city_name": payload.city_name, "latitude": payload.latitude,
+                "longitude": payload.longitude, "timezone": payload.timezone,
+                "current_temperature": payload.current_temperature,
+                "current_apparent_temperature": payload.current_apparent_temperature,
+                "temperature_min": payload.temperature_min, "temperature_max": payload.temperature_max,
+                "weather_code": payload.weather_code,
+            },
+        )
+    except Exception as exc:
+        store.release_ai_usage(reservation_id)
+        logger.exception("Realtime AI preview failed; returning immediate local fallback")
+        try:
+            fallback = _provider_failure_fallback(payload, weather, audience)
+        except NoRecommendationError:
+            raise HTTPException(503, "暂无可用穿搭方案") from exc
+        return fallback | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
+    return recommendation | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
 
 
 @router.get("/ai-usage-quota", tags=["system"])
@@ -148,7 +204,8 @@ async def ai_usage_quota(user: CurrentUser) -> dict:
 
 @router.post("/recommendations/swap", tags=["recommendations"])
 async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser) -> dict:
-    audience = store.get_settings(user["id"])["audience"]
+    settings = store.get_settings(user["id"])
+    audience = settings["audience"]
     weather = _weather_input(payload)
     personal = recommend_personal_outfit(
         weather=weather,
@@ -156,17 +213,28 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
         audience=audience,
         outfits=store.list_outfits(in_pool=True, user_id=user["id"]),
         excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
     )
     if personal:
         return personal
+    curated = recommend_system_outfit(
+        weather=weather,
+        scene=payload.scene,
+        audience=audience,
+        outfits=store.list_outfits(user_id=user["id"]),
+        excluded_ids=payload.excluded_template_ids,
+        preferred_styles=settings["preferred_styles"],
+    )
+    if curated:
+        return curated
+    try:
+        return _non_ai_recommendation(payload, weather, audience)
+    except NoRecommendationError:
+        pass
     local_date = _quota_date(user["id"])
     reservation_id = store.reserve_ai_usage(user["id"], local_date, "swap")
     if not reservation_id:
-        recommendation = _non_ai_recommendation(payload, weather, audience)
-        return recommendation | {
-            "ai_quota": store.get_ai_quota(user["id"], local_date, "swap"),
-            "ai_fallback_reason": "quota_exhausted",
-        }
+        raise HTTPException(429, "今日 AI 换一套次数已用完，明天再来试试")
     try:
         recommendation = await recommend_ai_outfit(
             weather=weather,
@@ -175,6 +243,7 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
             city_id=payload.city_id,
             local_date=payload.local_date,
             weather_context={
+                "preferred_style_tags": settings["preferred_styles"],
                 "city_name": payload.city_name,
                 "latitude": payload.latitude,
                 "longitude": payload.longitude,
@@ -186,14 +255,14 @@ async def swap_recommendation(payload: RecommendationRequest, user: CurrentUser)
                 "weather_code": payload.weather_code,
             },
         )
-    except Exception:
+    except Exception as exc:
         store.release_ai_usage(reservation_id)
-        logger.exception("AI recommendation failed, falling back to non-AI recommendations")
-        recommendation = _non_ai_recommendation(payload, weather, audience)
-        return recommendation | {
-            "ai_quota": store.get_ai_quota(user["id"], local_date, "swap"),
-            "ai_fallback_reason": "provider_failed",
-        }
+        logger.exception("AI recommendation failed after personal and system layers were exhausted")
+        try:
+            fallback = _provider_failure_fallback(payload, weather, audience)
+        except NoRecommendationError:
+            raise HTTPException(503, "AI 穿搭生成失败，请稍后重试") from exc
+        return fallback | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
     return recommendation | {"ai_quota": store.get_ai_quota(user["id"], local_date, "swap")}
 
 
@@ -229,6 +298,8 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                     payload.scene,
                     generation_audience,
                     person_profile,
+                    payload.outfit_dna,
+                    payload.locked_features,
                 )
                 if needs_advice
                 else None
@@ -241,25 +312,46 @@ async def recommendation_advice(payload: RecommendationAdviceRequest, user: Curr
                     items,
                     payload.constraints,
                     person_profile,
+                    payload.outfit_dna,
+                    payload.locked_features,
+                    payload.image_direction,
+                    payload.style_tags,
                 )
                 if needs_image
                 else None
             )
             pending = [task for task in (advice_task, image_task) if task is not None]
-            generated = await asyncio.gather(*pending)
+            generated = await asyncio.gather(*pending, return_exceptions=True)
             index = 0
             result = cached_advice or {}
+            errors = {}
+            succeeded = False
             if needs_advice:
-                result = generated[index]
+                advice = generated[index]
                 index += 1
-                store.set_ai_advice(user["id"], cache_id, result)
+                if isinstance(advice, BaseException):
+                    logger.warning("Detail advice failed: %s", type(advice).__name__)
+                    errors["advice_error"] = "AI 穿搭建议暂未生成，可先参考下方基础穿搭步骤"
+                else:
+                    result = advice
+                    store.set_ai_advice(user["id"], cache_id, result)
+                    succeeded = True
             if needs_image:
-                store.set_ai_outfit_image(user["id"], cache_id, generated[index])
+                image = generated[index]
+                if isinstance(image, BaseException):
+                    logger.warning("Detail image failed: %s", type(image).__name__)
+                    errors["image_error"] = "AI 穿搭参考图暂未生成，请稍后重试"
+                else:
+                    store.set_ai_outfit_image(user["id"], cache_id, image)
+                    cached_image = True
+                    succeeded = True
+            if not succeeded:
+                store.release_ai_usage(reservation_id)
         except Exception:
             store.release_ai_usage(reservation_id)
             raise
-        return result | {
-            "image_url": f"/recommendations/{cache_id}/image",
+        return result | errors | {
+            "image_url": f"/recommendations/{cache_id}/image" if cached_image else None,
             "ai_quota": store.get_ai_quota(user["id"], local_date, "advice"),
             "cached": False,
         }

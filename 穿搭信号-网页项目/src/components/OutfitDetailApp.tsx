@@ -4,9 +4,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { OutfitIcon } from "./OutfitIcon";
+import { resolveGarmentIcon } from "@/config/garment-icon-map";
 import { apiAsset, apiJson } from "@/lib/backend-api";
 import type { AIQuota, BackendRecommendation, Outfit, OutfitAnalysis, ReplicationGuide } from "@/domain/backend";
 import { outfitItemSortKey } from "@/domain/outfit-order";
+import { outfitThicknessLabel, usesRegularAccessoryThickness } from "@/domain/outfit-thickness";
+import { displayOutfitLabel } from "@/domain/outfit-label";
 
 const DETAIL_ADVICE_STEPS = ["AI 正在分析这套单品组合", "AI 正在生成穿搭步骤", "AI 正在检查天气适配", "AI 正在整理替代建议"];
 
@@ -14,25 +17,56 @@ export function detailAdviceStatus(step: number) {
   return DETAIL_ADVICE_STEPS[step % DETAIL_ADVICE_STEPS.length];
 }
 
-type DetailStepItem = { variant_type: string; color_name: string; thickness: string };
+type DetailStepItem = { variant_type: string; color_name: string; thickness: string; functional_icon_key?: string; asset_key?: string | null };
 
-export function detailSteps(steps: string[], items: DetailStepItem[]) {
-  const remaining = [...items];
-  const enriched = steps.map((step) => {
-    const matchedIndex = remaining.findIndex((item) => step.includes(item.variant_type));
-    const item = remaining.splice(matchedIndex >= 0 ? matchedIndex : 0, 1)[0];
-    if (!item) return step;
-    const thickness = thicknessLabel(item.thickness);
-    if (step.includes(item.color_name) && step.includes(thickness)) return step;
-    return `${step}（${item.color_name}、${thickness}）`;
+function itemStepMatchScore(step: string, item: DetailStepItem) {
+  if (step.includes(item.variant_type)) return 100;
+  const compactStep = step.replace(/[^\p{L}\p{N}]/gu, "");
+  const compactItem = item.variant_type.replace(/[^\p{L}\p{N}]/gu, "");
+  const pairs = new Set(Array.from({ length: Math.max(0, compactItem.length - 1) }, (_, index) => compactItem.slice(index, index + 2)));
+  const sharedPairs = [...pairs].filter((pair) => compactStep.includes(pair)).length;
+  return sharedPairs + (item.color_name && step.includes(item.color_name) ? 4 : 0);
+}
+
+export function detailSteps(steps: string[] | undefined, items: DetailStepItem[]) {
+  const remainingSteps = [...(steps ?? [])];
+  const enriched = items.map((item) => {
+    const scores = remainingSteps.map((step) => itemStepMatchScore(step, item));
+    const bestScore = Math.max(...scores, 0);
+    const matchedIndex = bestScore >= 1 ? scores.indexOf(bestScore) : -1;
+    const step = matchedIndex >= 0 ? remainingSteps.splice(matchedIndex, 1)[0] : undefined;
+    const normalizedStep = usesRegularAccessoryThickness(item)
+      ? step?.replaceAll("薄款", "常规").replaceAll("厚款", "常规")
+      : step;
+    if (!normalizedStep) return `搭配${item.color_name}、${outfitThicknessLabel(item)}的${item.variant_type}`;
+    const thickness = outfitThicknessLabel(item);
+    if (normalizedStep.includes(item.color_name) && normalizedStep.includes(thickness)) return normalizedStep;
+    return `${normalizedStep}（${item.color_name}、${thickness}）`;
   });
-  return enriched.concat(remaining.map((item) => `搭配${item.color_name}、${thicknessLabel(item.thickness)}的${item.variant_type}`));
+  return enriched.concat(remainingSteps);
+}
+
+export function recommendationSavePayload(recommendation: BackendRecommendation, guide: ReplicationGuide, analysis: OutfitAnalysis | null, inPool: boolean) {
+  return {
+    recommendation_id: recommendation.template_id,
+    label: recommendation.label,
+    audience: recommendation.audience,
+    components: recommendation.items,
+    scene_ids: [recommendation.scene],
+    suitable_min: recommendation.constraints.apparent_min ?? recommendation.constraints.temperature_min ?? 15,
+    suitable_max: recommendation.constraints.apparent_max ?? recommendation.constraints.temperature_max ?? 28,
+    season: recommendation.season ?? "spring-autumn",
+    style_tags: recommendation.style_tags?.length ? recommendation.style_tags : ["minimal"],
+    in_pool: inPool,
+    outfit_analysis: analysis,
+    replication_guide: guide,
+  };
 }
 
 function subscribe() { return () => undefined; }
 function snapshot() { return localStorage.getItem("wearcue_active_outfit_v1") || ""; }
 
-export function OutfitDetailApp({ id }: { id: string }) {
+export function OutfitDetailApp({ id, origin = "closet" }: { id: string; origin?: "home" | "closet" }) {
   const raw = useSyncExternalStore(subscribe, snapshot, () => "");
   const [savedOutfit, setSavedOutfit] = useState<Outfit | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +78,9 @@ export function OutfitDetailApp({ id }: { id: string }) {
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [adviceDone, setAdviceDone] = useState(false);
   const [adviceStatusStep, setAdviceStatusStep] = useState(0);
+  const [saveAction, setSaveAction] = useState<"pool" | "library" | null>(null);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [detailAttempt, setDetailAttempt] = useState(0);
   const requestedDetail = useRef("");
   const recommendation = useMemo<BackendRecommendation | null>(() => {
     if (!raw) return null;
@@ -63,14 +100,18 @@ export function OutfitDetailApp({ id }: { id: string }) {
 
   useEffect(() => {
     if (loading) return;
-    const targetItems = recommendation?.items ?? savedOutfit?.components;
+    const targetItems = savedOutfit?.components ?? recommendation?.items;
     if (!targetItems || savedOutfit?.inspiration_id) return;
     const needsAdvice = Boolean(
-      recommendation?.source === "ai"
+      !savedOutfit
+      && recommendation?.source === "ai"
       && !recommendation.replication_guide
       && !recommendation.outfit_analysis,
     );
-    const requestKey = `${id}:${needsAdvice}`;
+    if (savedOutfit?.image_url && !needsAdvice) {
+      return;
+    }
+    const requestKey = `${id}:${detailAttempt}`;
     if (requestedDetail.current === requestKey) return;
     requestedDetail.current = requestKey;
     let active = true;
@@ -80,23 +121,31 @@ export function OutfitDetailApp({ id }: { id: string }) {
     void apiJson<{
       replication_guide?: ReplicationGuide;
       outfit_analysis?: OutfitAnalysis;
-      image_url: string;
+      image_url: string | null;
+      image_error?: string;
+      advice_error?: string;
       ai_quota: AIQuota;
     }>("/recommendations/advice", {
       method: "POST",
       body: JSON.stringify({
         recommendation_id: id,
-        label: recommendation?.label ?? savedOutfit?.label ?? "今日穿搭",
+        label: savedOutfit?.label ?? recommendation?.label ?? "今日穿搭",
         scene: recommendation?.scene ?? savedOutfit?.scene_ids[0] ?? "commute",
         items: targetItems,
         constraints: recommendation?.constraints ?? {},
+        style_tags: recommendation?.style_tags ?? savedOutfit?.style_tags ?? [],
+        outfit_dna: recommendation?.outfit_dna ?? {},
+        locked_features: recommendation?.locked_features ?? [],
+        image_direction: recommendation?.image_direction ?? {},
         generate_advice: needsAdvice,
       }),
     }).then((value) => {
       if (active) {
         if (value.replication_guide) setAiAdvice(value.replication_guide);
         if (value.outfit_analysis) setAiAnalysis(value.outfit_analysis);
-        setGeneratedImageUrl(apiAsset(value.image_url));
+        if (value.image_url) setGeneratedImageUrl(apiAsset(value.image_url));
+        setImageError(value.image_error ?? "");
+        setAdviceError(value.advice_error ?? "");
         setAdviceQuota(value.ai_quota);
         if (recommendation && value.replication_guide && value.outfit_analysis) try {
           localStorage.setItem("wearcue_active_outfit_v1", JSON.stringify({
@@ -120,7 +169,7 @@ export function OutfitDetailApp({ id }: { id: string }) {
       if (active) setAdviceDone(true);
     });
     return () => { active = false; };
-  }, [id, loading, recommendation, savedOutfit]);
+  }, [id, loading, recommendation, savedOutfit, detailAttempt]);
 
   const adviceLoading = Boolean(recommendation && recommendation.source === "ai" && !recommendation.replication_guide && !recommendation.outfit_analysis && !adviceDone);
 
@@ -131,29 +180,82 @@ export function OutfitDetailApp({ id }: { id: string }) {
   }, [adviceLoading]);
 
   if (!recommendation && loading) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>正在加载穿搭</h2></section></main>;
-  if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href="/closet">返回穿搭灵感</Link></section></main>;
+  const backHref = origin === "home" ? "/" : "/closet";
+  const backLabel = origin === "home" ? "首页" : "穿搭灵感";
+  if (!recommendation && !savedOutfit) return <main className="paper-page outfit-detail-page"><section className="paper-state"><span>穿搭详情</span><h2>这套穿搭不存在</h2><p>它可能已经被删除。</p><Link className="sunshine-button" href={backHref}>返回{backLabel}</Link></section></main>;
 
-  const items = [...(recommendation?.items ?? savedOutfit?.components ?? [])].sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
-  const audience = recommendation?.audience ?? savedOutfit?.audience ?? "mens";
-  const label = recommendation?.label ?? savedOutfit?.label ?? "今日穿搭";
-  const displayLabel = recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
-  const analysis = recommendation?.outfit_analysis ?? aiAnalysis ?? savedOutfit?.outfit_analysis ?? null;
+  // Once an outfit record has loaded, it is the source of truth for a
+  // photo-bound detail page. A matching cached home recommendation may carry
+  // weather-adapted placeholder items and must not override the photo data.
+  const audience = savedOutfit?.audience ?? recommendation?.audience ?? "mens";
+  const items = [...(savedOutfit?.components ?? recommendation?.items ?? [])]
+    .filter((item) => Boolean(resolveGarmentIcon(item, audience)))
+    .sort((a, b) => outfitItemSortKey(a) - outfitItemSortKey(b));
+  const label = displayOutfitLabel(savedOutfit?.label ?? recommendation?.label ?? "今日穿搭");
+  const displayLabel = savedOutfit ? label : recommendation ? label.trim().slice(0, 8) || "今日穿搭" : label;
+  const rawAnalysis = savedOutfit?.outfit_analysis ?? recommendation?.outfit_analysis ?? aiAnalysis ?? null;
+  const analysis = rawAnalysis ? {
+    summary: rawAnalysis.summary ?? "",
+    structure_points: rawAnalysis.structure_points ?? [],
+    completion_advice: rawAnalysis.completion_advice ?? [],
+  } : null;
   const originalImageUrl = savedOutfit?.inspiration_id ? apiAsset(`/inspirations/${savedOutfit.inspiration_id}/image?size=medium`) : "";
-  const imageUrl = originalImageUrl || generatedImageUrl;
+  const cachedDetailImageUrl = savedOutfit?.image_url ? apiAsset(savedOutfit.image_url) : "";
+  const imageUrl = originalImageUrl || cachedDetailImageUrl || generatedImageUrl;
   const showPhotoColumn = Boolean(imageUrl || imageError || (!savedOutfit?.inspiration_id && (recommendation || savedOutfit)));
   const imageLoading = showPhotoColumn && !imageUrl && !imageError && !adviceDone;
-  const guide = recommendation?.replication_guide ?? aiAdvice ?? savedOutfit?.replication_guide ?? {
-    formula: items.map((item) => item.variant_type).join("＋"),
-    steps: items.map((item) => `选择${thicknessLabel(item.thickness)}${item.variant_type}`),
-    styling_points: [], weather_note: "按当天体感增减外层。", substitute: "选择相同版型和薄厚的单品即可。",
-  };
+  const rawGuide = savedOutfit?.replication_guide ?? recommendation?.replication_guide ?? aiAdvice;
+  const guide = {
+    formula: rawGuide?.formula || items.map((item) => item.variant_type).join("＋"),
+    steps: rawGuide?.steps ?? items.map((item) => `选择${outfitThicknessLabel(item)}${item.variant_type}`),
+    styling_points: rawGuide?.styling_points ?? [],
+    weather_note: rawGuide?.weather_note || "按当天体感增减外层。",
+    substitute: rawGuide?.substitute || "选择相同版型和薄厚的单品即可。",
+  } satisfies ReplicationGuide;
   const steps = detailSteps(guide.steps, items);
+  async function saveRecommendation(inPool: boolean) {
+    if (!recommendation) return;
+    setSaveAction(inPool ? "pool" : "library");
+    setSaveMessage("");
+    try {
+      let outfit = savedOutfit;
+      if (!outfit) {
+        outfit = await apiJson<Outfit>("/outfits", { method: "POST", body: JSON.stringify(recommendationSavePayload(recommendation, guide, analysis, inPool)) });
+      } else if (inPool) {
+        outfit = await apiJson<Outfit>(`/outfits/${outfit.id}/status`, { method: "POST", body: JSON.stringify({ in_pool: !outfit.in_pool }) });
+      }
+      setSavedOutfit(outfit);
+      setSaveMessage("");
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "保存失败，请稍后重试");
+    } finally {
+      setSaveAction(null);
+    }
+  }
+  const isDefaultRecommendation = recommendation?.source === "official" || recommendation?.source === "system";
   return <main className="paper-page outfit-detail-page">
-    <Link className="outfit-detail-back" href={savedOutfit ? "/closet" : "/"}>← 返回{savedOutfit ? "穿搭灵感" : "今日推荐"}</Link>
+    <Link className="outfit-detail-back" href={backHref}>← 返回{backLabel}</Link>
     <header className="outfit-detail-head"><h1>{displayLabel}</h1><strong>{guide.formula}</strong></header>
     <div className="outfit-detail-layout">
       <section className={`outfit-detail-visual-card${showPhotoColumn ? "" : " icons-only"}`}>
-        {showPhotoColumn && <section className="outfit-detail-photo-card"><div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>{imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}</section>}
+        {showPhotoColumn && <section className="outfit-detail-photo-card">
+          <div className="card-caption">{originalImageUrl ? savedOutfit?.source === "system" ? "穿搭示例照片" : "穿搭照片" : "AI穿搭效果图"}</div>
+          {imageUrl ? <figure className="outfit-detail-photo"><img src={imageUrl} alt={`${label}穿搭参考`} />{savedOutfit?.source === "system" && <figcaption>例图由AI生成</figcaption>}</figure> : <div className="outfit-detail-photo-placeholder" role="status" aria-live="polite">{imageLoading ? <><b aria-hidden="true"><span className="recognition-dots"><i /><i /><i /></span></b><h3>正在生成穿搭效果图</h3><p>AI 正在还原人物、场景与整套衣物</p></> : <p className="cross-audience-notice" role="alert"><span className="cross-audience-notice-icon" aria-hidden="true">!</span><span className="cross-audience-notice-copy">{imageError}</span></p>}</div>}
+          {(imageError || adviceError) && adviceDone && <button className="outfit-save-secondary" type="button" onClick={() => setDetailAttempt((attempt) => attempt + 1)}>重新尝试生成</button>}
+          {recommendation && <div className="outfit-detail-photo-actions">
+            {isDefaultRecommendation
+              ? <span className="outfit-save-primary is-saved is-default" role="status">已在首页推荐</span>
+              : <span className="outfit-save-tooltip-wrap">
+                {!savedOutfit?.in_pool && <span className="outfit-save-tooltip" id="outfit-home-tooltip" role="tooltip">加入后，将在当天体感温度与场景匹配时优先推荐</span>}
+                <button className={`outfit-save-primary${savedOutfit?.in_pool ? " is-saved" : ""}`} type="button" aria-pressed={Boolean(savedOutfit?.in_pool)} aria-describedby={!savedOutfit?.in_pool ? "outfit-home-tooltip" : undefined} aria-label={savedOutfit?.in_pool ? "移出个人首页推荐" : "加入个人首页推荐"} disabled={Boolean(saveAction)} onClick={() => void saveRecommendation(true)}>{saveAction === "pool" ? savedOutfit?.in_pool ? "正在移出…" : "正在加入…" : savedOutfit?.in_pool ? "已加入个人首页推荐" : "加入个人首页推荐"}</button>
+              </span>}
+            <span className="outfit-save-tooltip-wrap">
+              {!savedOutfit && <span className="outfit-save-tooltip" id="outfit-save-tooltip" role="tooltip">保存后可在「穿搭灵感」中查看</span>}
+              <button className="outfit-save-secondary" type="button" aria-describedby={!savedOutfit ? "outfit-save-tooltip" : undefined} disabled={Boolean(saveAction || savedOutfit)} onClick={() => void saveRecommendation(false)}>{saveAction === "library" ? "正在保存…" : savedOutfit ? "已保存" : "保存到穿搭灵感"}</button>
+            </span>
+            {saveMessage && <p role="status">{saveMessage}</p>}
+          </div>}
+        </section>}
         <section className="outfit-detail-items"><div className="outfit-detail-grid">{items.map((item, index) => <article key={`${item.slot}-${index}`}><OutfitIcon item={item} audience={audience} /><strong>{item.variant_type}</strong></article>)}</div></section>
       </section>
       <section className="review-card outfit-detail-result-card">
@@ -186,5 +288,3 @@ export function OutfitDetailApp({ id }: { id: string }) {
     </div>
   </main>;
 }
-
-function thicknessLabel(value: string) { return ({ thin: "薄款", regular: "常规", thick: "厚款" } as Record<string, string>)[value] ?? value; }

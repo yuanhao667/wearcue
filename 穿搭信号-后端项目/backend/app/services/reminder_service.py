@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 from app.domain.weather_rules import WeatherInput
 from app.services.push_service import PushService, SubscriptionGoneError
 from app.services.recommendation_service import (
-    recommend_official_outfit,
     recommend_personal_outfit,
+    recommend_system_outfit,
     recommend_system_ai_outfit,
 )
 from app.services.store import store
@@ -81,6 +81,8 @@ async def _run_due_reminders_once() -> None:
             weather_input = WeatherInput(
                 apparent_min=weather["apparent_min"],
                 apparent_max=weather["apparent_max"],
+                current_temperature=weather.get("current_temperature"),
+                current_apparent_temperature=weather.get("current_apparent_temperature"),
                 max_precipitation_probability=weather["max_precipitation_probability"],
                 total_precipitation=weather["total_precipitation"],
                 total_snowfall=weather["total_snowfall"],
@@ -98,22 +100,24 @@ async def _run_due_reminders_once() -> None:
             if personal:
                 recommendation = personal
             else:
-                try:
-                    recommendation = recommend_system_ai_outfit(
-                        weather=weather_input,
-                        scene="commute",
-                        audience=user["audience"],
-                        city_id=user.get("city_id") or "unknown",
-                        local_date=weather["date"],
-                    )
-                except Exception:
-                    recommendation = recommend_official_outfit(
-                        weather=weather_input,
-                        scene="commute",
-                        audience=user["audience"],
-                        city_id=user.get("city_id") or "unknown",
-                        local_date=weather["date"],
-                    )
+                recommendation = recommend_system_outfit(
+                    weather=weather_input,
+                    scene="commute",
+                    audience=user["audience"],
+                    outfits=store.list_outfits(user_id=user["user_id"]),
+                )
+                if not recommendation:
+                    try:
+                        recommendation = recommend_system_ai_outfit(
+                            weather=weather_input,
+                            scene="commute",
+                            audience=user["audience"],
+                            city_id=user.get("city_id") or "unknown",
+                            local_date=weather["date"],
+                        )
+                    except Exception:
+                        # Pending legacy templates are intentionally not sent to users.
+                        continue
             message = _build_message(recommendation, weather)
 
             subscriptions = store.enabled_subscriptions(user["user_id"])

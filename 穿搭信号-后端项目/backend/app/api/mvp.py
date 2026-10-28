@@ -1,7 +1,8 @@
 import hashlib
+import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
@@ -30,6 +31,102 @@ from app.services.vision_service import VisionService, VisionServiceError
 
 router = APIRouter()
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024)))
+LEGACY_ICON_ONLY_LABELS = {
+    "mens": {"夏日通勤清爽"},
+    "womens": {"清凉通勤穿搭"},
+}
+
+
+def _with_existing_detail_image(outfit: dict, user_id: str) -> dict:
+    if outfit.get("inspiration_id"):
+        inspiration = store.get_inspiration(outfit["inspiration_id"], user_id)
+        if inspiration and inspiration.get("provider") == "system-ai-example":
+            return outfit | {"image_key": f"audience-example:{outfit.get('audience', 'mens')}"}
+        image_identity = (
+            inspiration.get("content_hash") if inspiration else None
+        ) or outfit["inspiration_id"]
+        return outfit | {"image_key": f"inspiration-content:{image_identity}"}
+    image_owner_id = outfit.get("recommendation_id") or outfit["id"]
+    cached = store.get_latest_outfit_image(user_id, image_owner_id)
+    if cached:
+        return outfit | {
+            "image_key": f"recommendation:{cached['recommendation_id']}",
+            "image_url": f"/recommendations/{cached['recommendation_id']}/image",
+        }
+    audience = outfit.get("audience", "mens")
+    if outfit.get("label") in LEGACY_ICON_ONLY_LABELS.get(audience, set()):
+        example = store.get_inspiration_by_key(
+            f"system-ai-example-v1-{audience}", user_id
+        )
+        example_outfit = store.get_user_example_outfit(
+            user_id, audience
+        )
+        if example and example_outfit:
+            # Legacy cards that had only garment icons now reuse the complete example
+            # record behind the detail photo. Keep the user's id/state, while merging
+            # the photo-bound content so image, season and copy cannot contradict.
+            return outfit | {
+                "label": example_outfit["label"],
+                "components": example_outfit["components"],
+                "scene_ids": example_outfit["scene_ids"],
+                "season": example_outfit["season"],
+                "style_tags": example_outfit["style_tags"],
+                "suitable_min": example_outfit["suitable_min"],
+                "suitable_max": example_outfit["suitable_max"],
+                "outfit_analysis": example_outfit["outfit_analysis"],
+                "replication_guide": example_outfit["replication_guide"],
+                "image_key": f"audience-example:{audience}",
+                "image_url": f"/inspirations/{example['id']}/image?size=medium",
+            }
+    # Legacy plans without their own photo all render the same audience fallback
+    # in the discovery grid. Treat that rendered photo as the identity as well,
+    # otherwise several different stale records become visibly duplicated cards.
+    return outfit | {"image_key": f"audience-example:{audience}"}
+
+
+def _deduplicate_outfits(outfits: list[dict]) -> list[dict]:
+    result: list[dict] = []
+    identity_indexes: dict[str, int] = {}
+
+    def priority(outfit: dict) -> tuple[bool, bool, str]:
+        # A real upload/system asset wins over the old visual-only fallback.
+        # Within equally real records, keep personal/favorited and newer items.
+        has_bound_image = bool(outfit.get("inspiration_id") or outfit.get("image_url"))
+        is_personal = outfit.get("source") != "system" or bool(outfit.get("favorite"))
+        return has_bound_image, is_personal, str(outfit.get("updated_at") or "")
+
+    for outfit in outfits:
+        image_key = outfit.get("image_key")
+        if image_key:
+            identity = f"image:{image_key}"
+        else:
+            components = [
+                {
+                    key: component.get(key)
+                    for key in (
+                        "slot", "functional_icon_key", "asset_key", "variant_type",
+                        "color_name", "color_value", "thickness",
+                    )
+                }
+                for component in outfit.get("components", [])
+            ]
+            content = {
+                "label": outfit.get("label"),
+                "audience": outfit.get("audience"),
+                "components": components,
+                "scene_ids": outfit.get("scene_ids", []),
+                "season": outfit.get("season"),
+                "style_tags": outfit.get("style_tags", []),
+            }
+            encoded = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            identity = f"content:{hashlib.sha256(encoded.encode('utf-8')).hexdigest()}"
+        existing_index = identity_indexes.get(identity)
+        if existing_index is None:
+            identity_indexes[identity] = len(result)
+            result.append(outfit)
+        elif priority(outfit) > priority(result[existing_index]):
+            result[existing_index] = outfit
+    return result
 
 
 def _image_type(content: bytes) -> Optional[tuple[str, str]]:
@@ -58,28 +155,71 @@ async def save_user_settings(payload: SettingsUpdate, user: CurrentUser) -> dict
 @router.get("/outfits", tags=["outfits"])
 async def list_outfits(
     user: CurrentUser,
-    in_pool: Optional[bool] = Query(default=None)
+    in_pool: Optional[bool] = Query(default=None),
+    tab: Literal["all", "mine"] = Query(default="all"),
+    season: Optional[Literal["spring-autumn", "summer", "winter"]] = Query(default=None),
+    scene: Optional[Literal["commute", "date", "travel"]] = Query(default=None),
+    style: Optional[Literal["minimal", "casual", "street", "sport", "outdoor"]] = Query(default=None),
 ) -> list:
     audience = store.get_settings(user["id"])["audience"]
-    return [
+    outfits = [
         outfit for outfit in store.list_outfits(in_pool=in_pool, user_id=user["id"])
-        if outfit["source"] != "system" or outfit["audience"] == audience
+        if outfit["audience"] == audience
     ]
+    outfits = [_with_existing_detail_image(outfit, user["id"]) for outfit in outfits]
+    if tab == "mine":
+        outfits = [
+            outfit for outfit in outfits
+            if outfit["source"] != "system" or outfit["favorite"]
+        ]
+    if season:
+        outfits = [outfit for outfit in outfits if outfit["season"] == season]
+    if scene:
+        outfits = [outfit for outfit in outfits if scene in outfit["scene_ids"]]
+    if style:
+        outfits = [outfit for outfit in outfits if style in outfit["style_tags"]]
+    return _deduplicate_outfits(
+        sorted(
+            outfits,
+            key=lambda outfit: (
+                outfit["source"] != "system" or outfit["favorite"],
+                outfit["updated_at"],
+            ),
+            reverse=True,
+        )
+    )
 
 
 @router.post("/outfits", tags=["outfits"])
 async def create_outfit(payload: OutfitSaveRequest, user: CurrentUser) -> dict:
     if payload.suitable_min > payload.suitable_max:
         raise HTTPException(422, "适用最低温不能高于最高温")
-    return store.save_outfit(payload.model_dump() | {"source": "manual"}, user_id=user["id"])
+    existing = (
+        store.get_outfit_by_recommendation(payload.recommendation_id, user["id"])
+        if payload.recommendation_id else None
+    )
+    outfit_id = existing["id"] if existing else (
+        "outfit_" + hashlib.sha256(
+            f"{user['id']}:{payload.recommendation_id}".encode("utf-8")
+        ).hexdigest()[:12]
+        if payload.recommendation_id else None
+    )
+    outfit = store.save_outfit(
+        payload.model_dump() | {"source": "manual"},
+        outfit_id=outfit_id,
+        user_id=user["id"],
+    )
+    return _with_existing_detail_image(outfit, user["id"])
 
 
 @router.get("/outfits/{outfit_id}", tags=["outfits"])
 async def get_outfit(outfit_id: str, user: CurrentUser) -> dict:
-    outfit = store.get_outfit(outfit_id, user["id"])
+    outfit = store.get_outfit(outfit_id, user["id"]) or store.get_outfit_by_recommendation(
+        outfit_id, user["id"]
+    )
     if not outfit:
         raise HTTPException(404, "穿搭不存在")
-    return outfit
+    return _with_existing_detail_image(outfit, user["id"])
 
 
 @router.delete("/outfits/{outfit_id}", tags=["outfits"])
@@ -93,7 +233,8 @@ async def delete_outfit(outfit_id: str, user: CurrentUser) -> dict:
 async def update_outfit_status(outfit_id: str, payload: OutfitStatusRequest, user: CurrentUser) -> dict:
     if not store.get_outfit(outfit_id, user["id"]):
         raise HTTPException(404, "穿搭不存在")
-    return store.update_outfit_status(outfit_id, payload.model_dump(exclude_none=True), user["id"])
+    outfit = store.update_outfit_status(outfit_id, payload.model_dump(exclude_none=True), user["id"])
+    return _with_existing_detail_image(outfit, user["id"])
 
 
 @router.get("/inspirations", tags=["inspirations"])
@@ -121,19 +262,18 @@ async def upload_inspiration(
         return existing | {"deduplicated": True}
     media_type, _ = detected
     try:
-        paths = ImageService(store.upload_dir).process_and_store(content, digest)
+        result = store.create_inspiration(
+            {
+                "upload_key": key, "content_hash": digest,
+                "original_name": Path(image.filename or "upload").name[:180],
+                "media_type": media_type,
+            },
+            user["id"], image_data=content,
+        )
     except ImagePixelLimitError as exc:
         raise HTTPException(413, "图片分辨率过高，请压缩后再上传") from exc
     except Exception as exc:
         raise HTTPException(415, "图片内容已损坏或无法解析") from exc
-    result = store.create_inspiration(
-        {
-            "upload_key": key, "content_hash": digest,
-            "original_name": Path(image.filename or "upload").name[:180],
-            "media_type": media_type, "file_path": paths["original"],
-        },
-        user["id"],
-    )
     return result | {"deduplicated": False}
 
 
@@ -166,7 +306,7 @@ async def inspiration_image(
 
 @router.post("/inspirations/{inspiration_id}/analyze", tags=["inspirations"])
 async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
-    if not store.get_inspiration(inspiration_id, user["id"]):
+    if not store.get_owned_inspiration(inspiration_id, user["id"]):
         raise HTTPException(404, "识别任务不存在")
     local_date = user_local_date(store.get_settings(user["id"]).get("timezone"))
     reservation_id = store.reserve_ai_usage(user["id"], local_date, "vision")
@@ -177,7 +317,8 @@ async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
     if medium_path and medium_path.is_file():
         path = medium_path
     try:
-        result = await VisionService().analyze(path)
+        settings = store.get_settings(user["id"])
+        result = await VisionService().analyze(path, settings.get("audience"))
     except VisionServiceError as exc:
         store.release_ai_usage(reservation_id)
         raise HTTPException(503, str(exc)) from exc
@@ -185,6 +326,15 @@ async def analyze_inspiration(inspiration_id: str, user: CurrentUser) -> dict:
         store.release_ai_usage(reservation_id)
         raise
     remaining = store.get_ai_quota(user["id"], local_date, "vision")["remaining"]
+    if result.get("no_outfit") or not result.get("components"):
+        # 无关图片：识别已经真实发生，照常计入当日次数，只额外标记结果供前端提示。
+        result = store.set_analysis(
+            inspiration_id,
+            {**result, "no_outfit": True, "components": []},
+            "external",
+            user["id"],
+        )
+        return result | {"remaining_analyses": remaining}
     result = store.set_analysis(inspiration_id, result, "external", user["id"])
     return result | {"remaining_analyses": remaining}
 
@@ -210,7 +360,7 @@ async def generate_inspiration_name(inspiration_id: str, user: CurrentUser) -> d
 
 @router.post("/inspirations/{inspiration_id}/confirm", tags=["inspirations"])
 async def confirm_inspiration(inspiration_id: str, payload: InspirationConfirmRequest, user: CurrentUser) -> dict:
-    inspiration = store.get_inspiration(inspiration_id, user["id"])
+    inspiration = store.get_owned_inspiration(inspiration_id, user["id"])
     if not inspiration:
         raise HTTPException(404, "识别任务不存在")
     if inspiration["status"] not in {"needs_review", "ready"}:
@@ -219,6 +369,9 @@ async def confirm_inspiration(inspiration_id: str, payload: InspirationConfirmRe
     values = payload.model_dump() | {"source": "inspiration", "inspiration_id": inspiration_id}
     if existing:
         values["in_pool"] = existing["in_pool"] or values["in_pool"]
+    else:
+        # A confirmed upload always enters the first-priority personal pool.
+        values["in_pool"] = True
     outfit = store.save_outfit(
         values, existing["id"] if existing else None, user["id"]
     )

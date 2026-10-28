@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppNav } from "@/components/AppNav";
+import { SessionGuard } from "@/components/SessionGuard";
 
 export const metadata: Metadata = {
   title: "WearCue｜每天少想一件事：穿什么。",
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <SessionGuard />
         <a className="skip-link" href="#main-content">跳到主要内容</a>
         <AppNav />
         <div id="main-content" tabIndex={-1}>{children}</div>

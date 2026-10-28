@@ -1,5 +1,7 @@
 import { SettingsApp } from "@/components/SettingsApp";
+import { requireSession } from "@/lib/server-auth";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requireSession();
   return <SettingsApp />;
 }
