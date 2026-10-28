@@ -1,6 +1,67 @@
 import { describe, expect, it } from "vitest";
 import type { BackendRecommendation, BackendSettings, TodayWeather } from "@/domain/backend";
-import { activeAIRecommendationForContext, homeSwapStatus, outfitDetailActionLabel, requestFrom, withSceneRecommendation, withSeenRecommendation } from "./TodayApp";
+import { activeAIRecommendationForContext, homeHeadline, homeSwapStatus, outfitDetailActionLabel, requestFrom, withSceneRecommendation, withSeenRecommendation } from "./TodayApp";
+
+describe("home headline", () => {
+  const weather = { weather_code: 0, total_precipitation: 0, total_snowfall: 0 } as TodayWeather;
+  const recommendation = {
+    label: "浅灰工装日常 03",
+    constraints: { thermal_band: "mild", apparent_delta: 4, needs_waterproof: false, needs_windproof: false },
+  } as BackendRecommendation;
+
+  it("waits for real weather and a recommendation", () => {
+    expect(homeHeadline(null, null).secondLine).toBe("看看今天的穿搭建议");
+    expect(homeHeadline(weather, null).secondLine).toBe("看看今天的穿搭建议");
+  });
+
+  it.each([
+    [{ total_snowfall: 1, total_precipitation: 2 }, "今日有雪"],
+    [{ weather_code: 85 }, "今日有雪"],
+    [{ weather_code: 95 }, "今日有雨"],
+    [{ total_precipitation: 1 }, "今日有雨"],
+  ])("prioritizes precipitation over temperature for %j", (patch, expected) => {
+    const coldDay = { ...recommendation, constraints: { ...recommendation.constraints, thermal_band: "severe", apparent_delta: 12 } };
+    expect(homeHeadline({ ...weather, ...patch }, coldDay).firstLine).toBe(expected);
+  });
+
+  it.each([
+    [{ needs_waterproof: true }, "今日可能有雨"],
+    [{ apparent_delta: 8 }, "今日温差大"],
+    [{ apparent_delta: 7.9 }, "今日晴朗"],
+    [{ thermal_band: "cold" }, "今日偏冷"],
+    [{ thermal_band: "freezing" }, "今日偏冷"],
+    [{ thermal_band: "hot" }, "今日偏热"],
+  ])("uses existing weather constraints for %j", (patch, expected) => {
+    expect(homeHeadline(weather, { ...recommendation, constraints: { ...recommendation.constraints, ...patch } }).firstLine).toBe(expected);
+  });
+
+  it("uses the current outfit name without its legacy sequence", () => {
+    expect(homeHeadline(weather, recommendation).secondLine).toBe("试试这套浅灰工装日常");
+    expect(homeHeadline(weather, { ...recommendation, label: "轻盈运动风" }).secondLine).toBe("试试这套轻盈运动风");
+    expect(homeHeadline(weather, { ...recommendation, label: "" }).secondLine).toBe("试试这套今日推荐");
+  });
+
+  it("caps the nickname and preserves the full current outfit title", () => {
+    const rainyDay = { ...recommendation, label: "浅色工装风穿搭", constraints: { ...recommendation.constraints, needs_waterproof: true } };
+    const headline = homeHeadline(weather, rainyDay, "五个字的名");
+    expect(headline).toEqual({ firstLine: "五个字的名，今日可能有雨", secondLine: "试试这套浅色工装风穿搭", secondLineHighlight: "浅色工装风穿搭" });
+    expect(Array.from(headline.firstLine).length).toBeLessThanOrEqual(12);
+    const fullTitle = "冬日通勤温暖保暖叠穿搭配";
+    const longText = homeHeadline(weather, { ...rainyDay, label: fullTitle }, "这是超过五字的昵称");
+    expect(Array.from(longText.firstLine).length).toBeLessThanOrEqual(12);
+    expect(longText.secondLineHighlight).toBe(fullTitle);
+    expect(longText.secondLine).toBe(`试试这套${fullTitle}`);
+    expect(homeHeadline(weather, recommendation, "圆号").firstLine).toBe("圆号，今日晴朗");
+    expect(homeHeadline(weather, recommendation).firstLine).toBe("今日晴朗");
+  });
+
+  it("does not append style or clothing words to the recommendation title", () => {
+    const headline = homeHeadline(weather, { ...recommendation, label: "浅灰工装日常" });
+    expect(headline.secondLineHighlight).toBe("浅灰工装日常");
+    expect(headline.secondLine).toBe(`试试这套${headline.secondLineHighlight}`);
+    expect(homeHeadline(weather, { ...recommendation, label: "复古街头穿搭" }).secondLineHighlight).toBe("复古街头穿搭");
+  });
+});
 
 describe("home swap progress", () => {
   it("uses cached context and rotates AI generation copy", () => {

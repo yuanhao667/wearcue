@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
-import { nextSettingsNudgeVisit } from "./AppNav";
+import { afterEach, expect, it, vi } from "vitest";
+import { profileSnapshot, subscribeProfile } from "./AppNav";
 
-describe("settings nudge visits", () => {
-  it("shows only for the first three product entries", () => {
-    expect(nextSettingsNudgeVisit(null)).toEqual({ visits: 1, visible: true });
-    expect(nextSettingsNudgeVisit("2")).toEqual({ visits: 3, visible: true });
-    expect(nextSettingsNudgeVisit("3")).toEqual({ visits: 4, visible: false });
-  });
+afterEach(() => localStorage.clear());
+it("updates the navigation profile when the account changes", () => {
+  const callback = vi.fn();
+  const unsubscribe = subscribeProfile(callback);
+  localStorage.setItem("wearcue_profile_v1", '{"id":"another-user"}');
+  window.dispatchEvent(new Event("wearcue-profile"));
+  expect(callback).toHaveBeenCalledOnce();
+  expect(profileSnapshot()).toContain("another-user");
+  unsubscribe();
+  window.dispatchEvent(new Event("wearcue-profile"));
+  expect(callback).toHaveBeenCalledOnce();
 });

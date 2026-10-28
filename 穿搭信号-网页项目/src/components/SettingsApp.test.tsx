@@ -22,6 +22,8 @@ it("stacks reminder and account cards in the right settings column", async () =>
     : { city_name: "北京市", timezone: "Asia/Shanghai", height_group: "中等", weight_group: "中等", cold_offset: 0, audience: "womens", reminder_enabled: false });
   const { container } = render(<SettingsApp />);
   await screen.findByText("常用城市");
+  expect(screen.getByText("北京时间（UTC+8）")).toBeInTheDocument();
+  expect(screen.queryByText("Asia/Shanghai")).not.toBeInTheDocument();
   const preferences = screen.getByRole("region", { name: "偏好设置" });
   const system = screen.getByRole("region", { name: "系统设置" });
   expect(screen.queryByRole("heading", { name: "偏好设置" })).not.toBeInTheDocument();

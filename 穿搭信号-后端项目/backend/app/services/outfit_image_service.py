@@ -14,7 +14,7 @@ from .outfit_ai_service import scene_context_for
 from .style_guidance import style_guidance
 
 logger = logging.getLogger(__name__)
-DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.2"
+DETAIL_IMAGE_PROMPT_VERSION = "wearcue-detail-image-v3.4"
 
 
 class OutfitImageServiceError(RuntimeError):
@@ -134,8 +134,22 @@ class OutfitImageService:
         must_show = "；".join(str(value) for value in (locked_features or []))
         style_names = "、".join(style_tags or []) or "由服装廓形自然决定"
         guidance = style_guidance(audience, style_tags or [])
+        height_description = {
+            "偏矮": "身材相对矮小，保持自然的头身和四肢比例，不拉成长腿高个模特",
+            "中等": "身高中等，头身与四肢比例自然",
+            "偏高": "身材相对高挑，躯干与四肢自然修长，不靠低机位或拉伸制造高个",
+        }[person_profile["height_group"]]
+        build_description = {
+            "偏轻": "体型偏瘦，躯干与四肢围度较纤细",
+            "偏瘦": "体型偏瘦，躯干与四肢围度较纤细",
+            "稍瘦": "体型略瘦，比中等体型稍纤细，不画成极瘦",
+            "中等": "体型中等，躯干与四肢围度适中",
+            "稍重": "体型略丰润，腰腹与四肢围度比中等稍大，不通过宽松衣服代替真实体型",
+            "偏重": "体型较丰润，保留腰腹、上臂和腿部的真实体积，不自动瘦身",
+        }[person_profile["weight_group"]]
         prompt = (
-            self.prompt
+            f"用户已保存的体型设定：{person_profile['height_group']}身高、{person_profile['weight_group']}体型。{height_description}；{build_description}。\n\n"
+            + self.prompt
             + f"\n\n本次主题：{label}。人物："
             + ("青年感中国男性" if audience == "mens" else "青年感中国女性")
             + f"，{person_profile['height_group']}身高、{person_profile['weight_group']}体型。保持该体型的真实轮廓，不夸张拉伸高矮或改变体型。"

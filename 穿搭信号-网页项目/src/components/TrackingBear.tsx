@@ -22,10 +22,11 @@ export function TrackingBear() {
     let frame = 0;
     let previousTime = 0;
     let visible = true;
+    let activated = false;
     let disposed = false;
     let currentX = 0, currentY = 0, targetX = 0, targetY = 0;
     let lastPointer: { x: number; y: number } | null = null;
-    const enabled = () => !motion.matches && pointer.matches && visible && !document.hidden;
+    const enabled = () => activated && !motion.matches && pointer.matches && visible && !document.hidden;
 
     const animate = (time: number) => {
       frame = 0;
@@ -54,6 +55,12 @@ export function TrackingBear() {
       targetX = Math.tanh(dx / Math.max(bounds.width * 0.7, 180));
       targetY = Math.tanh(dy / Math.max(bounds.height * 0.8, 140));
       schedule();
+    };
+    const activate = (event: PointerEvent) => {
+      if (event.pointerType === "touch" || activated) return;
+      activated = true;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      refresh();
     };
     const move = (event: PointerEvent) => {
       if (event.pointerType === "touch") return;
@@ -89,6 +96,7 @@ export function TrackingBear() {
         }).catch(() => { loading = false; failed = true; });
       }
     };
+    container.addEventListener("pointerenter", activate, { passive: true });
     refresh();
     const resize = new ResizeObserver(refresh);
     resize.observe(container);
@@ -109,6 +117,7 @@ export function TrackingBear() {
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
+      container.removeEventListener("pointerenter", activate);
       resize.disconnect();
       intersection.disconnect();
       window.removeEventListener("pointermove", move);
