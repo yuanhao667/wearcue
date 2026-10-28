@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/readme-preview/images/wearcue-logo.png" width="360" alt="WearCue 文字 Logo">
+<img src="穿搭信号-网页项目/public/brand/wearcue-logo-20260828.png" width="360" alt="WearCue 文字 Logo">
 
 **每天少想一件事，穿什么。**
 
@@ -45,19 +45,19 @@ WearCue 是一款结合天气与生活场景的 AI 穿搭助手。
 
 出门前，看看当天适合穿什么。WearCue 结合逐小时天气与当天体感温度，支持在通勤、约会和出行之间切换，让搭配符合今天的安排。
 
-![今日穿搭，根据天气与通勤、约会、出行场景推荐整套搭配](穿搭信号-网页项目/public/product/today-outfit.png)
+![今日穿搭，根据天气与通勤、约会、出行场景推荐整套搭配](docs/readme-images/today-outfit.png)
 
 ### 个人穿搭灵感
 
 把自己的穿搭照或喜欢的搭配图片上传，AI 会识别服装款式、颜色与薄厚，并给出适用温度范围。确认或调整识别结果后，就能保存整套穿搭，并加入首页推荐，在体感温度和场景匹配时再次用上。
 
-![照片识别入口，选择一张穿搭照片并上传识别](穿搭信号-网页项目/public/product/photo-recognition.png)
+![照片识别入口，选择一张穿搭照片并上传识别](docs/readme-images/photo-recognition.png)
 
 ### AI 穿搭建议
 
 看到一套喜欢的穿搭后，还需要知道怎么穿。WearCue 通过 AI 生成穿搭名称、搭配分析与具体步骤，并为系统推荐生成穿搭效果图，将示例照片、单品清单和搭配说明放在一起。
 
-![穿搭方案，以高山机能徒步为例展示单品、穿搭步骤、温度调整与替代建议](穿搭信号-网页项目/public/product/outfit-guide.png)
+![穿搭方案，以高山机能徒步为例展示单品、穿搭步骤、温度调整与替代建议](docs/readme-images/outfit-guide.png)
 
 ### 穿搭库管理
 
@@ -84,36 +84,3 @@ WearCue 是一款结合天气与生活场景的 AI 穿搭助手。
 [在线体验](https://ss2fri90im8h5gjbjf5c8.apigateway-cn-beijing.volceapi.com/) · [反馈问题](https://github.com/yuanhao667/wearcue/issues)
 
 </div>
-
-
-## 本地开发
-
-前端使用 Next.js / React / TypeScript，后端使用 FastAPI / SQLite。
-
-1. 按 [后端说明](穿搭信号-后端项目/README.md) 创建 Python 3.11–3.13 虚拟环境，安装依赖并启动后端（端口 8000）。
-2. 启动前端（需要 Node.js 20.9+，使用 `package.json` 指定的 pnpm 版本）：
-
-```bash
-cd 穿搭信号-网页项目
-cp .env.example .env.local
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-打开 <http://localhost:3456>。注册需要后端配置的邀请码；本地可用 `EMAIL_DELIVERY_MODE=console` 调试验证码。生产邮件、视觉识别和 AI 生图需要单独配置服务凭据，参见后端 `.env.example`。真实 `.env`、密钥、数据库和用户上传图片不应提交到 Git。
-
-## 验证
-
-```bash
-# 在前端目录运行
-pnpm test
-pnpm lint
-pnpm typecheck
-pnpm build
-
-# 在后端目录运行（已激活虚拟环境）
-python -m pip install pytest
-PYTHONPATH=backend python -m pytest backend/tests -q
-```
-
-本次体验优化及验证结果见 [更新说明](CHANGELOG.md)。
